@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 248, 250, 252; /* Slate-50 */
+  --foreground: 15, 23, 42;    /* Slate-900 */
+}
+
+.dark {
+  --background: 15, 23, 42;    /* Slate-900 */
+  --foreground: 248, 250, 252; /* Slate-50 */
+}
+
+body {
+  color: rgb(var(--foreground));
+  background-color: rgb(var(--background));
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 10;
+}
+
+/* Modern SaaS Card Utilities */
+@layer components {
+  .saas-card {
+    @apply bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-600 shadow-soft dark:shadow-dark-soft p-6 transition-all duration-300 hover:shadow-lg;
+  }
+
+  .saas-input {
+    @apply mt-1 block w-full rounded-xl
+           border border-gray-300 dark:border-slate-500
+           bg-white dark:bg-slate-700
+           text-gray-900 dark:text-white
+           placeholder-gray-400 dark:placeholder-slate-400
+           p-3 shadow-sm
+           focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30
+           focus:outline-none
+           transition-colors;
+  }
+
+  .saas-button {
+    @apply w-full flex justify-center py-3 px-4 rounded-xl shadow-sm text-sm font-semibold text-white bg-primary-600 hover:bg-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-600 dark:focus:ring-offset-slate-900;
+  }
+
+  .input-field {
+    @apply w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 outline-none transition placeholder-gray-400 dark:placeholder-slate-500;
+  }
+
+  .label-xs {
+    @apply text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block;
+  }
+}
