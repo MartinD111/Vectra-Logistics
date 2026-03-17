@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Eye, EyeOff, Loader2, Truck, Package, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth, UserRole } from '@/context/AuthContext';
 
@@ -108,7 +109,14 @@ export default function AuthPage() {
           style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 80%, white 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
 
         <div>
-          <span className="text-3xl font-black text-white tracking-tight">VECTRA</span>
+          <Image
+            src="/logo.png"
+            alt="VECTRA Logo"
+            width={160}
+            height={48}
+            className="h-10 w-auto object-contain brightness-0 invert"
+            priority
+          />
           <p className="text-primary-100 mt-2 text-sm font-medium">Intelligent Freight Marketplace</p>
         </div>
 

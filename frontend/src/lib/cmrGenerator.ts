@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 
-export type CargoType = 'general' | 'bulk' | 'adr' | 'frigo' | 'oversized';
+export type CargoType = 'general' | 'adr' | 'frigo' | 'high_value' | 'oversized';
 
 export interface GoodsItem {
   id: string;
@@ -33,8 +33,24 @@ export interface CmrData {
   plate?: string;
   cmrId: string;
   cargoType?: CargoType;
-  adrClass?: string;
+  // ADR
+  unNumber?: string;
+  officialName?: string;
+  hazardLabel?: string;
+  packingGroup?: string;
+  tunnelCode?: string;
+  netWeightADR?: string;
+  grossWeightADR?: string;
+  // Frigo
   temperature?: string;
+  coolingInstructions?: string;
+  loadingTime?: string;
+  unloadingTime?: string;
+  // High Value
+  declaredValue?: string;
+  // Oversized
+  dimensions?: { l: string; w: string; h: string };
+  permitNumber?: string;
   specialNotes?: string;
 }
 
@@ -62,9 +78,9 @@ export interface Vehicle {
 
 export const CARGO_TYPE_LABELS: Record<CargoType, string> = {
   general: 'General Cargo',
-  bulk: 'Bulk Cargo',
   adr: 'Dangerous Goods (ADR)',
-  frigo: 'Temperature Controlled (Frigo)',
+  frigo: 'Perishable (Frigo/Termo)',
+  high_value: 'High Value Cargo',
   oversized: 'Oversized Cargo',
 };
 
@@ -83,8 +99,15 @@ export const TEMPLATE_FIELD_KEYS = [
   { key: 'marks', label: 'Marks' },
   { key: 'hsCode', label: 'HS Code' },
   { key: 'instructions', label: 'Instructions' },
-  { key: 'adrClass', label: 'ADR Classification' },
-  { key: 'temperature', label: 'Temperature Range' },
+  { key: 'unNumber', label: 'UN Number' },
+  { key: 'officialName', label: 'Official Transport Name' },
+  { key: 'hazardLabel', label: 'Hazard Label' },
+  { key: 'packingGroup', label: 'Packing Group' },
+  { key: 'tunnelCode', label: 'Tunnel Code' },
+  { key: 'temperature', label: 'Required Temperature' },
+  { key: 'coolingInstructions', label: 'Cooling Instructions' },
+  { key: 'declaredValue', label: 'Declared Value' },
+  { key: 'permitNumber', label: 'Permit Number' },
   { key: 'specialNotes', label: 'Special Notes' },
 ];
 
@@ -158,14 +181,17 @@ function drawLoadingListPage(
   doc.setDrawColor(0).rect(m, tableY, cw, y - tableY + rowH + 2);
   y += rowH + 8;
 
-  if (data.cargoType === 'adr' && data.adrClass) {
-    doc.setFontSize(8).setTextColor(200, 0, 0).text(`ADR: ${data.adrClass}`, m, y); y += 7;
+  if (data.cargoType === 'adr' && data.unNumber) {
+    doc.setFontSize(8).setTextColor(200, 0, 0).text(`ADR: ${data.unNumber} ${data.officialName || ''}`, m, y); y += 7;
   }
   if (data.cargoType === 'frigo' && data.temperature) {
     doc.setFontSize(8).setTextColor(0, 80, 200).text(`Temperature: ${data.temperature}`, m, y); y += 7;
   }
-  if (data.cargoType === 'oversized' && data.specialNotes) {
-    doc.setFontSize(8).setTextColor(120, 0, 180).text(`Special: ${data.specialNotes}`, m, y);
+  if (data.cargoType === 'oversized' && (data.specialNotes || data.dimensions)) {
+    let txt = 'Special: ';
+    if (data.dimensions) txt += `${data.dimensions.l}x${data.dimensions.w}x${data.dimensions.h}m `;
+    txt += (data.specialNotes || '');
+    doc.setFontSize(8).setTextColor(120, 0, 180).text(txt, m, y);
   }
 
   const yFoot = 280;
@@ -194,7 +220,7 @@ function drawGoodsCMR(
 
   if (data.cargoType && data.cargoType !== 'general') {
     const badgeColors: Record<string, [number,number,number]> = {
-      bulk: [100, 70, 10], adr: [200, 20, 20], frigo: [0, 90, 200], oversized: [90, 20, 160],
+      adr: [200, 20, 20], frigo: [0, 90, 200], oversized: [90, 20, 160], high_value: [210, 150, 0]
     };
     const bc = badgeColors[data.cargoType] || [80,80,80];
     doc.setFontSize(7).setTextColor(...bc)
@@ -212,8 +238,11 @@ function drawGoodsCMR(
   drawBox(doc, m, yS + 45, cw, 30, '3. Place of delivery', data.delivery, cp.c, true, 8);
   drawBox(doc, m, yS + 75, cw, 15, '4. Place and date of loading', `${data.loading} — ${data.date}`, cp.c);
 
+  const adrSummary = data.cargoType === 'adr'
+    ? `${data.unNumber || ''} ${data.officialName || ''}\nLabel: ${data.hazardLabel || ''}, PG: ${data.packingGroup || ''}, Tunnel: ${data.tunnelCode || ''}`
+    : '';
   const docs5 = data.cargoType === 'adr'
-    ? `Loading list\nADR: ${data.adrClass || 'see attached'}`
+    ? `Loading list\nADR: ${adrSummary}`
     : 'Loading list';
   drawBox(doc, m, yS + 90, cw, 15, '5. Documents attached', docs5, cp.c);
 
@@ -223,8 +252,14 @@ function drawGoodsCMR(
   drawBox(doc, m + cw, yS + 75, cw, 15, "18. Carrier's reservations", '', cp.c);
 
   let box19 = '';
-  if (data.cargoType === 'frigo' && data.temperature) box19 = `Temperature: ${data.temperature}`;
-  drawBox(doc, m + cw, yS + 90, cw, 15, '19. Special agreements', box19, cp.c);
+  if (data.cargoType === 'frigo') {
+    if (data.temperature) box19 += `Target Temp: ${data.temperature}\n`;
+    if (data.coolingInstructions) box19 += `${data.coolingInstructions}\n`;
+    if (data.loadingTime || data.unloadingTime) box19 += `Times: L:${data.loadingTime || '-'} / U:${data.unloadingTime || '-'}`;
+  } else if (data.cargoType === 'high_value' && data.declaredValue) {
+    box19 = `DECLARED VALUE: ${data.declaredValue}`;
+  }
+  drawBox(doc, m + cw, yS + 90, cw, 15, '19. Special agreements', box19.trim(), cp.c, false, 7);
 
   // Goods table
   const hList = 75, yList = yS + 105;
@@ -257,15 +292,31 @@ function drawGoodsCMR(
     m + 55, cy + 5
   );
 
-  if (data.cargoType === 'oversized' && data.specialNotes && cy + 10 < yList + hList - 2) {
-    doc.setFontSize(7).setTextColor(120, 0, 180).text(`Special: ${data.specialNotes}`, m + 2, cy + 10);
+  if (data.cargoType === 'oversized' && (data.specialNotes || data.dimensions) && cy + 10 < yList + hList - 2) {
+    let txt = 'Oversized: ';
+    if (data.dimensions) txt += `${data.dimensions.l}x${data.dimensions.w}x${data.dimensions.h}m `;
+    txt += (data.specialNotes || '');
+    doc.setFontSize(7).setTextColor(120, 0, 180).text(txt, m + 2, cy + 10);
     doc.setTextColor(0);
   }
 
   const yBot = yList + hList;
   let instrTxt = data.instr || '';
-  if (data.cargoType === 'adr' && data.adrClass) instrTxt = `DANGEROUS GOODS (ADR)\n${data.adrClass}\n\n${instrTxt}`;
-  if (data.cargoType === 'oversized' && data.specialNotes) instrTxt = `SPECIAL TRANSPORT:\n${data.specialNotes}\n\n${instrTxt}`;
+  if (data.cargoType === 'adr' && data.unNumber) {
+    const adrRow = `ADR: ${data.unNumber} ${data.officialName || ''}, Class ${data.hazardLabel || ''}, PG ${data.packingGroup || ''}, Tunnel ${data.tunnelCode || ''}`;
+    const netRow = data.netWeightADR ? `Net ADR Weight: ${data.netWeightADR}` : '';
+    const grossRow = data.grossWeightADR ? `Gross ADR Weight: ${data.grossWeightADR}` : '';
+    const weightInfo = [netRow, grossRow].filter(Boolean).join(' | ');
+    instrTxt = `DANGEROUS GOODS (ADR)\n${adrRow}\n${weightInfo}\n\n${instrTxt}`;
+  }
+  if (data.cargoType === 'oversized') {
+    const perm = data.permitNumber ? `Permit No: ${data.permitNumber}\n` : '';
+    const dims = data.dimensions ? `Dimensions: ${data.dimensions.l}x${data.dimensions.w}x${data.dimensions.h}m\n` : '';
+    instrTxt = `SPECIAL TRANSPORT:\n${perm}${dims}${data.specialNotes || ''}\n\n${instrTxt}`;
+  }
+  if (data.cargoType === 'frigo' && (data.loadingTime || data.unloadingTime)) {
+    instrTxt = `COLD CHAIN RECORD:\nLoaded at: ${data.loadingTime || '-'}\nUnloaded at: ${data.unloadingTime || '-'}\n\n${instrTxt}`;
+  }
 
   drawBox(doc, m, yBot, cw, 35, "13. Sender's instructions", instrTxt, cp.c, false, 7);
   drawBox(doc, m + cw, yBot, cw / 2, 35, '14. Reimbursements', '', cp.c);
@@ -304,10 +355,10 @@ export const createCmrPdf = async (
   }
 
   const copies = [
-    { n: '1 (Sender)',    c: [220, 38, 38]  as [number,number,number] },
-    { n: '2 (Consignee)', c: [37, 99, 235]  as [number,number,number] },
-    { n: '3 (Carrier)',   c: [22, 163, 74]  as [number,number,number] },
-    { n: '4 (Copy)',      c: [50, 50, 50]   as [number,number,number] },
+    { n: '1 (Pošiljatelj - Sender)',         c: [220, 38, 38]  as [number,number,number] },
+    { n: '2 (Prejemnik - Consignee)',        c: [37, 99, 235]  as [number,number,number] },
+    { n: '3 (Prevoznik - Carrier)',         c: [22, 163, 74]  as [number,number,number] },
+    { n: '4 Copy',                          c: [50, 50, 50]   as [number,number,number] },
   ];
   copies.forEach(cp => {
     if (!first) doc.addPage();
@@ -344,8 +395,15 @@ export const createCustomTemplatePdf = async (
     packages: String(totalQ),
     marks: goods.map(g => g.marks).filter(Boolean).join(', '),
     hsCode: goods.map(g => g.hsCode).filter(Boolean).join(', '),
-    adrClass: data.adrClass || '',
+    unNumber: data.unNumber || '',
+    officialName: data.officialName || '',
+    hazardLabel: data.hazardLabel || '',
+    packingGroup: data.packingGroup || '',
+    tunnelCode: data.tunnelCode || '',
     temperature: data.temperature || '',
+    coolingInstructions: data.coolingInstructions || '',
+    declaredValue: data.declaredValue || '',
+    permitNumber: data.permitNumber || '',
     specialNotes: data.specialNotes || '',
   };
 

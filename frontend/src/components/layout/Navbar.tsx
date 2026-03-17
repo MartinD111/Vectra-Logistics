@@ -1,31 +1,34 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
+  LayoutDashboard,
+  BarChart3,
+  Navigation2,
+  Zap,
+  FileText,
+  Briefcase,
+  Truck,
   Menu,
   X,
   User,
   LogOut,
   Settings,
   CreditCard,
-  Briefcase,
-  FileText,
-  Plug,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const navigation = [
-  { name: "Home", href: "/dashboard" },
-  { name: "Workspace", href: "/workspaces", icon: Briefcase },
-  { name: "Automations", href: "/automations", icon: Settings },
+  { name: "Home", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Marketplace Intelligence", href: "/marketplace", icon: BarChart3 },
+  { name: "Vectra Routes", href: "/routes", icon: Navigation2 },
+  { name: "Automations", href: "/automations", icon: Zap },
   { name: "CMR Helper", href: "/cmr-helper", icon: FileText },
-  { name: "Integrations", href: "/integrations", icon: Plug },
-  { name: "Marketplace", href: "/marketplace" },
-  { name: "Post Shipment", href: "/post-shipment" },
-  { name: "Add Capacity", href: "/add-capacity" },
-  { name: "How It Works", href: "/how-it-works" },
+  { name: "Workspace", href: "/workspaces", icon: Briefcase },
+  { name: "My Fleet", href: "/fleet", icon: Truck },
 ];
 
 export default function Navbar() {
@@ -43,40 +46,54 @@ export default function Navbar() {
 
   const initials = user ? `${user.first_name[0]}${user.last_name[0]}` : "";
 
+  const isActive = (href: string) =>
+    pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+
   return (
     <header className="sticky top-0 z-50 bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md border-b border-gray-200 dark:border-dark-border transition-colors">
       <nav
-        className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8"
+        className="max-w-7xl mx-auto flex items-center justify-between px-4 lg:px-8 h-16"
         aria-label="Global"
       >
-        {/* Brand — far left */}
-        <div className="flex flex-1">
-          <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-2">
-            <span className="text-2xl font-black tracking-tight text-primary-600 dark:text-primary-400">
-              VECTRA
-            </span>
+        {/* Logo — far left */}
+        <div className="flex-shrink-0">
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo.png"
+              alt="VECTRA Logo"
+              width={120}
+              height={32}
+              className="h-8 w-auto object-contain"
+              style={{ filter: 'invert(1)', mixBlendMode: 'screen' }}
+              priority
+            />
           </Link>
         </div>
 
         {/* Desktop Nav — center */}
-        <div className="hidden lg:flex lg:gap-x-8">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`text-sm font-semibold leading-6 transition-colors hover:text-primary-500 ${
-                pathname === item.href
-                  ? "text-primary-600 dark:text-primary-400"
-                  : "text-gray-700 dark:text-gray-300"
-              }`}
-            >
-              {item.name}
-            </Link>
-          ))}
+        <div className="hidden lg:flex gap-x-1">
+          {navigation.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  active
+                    ? "text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20"
+                    : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {item.name}
+              </Link>
+            );
+          })}
         </div>
 
-        {/* Desktop Right — far right */}
-        <div className="hidden lg:flex flex-1 justify-end items-center gap-3">
+        {/* Desktop Right — profile / sign-in */}
+        <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
           {user ? (
             <div className="relative">
               <button
@@ -100,7 +117,8 @@ export default function Navbar() {
                     className="fixed inset-0 z-10"
                     onClick={() => setProfileDropdownOpen(false)}
                   />
-                  <div className="absolute right-0 z-20 mt-2 w-56 origin-top-right rounded-xl bg-white dark:bg-dark-card shadow-lg ring-1 ring-black/5 dark:ring-dark-border border border-gray-100 dark:border-dark-border py-1 animate-fade-in">
+                  <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl bg-white dark:bg-dark-card shadow-lg border border-gray-100 dark:border-dark-border py-1 animate-fade-in">
+                    {/* User info header */}
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-dark-border">
                       <p className="text-sm font-bold text-gray-900 dark:text-white">
                         {user.first_name} {user.last_name}
@@ -120,26 +138,28 @@ export default function Navbar() {
                         {user.role}
                       </span>
                     </div>
+
+                    {/* Dropdown links */}
                     <Link
                       id="nav-profile"
-                      onClick={() => setProfileDropdownOpen(false)}
                       href="/profile"
+                      onClick={() => setProfileDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition"
                     >
                       <User className="h-4 w-4" /> My Profile
                     </Link>
                     <Link
                       id="nav-billing"
-                      onClick={() => setProfileDropdownOpen(false)}
                       href="/billing"
+                      onClick={() => setProfileDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition"
                     >
                       <CreditCard className="h-4 w-4" /> Billing
                     </Link>
                     <Link
                       id="nav-settings"
-                      onClick={() => setProfileDropdownOpen(false)}
                       href="/settings"
+                      onClick={() => setProfileDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition"
                     >
                       <Settings className="h-4 w-4" /> Settings
@@ -168,7 +188,7 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile menu button */}
+        {/* Mobile hamburger button */}
         <div className="flex lg:hidden">
           <button
             type="button"
@@ -181,21 +201,25 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Menu Panel */}
+      {/* Mobile slide-in panel */}
       {mobileMenuOpen && (
         <div className="lg:hidden animate-fade-in">
+          {/* Backdrop */}
           <div
             className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
+
+          {/* Panel */}
           <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white dark:bg-dark-bg px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+            {/* Panel header */}
             <div className="flex items-center justify-between">
               <Link
                 href="/"
                 className="-m-1.5 p-1.5"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <span className="text-2xl font-black text-primary-600 dark:text-primary-400">
+                <span className="text-xl font-black tracking-tight text-primary-600 dark:text-primary-400">
                   VECTRA
                 </span>
               </Link>
@@ -204,36 +228,48 @@ export default function Navbar() {
                 className="-m-2.5 rounded-md p-2.5 text-gray-700 dark:text-gray-200"
                 onClick={() => setMobileMenuOpen(false)}
               >
+                <span className="sr-only">Close menu</span>
                 <X className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
+
+            {/* Panel nav */}
             <div className="mt-6 flow-root">
               <div className="-my-6 divide-y divide-gray-500/10 dark:divide-dark-border">
-                <div className="space-y-2 py-6">
-                  {navigation.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 hover:bg-gray-50 dark:hover:bg-slate-800 ${
-                        pathname === item.href
-                          ? "text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20"
-                          : "text-gray-900 dark:text-gray-100"
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
+                {/* Nav items */}
+                <div className="space-y-1 py-6">
+                  {navigation.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.href);
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-semibold leading-7 transition-colors ${
+                          active
+                            ? "text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20"
+                            : "text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800"
+                        }`}
+                      >
+                        <Icon className="h-5 w-5 flex-shrink-0" />
+                        {item.name}
+                      </Link>
+                    );
+                  })}
                 </div>
+
+                {/* Auth section */}
                 <div className="py-6 space-y-2">
                   {user ? (
                     <>
+                      {/* User info */}
                       <div className="flex items-center gap-3 px-3 py-2 mb-2">
-                        <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-black">
+                        <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-sm font-black flex-shrink-0">
                           {initials}
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-gray-900 dark:text-white">
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
                             {user.first_name} {user.last_name}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
@@ -241,30 +277,46 @@ export default function Navbar() {
                           </p>
                         </div>
                       </div>
+
                       <Link
                         href="/profile"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="-mx-3 flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800 transition"
                       >
-                        <User className="h-5 w-5" /> Profile
+                        <User className="h-5 w-5 flex-shrink-0" /> My Profile
+                      </Link>
+                      <Link
+                        href="/billing"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800 transition"
+                      >
+                        <CreditCard className="h-5 w-5 flex-shrink-0" /> Billing
+                      </Link>
+                      <Link
+                        href="/settings"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800 transition"
+                      >
+                        <Settings className="h-5 w-5 flex-shrink-0" /> Settings
                       </Link>
                       <button
                         onClick={() => {
                           handleLogout();
                           setMobileMenuOpen(false);
                         }}
-                        className="-mx-3 flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left"
+                        className="flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition text-left"
                       >
-                        <LogOut className="h-5 w-5" /> Log out
+                        <LogOut className="h-5 w-5 flex-shrink-0" /> Log out
                       </button>
                     </>
                   ) : (
                     <Link
                       href="/auth"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="-mx-3 flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-white bg-primary-600 hover:bg-primary-500 transition"
                     >
-                      <User className="h-5 w-5" /> Sign In / Sign Up
+                      <User className="h-5 w-5 flex-shrink-0" /> Sign In / Sign
+                      Up
                     </Link>
                   )}
                 </div>
