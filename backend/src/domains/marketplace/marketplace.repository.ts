@@ -106,6 +106,22 @@ class MarketplaceRepository {
 
     return rows[0];
   }
+
+  // ── Booking ───────────────────────────────────────────────────────────────
+
+  async bookShipment(shipmentId: string, carrierCompanyId: string): Promise<Shipment | null> {
+    const { rows } = await db.query<Shipment>(
+      `UPDATE shipments
+       SET status           = 'booked',
+           carrier_company_id = $2,
+           updated_at       = NOW()
+       WHERE id     = $1
+         AND status = 'pending'
+       RETURNING *`,
+      [shipmentId, carrierCompanyId],
+    );
+    return rows[0] ?? null;
+  }
 }
 
 export const marketplaceRepository = new MarketplaceRepository();

@@ -32,6 +32,15 @@ export const assignShipment = asyncHandler(async (req: AuthRequest, res: Respons
   res.status(200).json(shipment);
 });
 
+export const bookShipment = asyncHandler(async (req: AuthRequest, res: Response) => {
+  requireUser(req);
+  const companyId = req.user?.company_id;
+  if (!companyId) throw new AppError(403, 'Company membership required to book shipments');
+
+  const shipment = await marketplaceService.bookShipment(req.params.id, companyId);
+  res.status(200).json(shipment);
+});
+
 // ── Capacities ────────────────────────────────────────────────────────────
 
 export const getCapacities = asyncHandler(async (_req: Request, res: Response) => {

@@ -105,4 +105,7 @@ export const marketplaceApi = {
       'POST',
       { vehicle_id: vehicleId },
     ),
+
+  bookShipment: (shipmentId: string) =>
+    apiFetch<Shipment>(`${BASE}/shipments/${shipmentId}/book`, 'POST'),
 };

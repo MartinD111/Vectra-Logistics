@@ -82,6 +82,16 @@ class MarketplaceService {
 
     return shipment;
   }
+
+  // ── Booking ───────────────────────────────────────────────────────────────
+
+  async bookShipment(shipmentId: string, carrierCompanyId: string): Promise<Shipment> {
+    const shipment = await marketplaceRepository.bookShipment(shipmentId, carrierCompanyId);
+    if (!shipment) {
+      throw new AppError(409, 'This load is no longer available');
+    }
+    return shipment;
+  }
 }
 
 export const marketplaceService = new MarketplaceService();
