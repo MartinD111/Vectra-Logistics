@@ -1,6 +1,6 @@
-import { api } from './client';
+import { apiFetch } from './client';
 
-// ── Types (mirror of backend marketplace.types.ts) ─────────────────────────
+// ── Types ──────────────────────────────────────────────────────────────────
 
 export interface Shipment {
   id: string;
@@ -44,8 +44,6 @@ export interface Capacity {
   updated_at: string;
 }
 
-// ── Request DTOs ───────────────────────────────────────────────────────────
-
 export interface CreateShipmentDto {
   pickup_address: string;
   pickup_lat: number;
@@ -57,11 +55,11 @@ export interface CreateShipmentDto {
   cargo_volume_m3: number;
   pallet_count: number;
   cargo_type: string;
-  /** ISO datetime string */
+  /** ISO 8601 datetime string */
   pickup_window_start: string;
-  /** ISO datetime string */
+  /** ISO 8601 datetime string */
   pickup_window_end: string;
-  /** ISO datetime string */
+  /** ISO 8601 datetime string */
   delivery_deadline: string;
 }
 
@@ -73,9 +71,9 @@ export interface CreateCapacityDto {
   destination_address: string;
   destination_lat: number;
   destination_lng: number;
-  /** ISO datetime string */
+  /** ISO 8601 datetime string */
   departure_time: string;
-  /** ISO datetime string */
+  /** ISO 8601 datetime string */
   delivery_deadline: string;
   available_weight_kg: number;
   available_volume_m3: number;
@@ -83,16 +81,14 @@ export interface CreateCapacityDto {
   route_polyline?: string;
 }
 
-// ── API calls ──────────────────────────────────────────────────────────────
+// ── API ────────────────────────────────────────────────────────────────────
 
 const BASE = '/api/v1/marketplace';
 
 export const marketplaceApi = {
-  // Shipments
-  getShipments: ()                          => api.get<Shipment[]>(`${BASE}/shipments`),
-  createShipment: (dto: CreateShipmentDto)  => api.post<Shipment>(`${BASE}/shipments`, dto),
+  getShipments:   ()                            => apiFetch<Shipment[]>(`${BASE}/shipments`),
+  createShipment: (dto: CreateShipmentDto)      => apiFetch<Shipment>(`${BASE}/shipments`, 'POST', dto),
 
-  // Capacities
-  getCapacities: ()                         => api.get<Capacity[]>(`${BASE}/capacities`),
-  createCapacity: (dto: CreateCapacityDto)  => api.post<Capacity>(`${BASE}/capacities`, dto),
+  getCapacities:  ()                            => apiFetch<Capacity[]>(`${BASE}/capacities`),
+  createCapacity: (dto: CreateCapacityDto)      => apiFetch<Capacity>(`${BASE}/capacities`, 'POST', dto),
 };

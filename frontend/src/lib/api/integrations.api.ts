@@ -1,4 +1,4 @@
-import { api } from './client';
+import { apiFetch } from './client';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -24,33 +24,25 @@ export interface InternalApiKey {
   last_used_at: string | null;
 }
 
-/** Returned once on key creation — raw key is never stored again. */
+/** Returned once on key creation — raw key is never stored server-side again. */
 export interface InternalApiKeyCreated extends InternalApiKey {
   key: string;
   warning: string;
 }
-
-// ── Request DTOs ───────────────────────────────────────────────────────────
 
 export interface SaveIntegrationDto {
   provider: IntegrationProvider;
   api_key: string;
 }
 
-export interface GenerateApiKeyDto {
-  name?: string;
-}
-
-// ── API calls ──────────────────────────────────────────────────────────────
+// ── API ────────────────────────────────────────────────────────────────────
 
 const BASE = '/api/v1/integrations';
 
 export const integrationsApi = {
-  // Third-party provider credentials
-  getIntegrations:  ()                         => api.get<ApiCredential[]>(`${BASE}/settings`),
-  saveIntegration:  (dto: SaveIntegrationDto)  => api.post<ApiCredential>(`${BASE}/settings`, dto),
+  getIntegrations:      ()                          => apiFetch<ApiCredential[]>(`${BASE}/settings`),
+  saveIntegration:      (dto: SaveIntegrationDto)   => apiFetch<ApiCredential>(`${BASE}/settings`, 'POST', dto),
 
-  // Internal API keys
-  getApiKeys:       ()                         => api.get<InternalApiKey[]>(`${BASE}/settings/keys`),
-  generateApiKey:   (dto: GenerateApiKeyDto)   => api.post<InternalApiKeyCreated>(`${BASE}/settings/keys`, dto),
+  getInternalApiKeys:   ()                          => apiFetch<InternalApiKey[]>(`${BASE}/settings/keys`),
+  generateInternalApiKey: (name: string)            => apiFetch<InternalApiKeyCreated>(`${BASE}/settings/keys`, 'POST', { name }),
 };

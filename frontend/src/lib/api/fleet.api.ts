@@ -1,4 +1,4 @@
-import { api } from './client';
+import { apiFetch } from './client';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -10,7 +10,7 @@ export interface Driver {
   phone: string | null;
   email: string | null;
   license_number: string | null;
-  status: string;
+  status: 'active' | 'inactive' | 'on_leave';
   created_at: string;
   updated_at: string;
 }
@@ -27,8 +27,6 @@ export interface Vehicle {
   updated_at: string;
 }
 
-// ── Request DTOs ───────────────────────────────────────────────────────────
-
 export interface CreateDriverDto {
   first_name: string;
   last_name: string;
@@ -43,7 +41,7 @@ export interface UpdateDriverDto {
   phone?: string;
   email?: string;
   license_number?: string;
-  status?: 'active' | 'inactive' | 'on_leave';
+  status?: Driver['status'];
 }
 
 export interface CreateVehicleDto {
@@ -62,20 +60,20 @@ export interface UpdateVehicleDto {
   max_pallets?: number;
 }
 
-// ── API calls ──────────────────────────────────────────────────────────────
+// ── API ────────────────────────────────────────────────────────────────────
 
 const BASE = '/api/v1/fleet';
 
 export const fleetApi = {
   // Drivers
-  getDrivers:    ()                              => api.get<Driver[]>(`${BASE}/drivers`),
-  createDriver:  (dto: CreateDriverDto)          => api.post<Driver>(`${BASE}/drivers`, dto),
-  updateDriver:  (id: string, dto: UpdateDriverDto) => api.put<Driver>(`${BASE}/drivers/${id}`, dto),
-  deleteDriver:  (id: string)                    => api.delete<void>(`${BASE}/drivers/${id}`),
+  getDrivers:    ()                                    => apiFetch<Driver[]>(`${BASE}/drivers`),
+  createDriver:  (dto: CreateDriverDto)                => apiFetch<Driver>(`${BASE}/drivers`, 'POST', dto),
+  updateDriver:  (id: string, dto: UpdateDriverDto)    => apiFetch<Driver>(`${BASE}/drivers/${id}`, 'PUT', dto),
+  deleteDriver:  (id: string)                          => apiFetch<void>(`${BASE}/drivers/${id}`, 'DELETE'),
 
   // Vehicles
-  getVehicles:   ()                              => api.get<Vehicle[]>(`${BASE}/vehicles`),
-  createVehicle: (dto: CreateVehicleDto)         => api.post<Vehicle>(`${BASE}/vehicles`, dto),
-  updateVehicle: (id: string, dto: UpdateVehicleDto) => api.put<Vehicle>(`${BASE}/vehicles/${id}`, dto),
-  deleteVehicle: (id: string)                    => api.delete<void>(`${BASE}/vehicles/${id}`),
+  getVehicles:   ()                                    => apiFetch<Vehicle[]>(`${BASE}/vehicles`),
+  createVehicle: (dto: CreateVehicleDto)               => apiFetch<Vehicle>(`${BASE}/vehicles`, 'POST', dto),
+  updateVehicle: (id: string, dto: UpdateVehicleDto)   => apiFetch<Vehicle>(`${BASE}/vehicles/${id}`, 'PUT', dto),
+  deleteVehicle: (id: string)                          => apiFetch<void>(`${BASE}/vehicles/${id}`, 'DELETE'),
 };

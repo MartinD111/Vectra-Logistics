@@ -1,6 +1,17 @@
-import { api } from './client';
+import { apiFetch } from './client';
 
 // ── Types ──────────────────────────────────────────────────────────────────
+
+export interface CompanyRatingSummaryCore {
+  total_reviews: string;
+  avg_score: string;
+}
+
+export interface CompanyBookingStats {
+  total_bookings: string;
+  completed: string;
+  success_rate: string;
+}
 
 export interface CompanyBusinessCard {
   id: string;
@@ -11,15 +22,21 @@ export interface CompanyBusinessCard {
   fleetSize: number;
   yearsActive: number;
   memberSince: number;
-  ratings: { total_reviews: string; avg_score: string };
-  bookingStats: { total_bookings: string; completed: string; success_rate: string };
+  ratings: CompanyRatingSummaryCore;
+  bookingStats: CompanyBookingStats;
+}
+
+export interface CompanyDocumentSummary {
+  type: string;
+  status: string;
+  uploaded_at: string;
 }
 
 export interface CompanyVerificationStatus {
   status: string;
   vat_number: string | null;
   registration_number: string | null;
-  documents: Array<{ type: string; status: string; uploaded_at: string }>;
+  documents: CompanyDocumentSummary[];
 }
 
 export interface RatingSummary {
@@ -67,8 +84,6 @@ export interface Document {
   driver_name: string | null;
 }
 
-// ── Request DTOs ───────────────────────────────────────────────────────────
-
 export interface SubmitRatingDto {
   booking_id: string;
   reviewee_id: string;
@@ -89,30 +104,27 @@ export interface DocumentFilters {
   doc_type?: string;
 }
 
-// ── API calls ──────────────────────────────────────────────────────────────
+// ── API ────────────────────────────────────────────────────────────────────
 
 const BASE = '/api/v1/workspace';
 
 export const workspaceApi = {
   // Company
-  getBusinessCard: (companyId: string) =>
-    api.get<CompanyBusinessCard>(`${BASE}/company/${companyId}/business-card`),
+  getCompanyBusinessCard: (companyId: string) =>
+    apiFetch<CompanyBusinessCard>(`${BASE}/company/${companyId}/business-card`),
 
-  getVerificationStatus: () =>
-    api.get<CompanyVerificationStatus>(`${BASE}/company/verification/status`),
-
-  submitVerification: (formData: FormData) =>
-    api.upload<CompanyVerificationStatus>(`${BASE}/company/verification/submit`, formData),
+  getVerificationStatus: (companyId: string) =>
+    apiFetch<CompanyVerificationStatus>(`${BASE}/company/${companyId}/verification/status`),
 
   // Ratings
   getRatingSummary: (companyId: string) =>
-    api.get<RatingSummary>(`${BASE}/ratings/${companyId}/summary`),
+    apiFetch<RatingSummary>(`${BASE}/ratings/${companyId}/summary`),
 
   getRatingsByCompany: (companyId: string) =>
-    api.get<RatingWithReviewer[]>(`${BASE}/ratings/${companyId}`),
+    apiFetch<RatingWithReviewer[]>(`${BASE}/ratings/${companyId}`),
 
   submitRating: (dto: SubmitRatingDto) =>
-    api.post<{ message: string }>(`${BASE}/ratings`, dto),
+    apiFetch<{ message: string }>(`${BASE}/ratings`, 'POST', dto),
 
   // Documents
   getDocuments: (filters?: DocumentFilters) => {
@@ -122,9 +134,13 @@ export const workspaceApi = {
     if (filters?.license_plate) params.set('license_plate', filters.license_plate);
     if (filters?.doc_type)      params.set('doc_type', filters.doc_type);
     const qs = params.toString();
-    return api.get<Document[]>(`${BASE}/documents${qs ? `?${qs}` : ''}`);
+    return apiFetch<Document[]>(`${BASE}/documents${qs ? `?${qs}` : ''}`);
   },
 
-  uploadDocument: (formData: FormData) =>
-    api.upload<Document>(`${BASE}/documents`, formData),
+  uploadCompanyDocument: (file: File, document_type: string) => {
+    const fd = new FormData();
+    fd.append('file', file, file.name);
+    fd.append('document_type', document_type);
+    return apiFetch<Document>(`${BASE}/documents`, 'POST', fd);
+  },
 };

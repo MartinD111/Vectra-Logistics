@@ -1,6 +1,7 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
-/** Thrown when the server responds with a non-2xx status. */
+// ── Error class ────────────────────────────────────────────────────────────
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -12,46 +13,32 @@ export class ApiError extends Error {
   }
 }
 
-/** Thrown specifically on 401 so callers can redirect to /auth. */
-export class UnauthorizedError extends ApiError {
-  constructor() {
-    super(401, 'Session expired — please sign in again');
-    this.name = 'UnauthorizedError';
-    Object.setPrototypeOf(this, UnauthorizedError.prototype);
-  }
-}
+// ── Token helper ───────────────────────────────────────────────────────────
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('vectra_token');
 }
 
+// ── Core fetch wrapper ─────────────────────────────────────────────────────
+
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
-interface RequestOptions {
-  method?: HttpMethod;
-  body?: unknown;
-  /** Pass a FormData body directly — Content-Type is left unset so the browser sets the correct multipart boundary. */
-  formData?: FormData;
-  /** Extra headers merged on top of defaults. */
-  headers?: Record<string, string>;
-}
-
-export async function apiRequest<T>(
+export async function apiFetch<T>(
   path: string,
-  options: RequestOptions = {},
+  method: HttpMethod = 'GET',
+  body?: unknown,
 ): Promise<T> {
-  const { method = 'GET', body, formData, headers: extraHeaders = {} } = options;
-
-  const headers: Record<string, string> = { ...extraHeaders };
+  const headers: Record<string, string> = {};
 
   const token = getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  // Only set Content-Type for JSON bodies; let FormData set its own multipart boundary.
   let resolvedBody: BodyInit | undefined;
-  if (formData) {
-    resolvedBody = formData;
+
+  if (body instanceof FormData) {
+    // Let the browser set Content-Type with the correct multipart boundary
+    resolvedBody = body;
   } else if (body !== undefined) {
     headers['Content-Type'] = 'application/json';
     resolvedBody = JSON.stringify(body);
@@ -64,11 +51,19 @@ export async function apiRequest<T>(
   });
 
   if (!res.ok) {
-    if (res.status === 401) throw new UnauthorizedError();
+    if (res.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('vectra_token');
+        localStorage.removeItem('vectra_user');
+        window.location.href = '/auth';
+      }
+      // Throw so async callers that await this still get an error boundary
+      throw new ApiError(401, 'Session expired — please sign in again');
+    }
 
     let message = `Request failed with status ${res.status}`;
     try {
-      const payload = await res.json() as { error?: string };
+      const payload = (await res.json()) as { error?: string };
       if (payload.error) message = payload.error;
     } catch {
       // Response body was not JSON — keep generic message
@@ -76,29 +71,8 @@ export async function apiRequest<T>(
     throw new ApiError(res.status, message);
   }
 
-  // 204 No Content
+  // 204 No Content — nothing to deserialise
   if (res.status === 204) return undefined as T;
 
   return res.json() as Promise<T>;
 }
-
-/** Convenience shortcuts */
-export const api = {
-  get:    <T>(path: string, headers?: Record<string, string>) =>
-    apiRequest<T>(path, { method: 'GET', headers }),
-
-  post:   <T>(path: string, body: unknown) =>
-    apiRequest<T>(path, { method: 'POST', body }),
-
-  put:    <T>(path: string, body: unknown) =>
-    apiRequest<T>(path, { method: 'PUT', body }),
-
-  patch:  <T>(path: string, body: unknown) =>
-    apiRequest<T>(path, { method: 'PATCH', body }),
-
-  delete: <T>(path: string) =>
-    apiRequest<T>(path, { method: 'DELETE' }),
-
-  upload: <T>(path: string, formData: FormData) =>
-    apiRequest<T>(path, { method: 'POST', formData }),
-};
