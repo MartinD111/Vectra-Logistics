@@ -1,12 +1,2 @@
-import { createClient } from 'redis';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const redisClient = createClient({
-  url: process.env.REDIS_URL
-});
-
-redisClient.on('error', (err) => console.error('Redis Client Error', err));
-
-export { redisClient };
+// LEGACY — re-exports from core/db/redis. Do not add new logic here.
+export { redisClient } from '../core/db/redis';

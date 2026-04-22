@@ -3,13 +3,14 @@ import http from "http";
 import cors from "cors";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
-import { db } from "./config/db";
-import { redisClient } from "./config/redis";
+import { db } from "./core/db";
+import { redisClient } from "./core/db/redis";
 import shipmentRoutes from "./routes/shipmentRoutes";
 import capacityRoutes from "./routes/capacityRoutes";
 import authRoutes from "./routes/authRoutes";
 import profileRoutes from "./routes/profileRoutes";
-import fleetRoutes from "./routes/fleetRoutes";
+import domainRouter from "./domains/index";
+import { errorHandler } from "./core/errors/errorHandler";
 import documentsRoutes from "./routes/documentsRoutes";
 import { startMatchingWorker } from "./workers/matchingJob";
 import integrationsRoutes from "./routes/integrationsRoutes";
@@ -31,10 +32,15 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// Domain routes (DDD) — new canonical URLs
+app.use("/api/v1", domainRouter);
+
+// Legacy aliases — kept for zero-downtime; remove after frontend migrates
+app.use("/api/fleet", domainRouter);
+
+// Legacy monolithic routes (migrate domain-by-domain; remove when done)
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/fleet", fleetRoutes);
 app.use("/api/documents", documentsRoutes);
 app.use("/api/shipments", shipmentRoutes);
 app.use("/api/capacity", capacityRoutes);
@@ -48,6 +54,9 @@ app.use("/uploads", express.static("uploads"));
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "OK", message: "VECTRA backend running" });
 });
+
+// Global error handler — must be last
+app.use(errorHandler);
 
 // WebSocket connection
 io.on("connection", (socket) => {

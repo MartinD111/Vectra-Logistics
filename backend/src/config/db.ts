@@ -1,10 +1,2 @@
-import { Pool } from 'pg';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const db = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
-
-export { db };
+// LEGACY — re-exports from core/db. Do not add new logic here.
+export { db } from '../core/db';
