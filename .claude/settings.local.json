@@ -5,7 +5,8 @@
       "Bash(npm install *)",
       "Bash(mkdir -p \"c:/Users/marti/AMS d.o.o/vectra-platform/backend/src/domains/workspace/dto\")",
       "Bash(npm list *)",
-      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\" && cat \"{}\"')"
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\" && cat \"{}\"')",
+      "Bash(npm ls *)"
     ]
   }
 }

@@ -2,6 +2,7 @@ import { db } from '../../core/db';
 import { Shipment, Capacity } from './marketplace.types';
 import { CreateShipmentDto } from './dto/create-shipment.dto';
 import { CreateCapacityDto } from './dto/create-capacity.dto';
+import { AssignShipmentDto } from './dto/assign-shipment.dto';
 
 class MarketplaceRepository {
   // ── Shipments ─────────────────────────────────────────────────────────────
@@ -63,6 +64,46 @@ class MarketplaceRepository {
         dto.route_polyline ?? null,
       ],
     );
+    return rows[0];
+  }
+
+  // ── Assignment ────────────────────────────────────────────────────────────
+
+  async assignShipmentToVehicle(
+    shipmentId: string,
+    dto: AssignShipmentDto,
+    companyId: string,
+  ): Promise<Shipment | null> {
+    // UPDATE is scoped through users.company_id so a dispatcher cannot assign
+    // another company's shipment by guessing a UUID.  Also guards against
+    // re-assigning an already-assigned shipment (status = 'pending' guard).
+    const { rows } = await db.query<Shipment>(
+      `UPDATE shipments s
+       SET
+         status     = 'assigned',
+         updated_at = NOW()
+       FROM users u
+       WHERE s.id         = $1
+         AND s.user_id    = u.id
+         AND u.company_id = $2
+         AND s.status     = 'pending'
+       RETURNING s.*`,
+      [shipmentId, companyId],
+    );
+
+    if (rows.length === 0) return null;
+
+    // Record the vehicle link in the assignment join table.
+    // ON CONFLICT handles idempotent retries from the queue worker.
+    await db.query(
+      `INSERT INTO shipment_assignments (shipment_id, vehicle_id, assigned_at)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (shipment_id) DO UPDATE
+         SET vehicle_id  = EXCLUDED.vehicle_id,
+             assigned_at = EXCLUDED.assigned_at`,
+      [shipmentId, dto.vehicle_id],
+    );
+
     return rows[0];
   }
 }

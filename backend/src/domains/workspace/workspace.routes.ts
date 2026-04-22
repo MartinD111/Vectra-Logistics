@@ -12,6 +12,7 @@ import {
   getDocuments,
   uploadCompanyDocument,
   getCompanyDocuments,
+  parseRateConfirmation,
 } from './workspace.controller';
 
 // ── Multer — scoped to this domain ────────────────────────────────────────
@@ -43,5 +44,9 @@ router.use('/documents', authenticateToken);
 router.get('/documents', getDocuments);
 router.get('/documents/company', getCompanyDocuments);
 router.post('/documents/company', upload.single('file'), uploadCompanyDocument);
+
+// ── Automations routes ─────────────────────────────────────────────────────
+// NOTE: literal path registered before any future wildcard automation routes.
+router.post('/automations/parse-rate', authenticateToken, upload.single('file'), parseRateConfirmation);
 
 export default router;

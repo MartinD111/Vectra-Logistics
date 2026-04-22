@@ -85,10 +85,24 @@ export interface CreateCapacityDto {
 
 const BASE = '/api/v1/marketplace';
 
+export interface AssignShipmentResponse {
+  shipment_id: string;
+  vehicle_id: string;
+  assigned_at: string;
+}
+
 export const marketplaceApi = {
   getShipments:   ()                            => apiFetch<Shipment[]>(`${BASE}/shipments`),
   createShipment: (dto: CreateShipmentDto)      => apiFetch<Shipment>(`${BASE}/shipments`, 'POST', dto),
 
   getCapacities:  ()                            => apiFetch<Capacity[]>(`${BASE}/capacities`),
   createCapacity: (dto: CreateCapacityDto)      => apiFetch<Capacity>(`${BASE}/capacities`, 'POST', dto),
+
+  // TODO: implement POST /api/v1/marketplace/shipments/:shipmentId/assign on the backend
+  assignShipmentToVehicle: (shipmentId: string, vehicleId: string) =>
+    apiFetch<AssignShipmentResponse>(
+      `${BASE}/shipments/${shipmentId}/assign`,
+      'POST',
+      { vehicle_id: vehicleId },
+    ),
 };

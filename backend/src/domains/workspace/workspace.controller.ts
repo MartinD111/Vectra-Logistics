@@ -1,8 +1,10 @@
+import fs from 'fs';
 import { Request, Response } from 'express';
 import { AuthRequest } from '../../core/auth/middleware';
 import { AppError } from '../../core/errors/AppError';
 import { asyncHandler } from '../../core/errors/asyncHandler';
 import { workspaceService } from './workspace.service';
+import { documentAiService } from './document-ai.service';
 
 const requireUser = (req: AuthRequest): string => {
   const userId = req.user?.id;
@@ -82,4 +84,23 @@ export const getCompanyDocuments = asyncHandler(async (req: AuthRequest, res: Re
   const companyId = requireCompany(req);
   const docs = await workspaceService.getCompanyDocuments(companyId);
   res.status(200).json(docs);
+});
+
+// ── Automations ───────────────────────────────────────────────────────────
+
+export const parseRateConfirmation = asyncHandler(async (req: AuthRequest, res: Response) => {
+  requireUser(req);
+
+  const file = (req as Request & { file?: Express.Multer.File }).file;
+  if (!file) throw new AppError(400, 'No file uploaded — include a PDF as multipart/form-data field "file"');
+
+  try {
+    const result = await documentAiService.extractRateConfirmationData(file.path);
+    res.status(200).json(result);
+  } finally {
+    // Always clean up the temp file, whether extraction succeeded or threw.
+    fs.unlink(file.path, (err) => {
+      if (err) console.warn(`[Workspace] Failed to delete temp file ${file.path}:`, err.message);
+    });
+  }
 });
