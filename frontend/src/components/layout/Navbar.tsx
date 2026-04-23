@@ -18,8 +18,12 @@ import {
   LogOut,
   Settings,
   CreditCard,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "next-themes";
+import { useEffect } from "react";
 
 const navigation = [
   { name: "Home", href: "/dashboard", icon: LayoutDashboard },
@@ -37,6 +41,12 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -92,7 +102,7 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Desktop Right — profile / sign-in */}
+        {/* Desktop Right — profile / sign-in & theme toggle */}
         <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
           {user ? (
             <div className="relative">
@@ -185,6 +195,15 @@ export default function Navbar() {
             >
               <User className="h-4 w-4" /> Sign In
             </Link>
+          )}
+          {mounted && (
+            <button
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-amber-400 transition"
+              title={resolvedTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {resolvedTheme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
           )}
         </div>
 

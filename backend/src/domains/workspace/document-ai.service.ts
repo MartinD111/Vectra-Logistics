@@ -1,86 +1,120 @@
 import fs from 'fs';
+import { GoogleGenerativeAI, Part } from '@google/generative-ai';
+import { AppError } from '../../core/errors/AppError';
 import { ParsedRateResponseDto, ParsedRateResponseSchema } from './dto/parse-rate.dto';
 
-// ── Document AI Service ───────────────────────────────────────────────────────
-//
-// TODO — Production integration (OpenAI Vision / Google Document AI):
-//
-//   Replace the mock below with the following pattern:
-//
-//   import OpenAI from 'openai';
-//   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-//
-//   async extractRateConfirmationData(filePath: string) {
-//     const base64 = fs.readFileSync(filePath).toString('base64');
-//     const mimeType = filePath.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg';
-//
-//     const response = await openai.chat.completions.create({
-//       model: 'gpt-4o',
-//       messages: [{
-//         role: 'user',
-//         content: [
-//           {
-//             type: 'image_url',
-//             image_url: { url: `data:${mimeType};base64,${base64}`, detail: 'high' },
-//           },
-//           {
-//             type: 'text',
-//             text: `Extract the following fields from this rate confirmation document as JSON:
-//               pickup_address (string), pickup_date (ISO 8601),
-//               delivery_address (string), delivery_date (ISO 8601),
-//               cargo_weight_kg (number), cargo_type (string),
-//               rate_amount (number), currency (3-letter ISO code),
-//               reference_id (string or null).
-//               Return ONLY valid JSON matching that schema. No markdown fences.`,
-//           },
-//         ],
-//       }],
-//       response_format: { type: 'json_object' },
-//       max_tokens: 512,
-//     });
-//
-//     const raw = JSON.parse(response.choices[0].message.content ?? '{}');
-//     // Run through Zod to guarantee shape before returning to the controller.
-//     return ParsedRateResponseSchema.parse(raw);
-//   }
-//
-//   For Google Document AI, replace the OpenAI call with:
-//     const { DocumentProcessorServiceClient } = require('@google-cloud/documentai').v1;
-//     const client = new DocumentProcessorServiceClient();
-//     const [result] = await client.processDocument({
-//       name: `projects/${PROJECT_ID}/locations/${LOCATION}/processors/${PROCESSOR_ID}`,
-//       rawDocument: { content: base64, mimeType },
-//     });
-//     // then map result.document.entities → ParsedRateResponseSchema
+// ── Client ────────────────────────────────────────────────────────────────────
+
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY is not set in the environment');
+}
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// gemini-1.5-flash: native multimodal, handles inline PDF up to 20 MB,
+// sub-second TTFT at this payload size — ideal for synchronous extraction.
+const model = genAI.getGenerativeModel({
+  model: 'gemini-1.5-flash',
+  generationConfig: {
+    // Deterministic extraction — no creative variation
+    temperature: 0,
+    // Enough for a compact JSON object; prevents runaway output
+    maxOutputTokens: 512,
+  },
+});
+
+// ── Prompt ────────────────────────────────────────────────────────────────────
+// Field list mirrors ParsedRateResponseSchema exactly.
+// The "ONLY raw JSON" constraint is the single most important instruction —
+// Gemini defaults to markdown fences which will break JSON.parse().
+
+const EXTRACTION_PROMPT = `You are a logistics data extraction engine. Your sole task is to read the attached Rate Confirmation PDF and return a single, raw JSON object.
+
+RULES — you must follow all of them without exception:
+1. Return ONLY the JSON object. No markdown, no code fences, no explanation text, no trailing whitespace outside the object.
+2. Do not invent data. If a field cannot be found in the document, use null for optional fields or your best inference for required fields — mark confidence lower accordingly.
+3. Dates MUST be ISO 8601 format with timezone (e.g. "2024-09-15T08:00:00Z"). If only a date is given with no time, use T00:00:00Z.
+4. currency must be a 3-letter ISO 4217 code (e.g. "EUR", "USD", "GBP"). Default to "EUR" if not stated.
+5. confidence is YOUR estimate (0.0–1.0) of how accurately you extracted the required fields from this specific document.
+
+REQUIRED JSON STRUCTURE — return exactly these keys, no more, no less:
+{
+  "pickup_address":   "<full street address of pickup location>",
+  "pickup_date":      "<ISO 8601 datetime>",
+  "delivery_address": "<full street address of delivery location>",
+  "delivery_date":    "<ISO 8601 datetime>",
+  "cargo_weight_kg":  <number — total cargo weight in kilograms>,
+  "cargo_type":       "<description of goods, e.g. 'Pallets (Euro)', 'Bulk Grain', 'Container'>",
+  "rate_amount":      <number — total agreed transport rate>,
+  "currency":         "<3-letter ISO 4217 code>",
+  "reference_id":     "<shipper or broker reference number, or null if not found>",
+  "confidence":       <number between 0.0 and 1.0>
+}`;
+
+// ── Service ───────────────────────────────────────────────────────────────────
 
 class DocumentAiService {
   async extractRateConfirmationData(filePath: string): Promise<ParsedRateResponseDto> {
-    // Verify the file is readable before we simulate — fail fast so the
-    // controller can return a meaningful 400 rather than a confusing 500.
     if (!fs.existsSync(filePath)) {
-      throw new Error(`Document not found at path: ${filePath}`);
+      throw new AppError(400, `Uploaded file not found at path: ${filePath}`);
     }
 
-    // Simulate the 2-3 s latency of a real Vision API call.
-    await new Promise<void>(resolve =>
-      setTimeout(resolve, 2000 + Math.random() * 1000),
-    );
+    // Read file once — buffer is not retained after this scope
+    const fileBuffer = fs.readFileSync(filePath);
+    const base64 = fileBuffer.toString('base64');
 
-    // Realistic mock data representative of a European road freight RC.
-    const mock: ParsedRateResponseDto = ParsedRateResponseSchema.parse({
-      reference_id:     `LKW-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
-      pickup_address:   'Berliner Allee 42, 10115 Berlin, DE',
-      pickup_date:      new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-      delivery_address: 'Maximilianstraße 12, 80331 Munich, DE',
-      delivery_date:    new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
-      cargo_weight_kg:  24500,
-      cargo_type:       'Pallets (Euro)',
-      rate_amount:      1250.00,
-      currency:         'EUR',
-      confidence:       0.94,
-    });
+    const documentPart: Part = {
+      inlineData: {
+        data: base64,
+        mimeType: 'application/pdf',
+      },
+    };
 
-    return mock;
+    // ── Gemini call ───────────────────────────────────────────────────────────
+
+    let rawText: string;
+
+    try {
+      const result = await model.generateContent([EXTRACTION_PROMPT, documentPart]);
+      rawText = result.response.text().trim();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new AppError(502, `Gemini API error: ${message}`);
+    }
+
+    // ── JSON parse ────────────────────────────────────────────────────────────
+    // Strip markdown fences defensively — Gemini occasionally ignores the
+    // plain-text instruction on complex documents.
+
+    const cleaned = rawText
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '')
+      .trim();
+
+    let parsed: unknown;
+
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      throw new AppError(
+        422,
+        `Gemini returned a response that could not be parsed as JSON. Raw response: ${cleaned.slice(0, 200)}`,
+      );
+    }
+
+    // ── Zod validation ────────────────────────────────────────────────────────
+    // Guarantees the shape and types before the object leaves this service.
+
+    const validated = ParsedRateResponseSchema.safeParse(parsed);
+
+    if (!validated.success) {
+      const issues = validated.error.issues
+        .map((i) => `${i.path.join('.')}: ${i.message}`)
+        .join('; ');
+      throw new AppError(422, `Gemini response failed schema validation — ${issues}`);
+    }
+
+    return validated.data;
   }
 }
 

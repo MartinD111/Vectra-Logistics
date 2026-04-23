@@ -35,9 +35,9 @@ function parseCity(address: string | undefined): string {
 const STATUS_CFG: Record<string, { label: string; dot: string; badge: string }> = {
   pending:   { label: 'Pending',   dot: 'bg-yellow-400', badge: 'bg-yellow-500/15 text-yellow-400 ring-yellow-500/30' },
   booked:    { label: 'Booked',    dot: 'bg-blue-400',   badge: 'bg-blue-500/15 text-blue-400 ring-blue-500/30' },
-  in_transit:{ label: 'In Transit',dot: 'bg-indigo-400', badge: 'bg-indigo-500/15 text-indigo-400 ring-indigo-500/30' },
-  completed: { label: 'Completed', dot: 'bg-emerald-400',badge: 'bg-emerald-500/15 text-emerald-400 ring-emerald-500/30' },
-  cancelled: { label: 'Cancelled', dot: 'bg-red-400',    badge: 'bg-red-500/15 text-red-400 ring-red-500/30' },
+  in_transit:{ label: 'In Transit',dot: 'bg-indigo-400', badge: 'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 ring-indigo-500/30' },
+  completed: { label: 'Completed', dot: 'bg-emerald-400',badge: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-emerald-500/30' },
+  cancelled: { label: 'Cancelled', dot: 'bg-red-400',    badge: 'bg-red-500/15 text-red-600 dark:text-red-400 ring-red-500/30' },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -52,12 +52,12 @@ function StatusBadge({ status }: { status: string }) {
 // ── Skeleton primitives ───────────────────────────────────────────────────────
 
 function SkeletonBlock({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return <div className={`rounded-md bg-white/5 animate-pulse ${className ?? ''}`} style={style} />;
+  return <div className={`rounded-md bg-slate-100 dark:bg-white/5 animate-pulse ${className ?? ''}`} style={style} />;
 }
 
 function KpiCardSkeleton() {
   return (
-    <div className="rounded-xl bg-white/4 border border-white/8 p-5 flex flex-col gap-3">
+    <div className="rounded-xl bg-white dark:bg-white/4 border border-slate-200 dark:border-white/8 p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <SkeletonBlock className="h-3 w-24" />
         <SkeletonBlock className="h-8 w-8 rounded-lg" />
@@ -82,18 +82,18 @@ interface KpiCardProps {
 
 function KpiCard({ label, value, sub, icon, iconBg, accent, trend }: KpiCardProps) {
   return (
-    <div className={`relative rounded-xl bg-white/4 border border-white/8 p-5 flex flex-col gap-2 overflow-hidden transition-all hover:border-white/15 hover:bg-white/[0.06]${accent ? ` before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:${accent}` : ''}`}>
+    <div className={`relative rounded-xl bg-white dark:bg-white/4 border border-slate-200 dark:border-white/8 p-5 flex flex-col gap-2 overflow-hidden transition-all hover:border-slate-300 dark:hover:border-white/15 hover:bg-white/[0.06]${accent ? ` before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:${accent}` : ''}`}>
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-mono font-semibold text-white/40 uppercase tracking-widest">{label}</p>
+        <p className="text-[11px] font-mono font-semibold text-slate-500 dark:text-white/40 uppercase tracking-widest">{label}</p>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${iconBg}`}>
           {icon}
         </div>
       </div>
-      <p className="text-3xl font-bold text-white tabular-nums leading-none">{value}</p>
+      <p className="text-3xl font-bold text-slate-900 dark:text-white tabular-nums leading-none">{value}</p>
       <div className="flex items-center justify-between">
-        <p className="text-xs text-white/35">{sub}</p>
+        <p className="text-xs text-slate-500 dark:text-white/35">{sub}</p>
         {trend && (
-          <span className={`text-[11px] font-semibold ${trend.up ? 'text-emerald-400' : 'text-red-400'}`}>
+          <span className={`text-[11px] font-semibold ${trend.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
             {trend.up ? '↑' : '↓'} {trend.value}
           </span>
         )}
@@ -133,12 +133,12 @@ function ShipmentVolumeChart({ shipments }: { shipments: Shipment[] }) {
           const isToday = i === 6;
           return (
             <div key={day.label} className="flex-1 flex flex-col items-center gap-1.5 group">
-              <span className="text-[10px] text-white/30 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="text-[10px] text-slate-500 dark:text-white/30 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
                 {day.count}
               </span>
               <div className="w-full flex items-end" style={{ height: '80px' }}>
                 <div
-                  className={`w-full rounded-t-sm transition-all duration-500 ${isToday ? 'bg-indigo-500' : 'bg-white/10 group-hover:bg-white/20'}`}
+                  className={`w-full rounded-t-sm transition-all duration-500 ${isToday ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-white/10 group-hover:bg-slate-300 dark:bg-white/20'}`}
                   style={{ height: `${pct}%` }}
                 />
               </div>
@@ -146,10 +146,10 @@ function ShipmentVolumeChart({ shipments }: { shipments: Shipment[] }) {
           );
         })}
       </div>
-      <div className="flex gap-2 pt-2 border-t border-white/5">
+      <div className="flex gap-2 pt-2 border-t border-slate-200 dark:border-white/5">
         {days.map((day, i) => (
           <div key={day.label} className="flex-1 text-center">
-            <span className={`text-[10px] font-mono ${i === 6 ? 'text-indigo-400 font-semibold' : 'text-white/30'}`}>
+            <span className={`text-[10px] font-mono ${i === 6 ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-slate-500 dark:text-white/30'}`}>
               {day.label}
             </span>
           </div>
@@ -163,7 +163,7 @@ function ChartSkeleton() {
   return (
     <div className="flex items-end gap-2 h-full pb-6">
       {[40, 65, 30, 80, 55, 70, 90].map((h, i) => (
-        <div key={i} className="flex-1 rounded-t-sm bg-white/5 animate-pulse" style={{ height: `${h}%` }} />
+        <div key={i} className="flex-1 rounded-t-sm bg-slate-100 dark:bg-white/5 animate-pulse" style={{ height: `${h}%` }} />
       ))}
     </div>
   );
@@ -190,7 +190,7 @@ function UtilizationRing({ pct }: { pct: number }) {
           style={{ transition: 'stroke-dasharray 0.8s ease' }}
         />
       </svg>
-      <span className="absolute text-sm font-bold text-white tabular-nums">{pct}%</span>
+      <span className="absolute text-sm font-bold text-slate-900 dark:text-white tabular-nums">{pct}%</span>
     </div>
   );
 }
@@ -205,9 +205,9 @@ function RecentShipmentsTable({ shipments, isLoading }: { shipments: Shipment[] 
   return (
     <table className="w-full min-w-[560px] border-collapse">
       <thead>
-        <tr className="border-b border-white/8">
+        <tr className="border-b border-slate-200 dark:border-white/8">
           {['Route', 'Cargo', 'Status', 'Posted', ''].map(h => (
-            <th key={h} className="px-4 py-3 text-left text-[11px] font-mono font-semibold text-white/30 uppercase tracking-widest whitespace-nowrap">
+            <th key={h} className="px-4 py-3 text-left text-[11px] font-mono font-semibold text-slate-500 dark:text-white/30 uppercase tracking-widest whitespace-nowrap">
               {h}
             </th>
           ))}
@@ -215,7 +215,7 @@ function RecentShipmentsTable({ shipments, isLoading }: { shipments: Shipment[] 
       </thead>
       <tbody>
         {isLoading && Array.from({ length: 5 }).map((_, i) => (
-          <tr key={i} className="border-b border-white/5">
+          <tr key={i} className="border-b border-slate-200 dark:border-white/5">
             {[45, 30, 18, 25, 12].map((w, j) => (
               <td key={j} className="px-4 py-3.5">
                 <SkeletonBlock className={`h-4`} style={{ width: `${w + (i * 7) % 20}%` } as React.CSSProperties} />
@@ -225,33 +225,33 @@ function RecentShipmentsTable({ shipments, isLoading }: { shipments: Shipment[] 
         ))}
         {!isLoading && recent.length === 0 && (
           <tr>
-            <td colSpan={5} className="px-4 py-10 text-center text-sm text-white/25">No shipments recorded yet</td>
+            <td colSpan={5} className="px-4 py-10 text-center text-sm text-slate-400 dark:text-white/25">No shipments recorded yet</td>
           </tr>
         )}
         {!isLoading && recent.map(s => (
-          <tr key={s.id} className="border-b border-white/5 hover:bg-white/[0.025] transition-colors group">
+          <tr key={s.id} className="border-b border-slate-200 dark:border-white/5 hover:bg-white/[0.025] transition-colors group">
             <td className="px-4 py-3.5">
-              <div className="flex items-center gap-1.5 text-sm text-white font-medium">
+              <div className="flex items-center gap-1.5 text-sm text-slate-900 dark:text-white font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
                 {parseCity(s.pickup_address)}
-                <span className="text-white/25 mx-0.5">→</span>
+                <span className="text-slate-400 dark:text-white/25 mx-0.5">→</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
                 {parseCity(s.delivery_address)}
               </div>
             </td>
-            <td className="px-4 py-3.5 text-sm text-white/50 capitalize">
+            <td className="px-4 py-3.5 text-sm text-slate-500 dark:text-white/50 capitalize">
               {s.cargo_type ?? '—'}
             </td>
             <td className="px-4 py-3.5">
               <StatusBadge status={s.status ?? 'pending'} />
             </td>
-            <td className="px-4 py-3.5 text-xs text-white/30 font-mono whitespace-nowrap">
+            <td className="px-4 py-3.5 text-xs text-slate-500 dark:text-white/30 font-mono whitespace-nowrap">
               {formatDate(s.created_at)}
             </td>
             <td className="px-4 py-3.5 text-right">
               <Link
                 href="/board"
-                className="inline-flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 font-medium opacity-0 group-hover:opacity-100 transition-opacity"
+                className="inline-flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-300 font-medium opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 View <ArrowRight className="w-3 h-3" />
               </Link>
@@ -269,27 +269,27 @@ function MiniParserCard() {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-          <Zap className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-500/15 flex items-center justify-center">
+          <Zap className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
         </div>
         <div>
-          <p className="text-xs font-semibold text-white">AI Rate Parser</p>
-          <p className="text-[11px] text-white/35">Extract data from PDFs instantly</p>
+          <p className="text-xs font-semibold text-slate-900 dark:text-white">AI Rate Parser</p>
+          <p className="text-[11px] text-slate-500 dark:text-white/35">Extract data from PDFs instantly</p>
         </div>
       </div>
 
       <Link
         href="/automations/rate-parser"
-        className="flex-1 flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all group cursor-pointer p-6 text-center min-h-[140px]"
+        className="flex-1 flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all group cursor-pointer p-6 text-center min-h-[140px]"
       >
-        <div className="w-12 h-12 rounded-xl bg-white/5 group-hover:bg-indigo-500/10 flex items-center justify-center transition-colors">
-          <FileText className="w-5 h-5 text-white/30 group-hover:text-indigo-400 transition-colors" />
+        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-white/5 group-hover:bg-indigo-500/10 flex items-center justify-center transition-colors">
+          <FileText className="w-5 h-5 text-slate-500 dark:text-white/30 group-hover:text-indigo-600 dark:text-indigo-400 transition-colors" />
         </div>
         <div>
-          <p className="text-sm font-medium text-white/50 group-hover:text-white/80 transition-colors">Drop PDF or click to parse</p>
-          <p className="text-[11px] text-white/25 mt-0.5">Rate confirmations, CMR, BOL</p>
+          <p className="text-sm font-medium text-slate-500 dark:text-white/50 group-hover:text-slate-700 dark:text-white/80 transition-colors">Drop PDF or click to parse</p>
+          <p className="text-[11px] text-slate-400 dark:text-white/25 mt-0.5">Rate confirmations, CMR, BOL</p>
         </div>
-        <span className="flex items-center gap-1 text-[11px] text-indigo-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
           Open Parser <ArrowRight className="w-3 h-3" />
         </span>
       </Link>
@@ -298,7 +298,7 @@ function MiniParserCard() {
         {(['Pickup address', 'Delivery address', 'Rate & currency', 'Cargo weight'] as const).map(field => (
           <div key={field} className="flex items-center gap-2">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500/60 flex-shrink-0" />
-            <span className="text-[11px] text-white/30">{field} extracted automatically</span>
+            <span className="text-[11px] text-slate-500 dark:text-white/30">{field} extracted automatically</span>
           </div>
         ))}
       </div>
@@ -362,33 +362,33 @@ export default function DashboardPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col min-h-full bg-[#080a10] text-white">
+    <div className="flex flex-col min-h-full bg-slate-50 dark:bg-[#080a10] text-slate-900 dark:text-white">
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div
-        className="px-6 pt-8 pb-6 border-b border-white/6"
+        className="px-6 pt-8 pb-6 border-b border-slate-200 dark:border-white/6"
         style={{ background: 'linear-gradient(180deg, rgba(99,102,241,0.07) 0%, transparent 100%)' }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <p className="text-[11px] font-mono text-indigo-400 uppercase tracking-widest mb-1">VECTRA Platform</p>
-            <h1 className="text-2xl font-bold text-white">Operations Dashboard</h1>
-            <p className="text-sm text-white/40 mt-1">Live overview across all domains</p>
+            <p className="text-[11px] font-mono text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">VECTRA Platform</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Operations Dashboard</h1>
+            <p className="text-sm text-slate-500 dark:text-white/40 mt-1">Live overview across all domains</p>
           </div>
           {/* System status */}
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/4 border border-white/8">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-white/4 border border-slate-200 dark:border-white/8">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span className="text-xs text-white/60 font-medium">System Online</span>
+              <span className="text-xs text-slate-600 dark:text-white/60 font-medium">System Online</span>
             </div>
             <div className="text-right hidden sm:block">
-              <p className="text-[11px] text-white/30 font-mono">
+              <p className="text-[11px] text-slate-500 dark:text-white/30 font-mono">
                 {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long' })}
               </p>
-              <p className="text-[11px] text-white/20 font-mono">
+              <p className="text-[11px] text-slate-400 dark:text-white/20 font-mono">
                 {new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
@@ -408,32 +408,32 @@ export default function DashboardPage() {
                 label="Active Shipments"
                 value={kpis.activeShipments}
                 sub="Booked or in transit"
-                icon={<Package className="w-4 h-4 text-indigo-400" />}
-                iconBg="bg-indigo-500/15"
+                icon={<Package className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
+                iconBg="bg-indigo-100 dark:bg-indigo-500/15"
                 accent="bg-indigo-500"
               />
               <KpiCard
                 label="Fleet Utilisation"
                 value={`${kpis.utilisation}%`}
                 sub={`${vehicles?.length ?? 0} vehicles registered`}
-                icon={<Truck className="w-4 h-4 text-violet-400" />}
-                iconBg="bg-violet-500/15"
+                icon={<Truck className="w-4 h-4 text-violet-600 dark:text-violet-400" />}
+                iconBg="bg-violet-100 dark:bg-violet-500/15"
                 accent="bg-violet-500"
               />
               <KpiCard
                 label="Pending Actions"
                 value={kpis.pendingActions}
                 sub="New loads on marketplace"
-                icon={<Clock className="w-4 h-4 text-amber-400" />}
-                iconBg="bg-amber-500/15"
+                icon={<Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
+                iconBg="bg-amber-100 dark:bg-amber-500/15"
                 accent="bg-amber-500"
               />
               <KpiCard
                 label="Revenue Est."
                 value={formatCurrency(kpis.revenueEstimate)}
                 sub="Completed & booked loads"
-                icon={<TrendingUp className="w-4 h-4 text-emerald-400" />}
-                iconBg="bg-emerald-500/15"
+                icon={<TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+                iconBg="bg-emerald-100 dark:bg-emerald-500/15"
                 accent="bg-emerald-500"
               />
             </>
@@ -444,27 +444,27 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
           {/* Chart — 2/3 */}
-          <div className="lg:col-span-2 rounded-xl bg-white/4 border border-white/8 p-5 flex flex-col gap-4">
+          <div className="lg:col-span-2 rounded-xl bg-white dark:bg-white/4 border border-slate-200 dark:border-white/8 p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-white/40" />
-                <p className="text-sm font-semibold text-white">Shipment Volume</p>
+                <BarChart3 className="w-4 h-4 text-slate-500 dark:text-white/40" />
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Shipment Volume</p>
               </div>
-              <span className="text-[11px] text-white/30 font-mono">Last 7 days</span>
+              <span className="text-[11px] text-slate-500 dark:text-white/30 font-mono">Last 7 days</span>
             </div>
 
             {/* Fleet utilisation sub-row */}
-            <div className="flex items-center gap-4 px-4 py-3 rounded-lg bg-white/4 border border-white/6">
+            <div className="flex items-center gap-4 px-4 py-3 rounded-lg bg-white dark:bg-white/4 border border-slate-200 dark:border-white/6">
               <UtilizationRing pct={isLoading ? 0 : kpis.utilisation} />
               <div className="flex-1 space-y-2">
-                <p className="text-xs font-semibold text-white/70">Fleet Utilisation</p>
-                <div className="w-full h-1.5 rounded-full bg-white/8 overflow-hidden">
+                <p className="text-xs font-semibold text-slate-600 dark:text-white/70">Fleet Utilisation</p>
+                <div className="w-full h-1.5 rounded-full bg-slate-200 dark:bg-white/8 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-indigo-500 transition-all duration-700"
                     style={{ width: isLoading ? '0%' : `${kpis.utilisation}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-[11px] text-white/30 font-mono">
+                <div className="flex justify-between text-[11px] text-slate-500 dark:text-white/30 font-mono">
                   <span>{kpis.utilisation}% active</span>
                   <span>{(vehicles?.length ?? 0) - Math.round((kpis.utilisation / 100) * (vehicles?.length ?? 0))} idle</span>
                 </div>
@@ -480,47 +480,47 @@ export default function DashboardPage() {
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-4 pt-1 border-t border-white/5">
+            <div className="flex items-center gap-4 pt-1 border-t border-slate-200 dark:border-white/5">
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500" />
-                <span className="text-[11px] text-white/35">Today</span>
+                <span className="text-[11px] text-slate-500 dark:text-white/35">Today</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-white/10" />
-                <span className="text-[11px] text-white/35">Previous days</span>
+                <span className="w-2.5 h-2.5 rounded-sm bg-slate-200 dark:bg-white/10" />
+                <span className="text-[11px] text-slate-500 dark:text-white/35">Previous days</span>
               </div>
-              <span className="ml-auto text-[11px] text-white/25 font-mono">
+              <span className="ml-auto text-[11px] text-slate-400 dark:text-white/25 font-mono">
                 Total: {(shipments ?? []).length} shipments
               </span>
             </div>
           </div>
 
           {/* AI parser card — 1/3 */}
-          <div className="rounded-xl bg-white/4 border border-white/8 p-5">
+          <div className="rounded-xl bg-white dark:bg-white/4 border border-slate-200 dark:border-white/8 p-5">
             <MiniParserCard />
           </div>
         </div>
 
         {/* ── Recent shipments ─────────────────────────────────────────────── */}
-        <div className="rounded-xl bg-white/4 border border-white/8 flex flex-col">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
+        <div className="rounded-xl bg-white dark:bg-white/4 border border-slate-200 dark:border-white/8 flex flex-col">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-white/8">
             <div className="flex items-center gap-2">
-              <Circle className="w-3.5 h-3.5 text-white/30" />
-              <p className="text-sm font-semibold text-white">Recent Logistics Events</p>
-              <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-white/5 text-white/30 font-mono">
+              <Circle className="w-3.5 h-3.5 text-slate-500 dark:text-white/30" />
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Recent Logistics Events</p>
+              <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/30 font-mono">
                 {isLoading ? '—' : Math.min((shipments ?? []).length, 5)}
               </span>
             </div>
             <Link
               href="/board"
-              className="flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+              className="flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
             >
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
           {shipmentsError ? (
-            <div className="flex items-center gap-2 px-5 py-8 text-sm text-red-400/70">
+            <div className="flex items-center gap-2 px-5 py-8 text-sm text-red-600 dark:text-red-400/70">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               Failed to load shipments
             </div>

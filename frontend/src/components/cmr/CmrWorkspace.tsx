@@ -512,14 +512,6 @@ export default function CmrWorkspace() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            className={`p-2 rounded-lg border transition ${isDark ? 'border-slate-700 bg-slate-800 text-amber-400 hover:bg-slate-700' : 'border-gray-200 bg-white text-indigo-600 hover:bg-gray-50'}`}
-            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-
           {currentUser ? (
             <div className="text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
