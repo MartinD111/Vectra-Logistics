@@ -122,6 +122,132 @@ class MarketplaceRepository {
     );
     return rows[0] ?? null;
   }
+
+  // ── Archive ───────────────────────────────────────────────────────────────
+  //
+  // archive_logs schema (run once in a migration):
+  //
+  //   CREATE TABLE IF NOT EXISTS archive_logs (
+  //     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  //     shipment_id     UUID NOT NULL REFERENCES shipments(id),
+  //     company_id      UUID NOT NULL,
+  //     carrier_company_id UUID,
+  //     pickup_address  TEXT NOT NULL,
+  //     delivery_address TEXT NOT NULL,
+  //     cargo_type      TEXT,
+  //     cargo_weight_kg NUMERIC,
+  //     final_status    TEXT NOT NULL,
+  //     driver_id       UUID REFERENCES drivers(id),
+  //     vehicle_id      UUID REFERENCES vehicles(id),
+  //     cmr_document_url TEXT,
+  //     final_rate_eur  NUMERIC,
+  //     archived_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  //   );
+  //
+  //   CREATE UNIQUE INDEX IF NOT EXISTS archive_logs_shipment_id_idx
+  //     ON archive_logs (shipment_id);
+
+  async archiveShipment(
+    shipmentId: string,
+    companyId: string,
+    opts: {
+      carrierCompanyId?: string;
+      driverId?: string;
+      vehicleId?: string;
+      cmrDocumentUrl?: string;
+      finalRateEur?: number;
+      finalStatus: string;
+    },
+  ): Promise<void> {
+    const shipment = await this.findShipmentById(shipmentId);
+    if (!shipment) return;
+
+    await db.query(
+      `INSERT INTO archive_logs (
+         shipment_id, company_id, carrier_company_id,
+         pickup_address, delivery_address,
+         cargo_type, cargo_weight_kg,
+         final_status, driver_id, vehicle_id,
+         cmr_document_url, final_rate_eur
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       ON CONFLICT (shipment_id) DO UPDATE
+         SET final_status     = EXCLUDED.final_status,
+             driver_id        = COALESCE(EXCLUDED.driver_id,        archive_logs.driver_id),
+             vehicle_id       = COALESCE(EXCLUDED.vehicle_id,       archive_logs.vehicle_id),
+             cmr_document_url = COALESCE(EXCLUDED.cmr_document_url, archive_logs.cmr_document_url),
+             final_rate_eur   = COALESCE(EXCLUDED.final_rate_eur,   archive_logs.final_rate_eur),
+             archived_at      = NOW()`,
+      [
+        shipmentId,
+        companyId,
+        opts.carrierCompanyId ?? null,
+        shipment.pickup_address,
+        shipment.delivery_address,
+        shipment.cargo_type ?? null,
+        shipment.cargo_weight_kg ?? null,
+        opts.finalStatus,
+        opts.driverId ?? null,
+        opts.vehicleId ?? null,
+        opts.cmrDocumentUrl ?? null,
+        opts.finalRateEur ?? null,
+      ],
+    );
+  }
+
+  async findShipmentById(shipmentId: string): Promise<Shipment | null> {
+    const { rows } = await db.query<Shipment>(
+      `SELECT * FROM shipments WHERE id = $1 LIMIT 1`,
+      [shipmentId],
+    );
+    return rows[0] ?? null;
+  }
+
+  async getShipmentHistory(companyId: string): Promise<ArchiveLog[]> {
+    const { rows } = await db.query<ArchiveLog>(
+      `SELECT
+         a.id, a.shipment_id, a.company_id, a.carrier_company_id,
+         a.pickup_address, a.delivery_address,
+         a.cargo_type, a.cargo_weight_kg,
+         a.final_status, a.cmr_document_url, a.final_rate_eur,
+         a.archived_at,
+         d.first_name  AS driver_first_name,
+         d.last_name   AS driver_last_name,
+         v.license_plate AS vehicle_license_plate,
+         s.settlement_amount, s.settlement_status
+       FROM archive_logs a
+       LEFT JOIN drivers     d ON d.id = a.driver_id
+       LEFT JOIN vehicles    v ON v.id = a.vehicle_id
+       LEFT JOIN settlements s ON s.shipment_id = a.shipment_id
+       WHERE a.company_id = $1
+          OR a.carrier_company_id = $1
+       ORDER BY a.archived_at DESC`,
+      [companyId],
+    );
+    return rows;
+  }
 }
 
 export const marketplaceRepository = new MarketplaceRepository();
+
+// ── Archive log type ──────────────────────────────────────────────────────────
+
+export interface ArchiveLog {
+  id: string;
+  shipment_id: string;
+  company_id: string;
+  carrier_company_id: string | null;
+  pickup_address: string;
+  delivery_address: string;
+  cargo_type: string | null;
+  cargo_weight_kg: number | null;
+  final_status: string;
+  cmr_document_url: string | null;
+  final_rate_eur: number | null;
+  archived_at: Date;
+  driver_first_name: string | null;
+  driver_last_name: string | null;
+  vehicle_license_plate: string | null;
+  settlement_amount: number | null;
+  settlement_status: string | null;
+}

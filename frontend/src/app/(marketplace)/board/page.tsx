@@ -3,6 +3,7 @@
 import { useState, useMemo, Fragment } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { marketplaceApi, Shipment } from '@/lib/api/marketplace.api';
+import { useAssignmentNotifier } from '@/app/hooks/useAssignmentNotifier';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -388,6 +389,7 @@ export default function FreightBoardPage() {
   const [bookError, setBookError]       = useState<string | null>(null);
 
   const queryClient = useQueryClient();
+  const { notify }  = useAssignmentNotifier();
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['shipments'],
@@ -398,9 +400,10 @@ export default function FreightBoardPage() {
   const bookMutation = useMutation({
     mutationFn: (shipmentId: string) => marketplaceApi.bookShipment(shipmentId),
     onMutate: () => { setBookError(null); },
-    onSuccess: (_data, shipmentId) => {
+    onSuccess: (data, shipmentId) => {
       setBooked((prev) => { const next = new Set(prev); next.add(shipmentId); return next; });
       queryClient.invalidateQueries({ queryKey: ['shipments'] });
+      if (data.communications) notify(data.communications);
     },
     onError: (err: Error) => {
       setBookError(err.message ?? 'Booking failed — please try again');

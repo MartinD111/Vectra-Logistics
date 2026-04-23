@@ -151,7 +151,7 @@ function VehiclesTable({
   errorMessage: string;
   onAdd: () => void;
 }) {
-  const headers = ['License Plate', 'Type', 'Max Weight', 'Volume', 'Pallets', 'Added', ''];
+  const headers = ['License Plate', 'Type', 'Max Weight', 'Volume', 'Pallets', 'Telematics', 'Added', ''];
 
   return (
     <table className="w-full min-w-[640px] border-collapse">
@@ -168,46 +168,65 @@ function VehiclesTable({
         </tr>
       </thead>
       <tbody>
-        {isLoading && Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={7} />)}
+        {isLoading && Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} cols={8} />)}
         {isError && <ErrorRow message={errorMessage} />}
         {!isLoading && !isError && (vehicles ?? []).length === 0 && (
           <EmptyState label="Vehicles" onAdd={onAdd} />
         )}
-        {!isLoading && !isError && (vehicles ?? []).map((v) => (
-          <tr
-            key={v.id}
-            className="border-b border-white/5 hover:bg-white/[0.025] transition-colors duration-100 group"
-          >
-            <td className="px-4 py-3.5">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-indigo-500/15 flex items-center justify-center flex-shrink-0">
-                  <Truck className="w-3.5 h-3.5 text-indigo-400" />
+        {!isLoading && !isError && (vehicles ?? []).map((v) => {
+          const syncedRecently = v.last_sync_at != null &&
+            Date.now() - new Date(v.last_sync_at).getTime() < 10 * 60 * 1000;
+          return (
+            <tr
+              key={v.id}
+              className="border-b border-white/5 hover:bg-white/[0.025] transition-colors duration-100 group"
+            >
+              <td className="px-4 py-3.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-500/15 flex items-center justify-center flex-shrink-0">
+                    <Truck className="w-3.5 h-3.5 text-indigo-400" />
+                  </div>
+                  <span className="text-sm font-mono font-semibold text-white tracking-wide">
+                    {v.license_plate ?? '—'}
+                  </span>
                 </div>
-                <span className="text-sm font-mono font-semibold text-white tracking-wide">
-                  {v.license_plate ?? '—'}
-                </span>
-              </div>
-            </td>
-            <td className="px-4 py-3.5">
-              <VehicleTypeBadge type={v.vehicle_type ?? ''} />
-            </td>
-            <td className="px-4 py-3.5 text-sm text-white/70">
-              {formatWeight(v.max_weight_kg)}
-            </td>
-            <td className="px-4 py-3.5 text-sm text-white/70">
-              {v.max_volume_m3 != null ? `${v.max_volume_m3} m³` : '—'}
-            </td>
-            <td className="px-4 py-3.5 text-sm text-white/70">
-              {v.max_pallets != null ? `${v.max_pallets} EUR` : '—'}
-            </td>
-            <td className="px-4 py-3.5 text-xs text-white/35">
-              {formatDate(v.created_at)}
-            </td>
-            <td className="px-4 py-3.5 text-white/20 group-hover:text-white/40 transition-colors text-right">
-              <ChevronRight className="w-4 h-4 inline-block" />
-            </td>
-          </tr>
-        ))}
+              </td>
+              <td className="px-4 py-3.5">
+                <VehicleTypeBadge type={v.vehicle_type ?? ''} />
+              </td>
+              <td className="px-4 py-3.5 text-sm text-white/70">
+                {formatWeight(v.max_weight_kg)}
+              </td>
+              <td className="px-4 py-3.5 text-sm text-white/70">
+                {v.max_volume_m3 != null ? `${v.max_volume_m3} m³` : '—'}
+              </td>
+              <td className="px-4 py-3.5 text-sm text-white/70">
+                {v.max_pallets != null ? `${v.max_pallets} EUR` : '—'}
+              </td>
+              <td className="px-4 py-3.5">
+                {syncedRecently ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset bg-emerald-500/15 text-emerald-400 ring-emerald-500/30">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                    </span>
+                    Live
+                  </span>
+                ) : (
+                  <span className="text-xs text-white/20 font-mono">
+                    {v.last_sync_at ? formatDate(v.last_sync_at) : 'No sync'}
+                  </span>
+                )}
+              </td>
+              <td className="px-4 py-3.5 text-xs text-white/35">
+                {formatDate(v.created_at)}
+              </td>
+              <td className="px-4 py-3.5 text-white/20 group-hover:text-white/40 transition-colors text-right">
+                <ChevronRight className="w-4 h-4 inline-block" />
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );

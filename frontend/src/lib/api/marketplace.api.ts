@@ -85,14 +85,55 @@ export interface CreateCapacityDto {
 
 const BASE = '/api/v1/marketplace';
 
+export interface AssignmentCommunications {
+  whatsapp: {
+    phone:    string | null;
+    text:     string;
+    url:      string | null;
+  };
+  outlook: {
+    to:       string;
+    cc:       string;
+    subject:  string;
+    body:     string;
+    mailto:   string;
+  };
+  aiGenerated: boolean;
+}
+
+export interface ShipmentWithComms extends Shipment {
+  communications?: AssignmentCommunications;
+}
+
 export interface AssignShipmentResponse {
   shipment_id: string;
   vehicle_id: string;
   assigned_at: string;
 }
 
+export interface ArchiveLog {
+  id: string;
+  shipment_id: string;
+  company_id: string;
+  carrier_company_id: string | null;
+  pickup_address: string;
+  delivery_address: string;
+  cargo_type: string | null;
+  cargo_weight_kg: number | null;
+  final_status: string;
+  cmr_document_url: string | null;
+  final_rate_eur: number | null;
+  archived_at: string;
+  driver_first_name: string | null;
+  driver_last_name: string | null;
+  vehicle_license_plate: string | null;
+  settlement_amount: number | null;
+  settlement_status: string | null;
+}
+
 export const marketplaceApi = {
   getShipments:   ()                            => apiFetch<Shipment[]>(`${BASE}/shipments`),
+  getShipmentHistory: ()                        => apiFetch<ArchiveLog[]>(`${BASE}/shipments/history`),
   createShipment: (dto: CreateShipmentDto)      => apiFetch<Shipment>(`${BASE}/shipments`, 'POST', dto),
 
   getCapacities:  ()                            => apiFetch<Capacity[]>(`${BASE}/capacities`),
@@ -107,5 +148,5 @@ export const marketplaceApi = {
     ),
 
   bookShipment: (shipmentId: string) =>
-    apiFetch<Shipment>(`${BASE}/shipments/${shipmentId}/book`, 'POST'),
+    apiFetch<ShipmentWithComms>(`${BASE}/shipments/${shipmentId}/book`, 'POST'),
 };

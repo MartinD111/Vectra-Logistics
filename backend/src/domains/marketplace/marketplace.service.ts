@@ -5,6 +5,11 @@ import { Shipment, Capacity } from './marketplace.types';
 import { CreateShipmentSchema } from './dto/create-shipment.dto';
 import { CreateCapacitySchema } from './dto/create-capacity.dto';
 import { AssignShipmentSchema } from './dto/assign-shipment.dto';
+import { automationService, AssignmentCommunications } from '../workspace/automation.service';
+
+export interface ShipmentWithComms extends Shipment {
+  communications: AssignmentCommunications;
+}
 
 class MarketplaceService {
   // ── Shipments ─────────────────────────────────────────────────────────────
@@ -53,7 +58,7 @@ class MarketplaceService {
     companyId: string,
     shipmentId: string,
     body: unknown,
-  ): Promise<Shipment> {
+  ): Promise<Shipment | ShipmentWithComms> {
     const parsed = AssignShipmentSchema.safeParse(body);
     if (!parsed.success) {
       throw new AppError(400, parsed.error.issues[0].message);
@@ -80,17 +85,37 @@ class MarketplaceService {
       vehicleId: parsed.data.vehicle_id,
     });
 
-    return shipment;
+    // Fire-and-forget: generate comms in parallel, never block the response
+    const communications = await automationService
+      .prepareAssignmentCommunications(shipment.id, companyId)
+      .catch((err) => {
+        console.warn('[MarketplaceService] Communications generation failed:', (err as Error).message);
+        return null;
+      });
+
+    return communications
+      ? { ...shipment, communications }
+      : shipment;
   }
 
   // ── Booking ───────────────────────────────────────────────────────────────
 
-  async bookShipment(shipmentId: string, carrierCompanyId: string): Promise<Shipment> {
+  async bookShipment(shipmentId: string, carrierCompanyId: string): Promise<Shipment | ShipmentWithComms> {
     const shipment = await marketplaceRepository.bookShipment(shipmentId, carrierCompanyId);
     if (!shipment) {
       throw new AppError(409, 'This load is no longer available');
     }
-    return shipment;
+
+    const communications = await automationService
+      .prepareAssignmentCommunications(shipment.id, carrierCompanyId)
+      .catch((err) => {
+        console.warn('[MarketplaceService] Communications generation failed:', (err as Error).message);
+        return null;
+      });
+
+    return communications
+      ? { ...shipment, communications }
+      : shipment;
   }
 }
 

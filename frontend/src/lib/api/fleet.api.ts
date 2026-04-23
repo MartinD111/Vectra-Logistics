@@ -23,6 +23,7 @@ export interface Vehicle {
   max_weight_kg: number;
   max_volume_m3: number;
   max_pallets: number;
+  last_sync_at: string | null;
   created_at: string;
   updated_at: string;
 }

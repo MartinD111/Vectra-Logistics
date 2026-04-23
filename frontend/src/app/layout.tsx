@@ -4,6 +4,7 @@ import './globals.css'
 import 'leaflet/dist/leaflet.css'
 import Navbar from '@/components/layout/Navbar'
 import { Providers } from '@/components/layout/Providers'
+import SmartActionsToast from '@/app/components/SmartActionsToast'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,6 +26,7 @@ export default function RootLayout({
           <main className="flex-1 w-full relative">
             {children}
           </main>
+          <SmartActionsToast />
         </Providers>
       </body>
     </html>
