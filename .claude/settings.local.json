@@ -9,7 +9,8 @@
       "Bash(npm ls *)",
       "Bash(echo \"EXIT=$?\")",
       "Bash(npm run *)",
-      "Bash(\"../frontend/node_modules/.bin/tsc\" --noEmit -p .)"
+      "Bash(\"../frontend/node_modules/.bin/tsc\" --noEmit -p .)",
+      "Bash(git ls-remote *)"
     ]
   }
 }
