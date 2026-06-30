@@ -6,8 +6,26 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Eye, EyeOff, Loader2, Truck, Package, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth, UserRole } from '@/context/AuthContext';
+import { appUrls } from '@vectra/ui';
 
 type FormMode = 'login' | 'signup' | 'forgot';
+
+// Read a post-login destination from ?next=. Only allow our own app origins
+// (or relative paths) so this can't be used as an open redirect.
+function safeNext(): string | null {
+  if (typeof window === 'undefined') return null;
+  const next = new URLSearchParams(window.location.search).get('next');
+  if (!next) return null;
+  if (next.startsWith('/')) return next;
+  try {
+    const url = new URL(next);
+    const allowed = Object.values(appUrls).map((u) => new URL(u).origin);
+    if (allowed.includes(url.origin)) return next;
+  } catch {
+    /* not a valid URL */
+  }
+  return null;
+}
 
 export default function AuthPage() {
   const { login, signup, user, isLoading } = useAuth();
@@ -39,7 +57,12 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace('/dashboard');
+      const next = safeNext();
+      if (next && !next.startsWith('/')) {
+        window.location.href = next; // cross-app return (e.g. marketplace board)
+      } else {
+        router.replace(next ?? '/dashboard');
+      }
     }
   }, [user, isLoading, router]);
 
@@ -49,7 +72,7 @@ export default function AuthPage() {
     setLoading(true);
     try {
       await login(email, password);
-      router.push('/dashboard');
+      // Redirect is handled by the effect above (honors ?next=, incl. cross-app).
     } catch (err: any) {
       setError(err.message);
     } finally {

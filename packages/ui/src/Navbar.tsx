@@ -26,11 +26,14 @@ export interface NavbarBranding {
 }
 
 export interface NavbarProps {
-  /** Per-app navigation items — supplied by each app, never hardcoded here. */
-  navigation: NavItem[];
+  /**
+   * Per-app navigation items — supplied by each app, never hardcoded here.
+   * Optional: omit (or pass []) for a minimal header (logo + sign-in only).
+   */
+  navigation?: NavItem[];
   /** Per-app/per-tenant branding for the header. */
   branding: NavbarBranding;
-  /** Optional slot rendered left of the profile menu (e.g. notifications, app-switcher). */
+  /** Optional slot rendered left of the profile menu (e.g. notifications). */
   rightSlot?: ReactNode;
   /** Where "Sign In" and post-logout routing point. Defaults to "/auth". */
   authHref?: string;
@@ -39,9 +42,10 @@ export interface NavbarProps {
 /**
  * Shared header shell for all three Vectra apps. Navigation and branding are
  * supplied per-app via props — this component contains no app- or tenant-
- * specific content of its own.
+ * specific content of its own. With no `navigation`, it renders a minimal
+ * header: logo (links home) + Sign In / profile menu.
  */
-export function Navbar({ navigation, branding, rightSlot, authHref = '/auth' }: NavbarProps) {
+export function Navbar({ navigation = [], branding, rightSlot, authHref = '/auth' }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -205,16 +209,32 @@ export function Navbar({ navigation, branding, rightSlot, authHref = '/auth' }: 
           )}
         </div>
 
-        {/* Mobile hamburger button */}
-        <div className="flex lg:hidden">
-          <button
-            type="button"
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 dark:text-gray-200"
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <span className="sr-only">Open main menu</span>
-            <Menu className="h-6 w-6" aria-hidden="true" />
-          </button>
+        {/* Mobile area: hamburger when there's nav; otherwise sign-in / profile */}
+        <div className="flex lg:hidden items-center gap-2">
+          {navigation.length > 0 ? (
+            <button
+              type="button"
+              className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 dark:text-gray-200"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <span className="sr-only">Open main menu</span>
+              <Menu className="h-6 w-6" aria-hidden="true" />
+            </button>
+          ) : user ? (
+            <Link
+              href="/profile"
+              className="h-8 w-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-black shadow"
+            >
+              {initials}
+            </Link>
+          ) : (
+            <Link
+              href={authHref}
+              className="flex items-center gap-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-500 transition px-4 py-2 rounded-xl shadow-sm"
+            >
+              <User className="h-4 w-4" /> Sign In
+            </Link>
+          )}
         </div>
       </nav>
 

@@ -1,34 +1,11 @@
 "use client";
 
-import {
-  LayoutDashboard,
-  BarChart3,
-  Navigation2,
-  Zap,
-  Briefcase,
-  Truck,
-} from "lucide-react";
-import { Navbar as SharedNavbar, AppSwitcher, type NavItem } from "@vectra/ui";
-import { useAuth } from "@/context/AuthContext";
-import { NotificationBell } from "@vectra/data";
+import { Navbar as SharedNavbar } from "@vectra/ui";
 import { useCurrentWorkspace } from "@/lib/hooks/useTenantWorkspace";
 
-// Workspaces-app navigation. Each app owns its own nav array — the shared
-// Navbar shell renders whatever it is given. CMR moved to its own app (reach it
-// via the app-switcher). "Marketplace Intelligence" is the tenant's own
-// analytics page and stays here; the public marketplace board lives in the
-// Marketplace app (moved in Phase 2e).
-const navigation: NavItem[] = [
-  { name: "Home", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Marketplace Intelligence", href: "/marketplace", icon: BarChart3 },
-  { name: "Vectra Routes", href: "/routes", icon: Navigation2 },
-  { name: "Automations", href: "/automations", icon: Zap },
-  { name: "Workspace", href: "/workspaces", icon: Briefcase },
-  { name: "My Fleet", href: "/fleet", icon: Truck },
-];
-
+// Minimal header: logo (links home) + Sign In only. In-app navigation lives in
+// the Workspaces sidebar; cross-app navigation happens from the home launcher.
 export default function Navbar() {
-  const { user } = useAuth();
   const { data: workspace } = useCurrentWorkspace();
 
   // Tenant-branded header: when the company's workspace has a custom logo or
@@ -46,16 +23,5 @@ export default function Navbar() {
         homeHref: "/",
       };
 
-  return (
-    <SharedNavbar
-      navigation={navigation}
-      branding={branding}
-      rightSlot={
-        <>
-          {user && <NotificationBell />}
-          <AppSwitcher current="workspaces" />
-        </>
-      }
-    />
-  );
+  return <SharedNavbar branding={branding} />;
 }

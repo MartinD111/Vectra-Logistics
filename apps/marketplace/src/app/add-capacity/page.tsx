@@ -8,6 +8,7 @@ import { AlertCircle, Loader2, MapPin, Truck } from 'lucide-react';
 import { geocodeFirst } from '@vectra/data';
 import { useCreateCapacity, useVehicles } from '@vectra/data';
 import { ApiError } from '@vectra/api-client';
+import RequireSignIn from '@/components/RequireSignIn';
 
 const RoutePreviewMap = dynamic(() => import('@vectra/data/map').then((m) => ({ default: m.RoutePreviewMap })), { ssr: false });
 
@@ -51,7 +52,15 @@ function validate(s: FormState): Record<string, string> {
   return e;
 }
 
-export default function AddCapacityPage() {
+export default function AddCapacityPageGuarded() {
+  return (
+    <RequireSignIn>
+      <AddCapacityPage />
+    </RequireSignIn>
+  );
+}
+
+function AddCapacityPage() {
   const router = useRouter();
   const create = useCreateCapacity();
   const vehiclesQ = useVehicles();

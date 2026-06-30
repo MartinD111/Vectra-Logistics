@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import 'leaflet/dist/leaflet.css'
 import Navbar from '@/components/layout/Navbar'
+import AppShell from '@/components/layout/AppShell'
 import { Providers } from '@/components/layout/Providers'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -22,9 +23,7 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen flex flex-col`}>
         <Providers>
           <Navbar />
-          <main className="flex-1 w-full relative">
-            {children}
-          </main>
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>

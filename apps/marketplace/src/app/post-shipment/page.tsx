@@ -7,6 +7,7 @@ import { AlertCircle, CheckCircle2, Loader2, MapPin, Package, Truck } from 'luci
 import { geocodeFirst } from '@vectra/data';
 import { useCreateShipment } from '@vectra/data';
 import { ApiError } from '@vectra/api-client';
+import RequireSignIn from '@/components/RequireSignIn';
 
 const RoutePreviewMap = dynamic(() => import('@vectra/data/map').then((m) => ({ default: m.RoutePreviewMap })), { ssr: false });
 
@@ -56,7 +57,15 @@ function validate(s: FormState): Record<string, string> {
   return e;
 }
 
-export default function PostShipmentPage() {
+export default function PostShipmentPageGuarded() {
+  return (
+    <RequireSignIn>
+      <PostShipmentPage />
+    </RequireSignIn>
+  );
+}
+
+function PostShipmentPage() {
   const router = useRouter();
   const create = useCreateShipment();
 

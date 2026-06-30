@@ -3,6 +3,8 @@
 import { useState, useMemo, Fragment } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { marketplaceApi, Shipment } from '@vectra/data';
+import { useAuth } from '@vectra/auth';
+import { crossAppUrl } from '@vectra/ui';
 import { useAssignmentNotifier } from '@/app/hooks/useAssignmentNotifier';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -380,6 +382,7 @@ type Tab = 'available' | 'bids' | 'completed';
 const CARGO_TYPES = ['All Types', 'Pallets', 'Refrigerated', 'Vehicles', 'Livestock', 'General'];
 
 export default function FreightBoardPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab]       = useState<Tab>('available');
   const [search, setSearch]             = useState('');
   const [cargoFilter, setCargoFilter]   = useState('All Types');
@@ -448,6 +451,16 @@ export default function FreightBoardPage() {
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   function handleBook(shipment: Shipment) {
+    // Browsing the board is public; booking requires sign-in. Send guests to the
+    // Workspaces app's auth page (where accounts live), returning here after.
+    if (!user) {
+      const returnTo = crossAppUrl('marketplace', '/board');
+      window.location.href = crossAppUrl(
+        'workspaces',
+        `/auth?next=${encodeURIComponent(returnTo)}`,
+      );
+      return;
+    }
     bookMutation.mutate(shipment.id);
   }
 
