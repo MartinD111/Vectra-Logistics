@@ -8,7 +8,10 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   // Trace from the monorepo root so standalone output bundles workspace packages.
-  outputFileTracingRoot: repoRoot,
+  // (In Next 14 this lives under `experimental`.)
+  experimental: {
+    outputFileTracingRoot: repoRoot,
+  },
   transpilePackages: ['@vectra/ui', '@vectra/auth', '@vectra/api-client', '@vectra/types'],
   eslint: {
     ignoreDuringBuilds: true,

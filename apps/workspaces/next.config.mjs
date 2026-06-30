@@ -8,7 +8,10 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone', // Needed for docker
   // Trace from the monorepo root so standalone output bundles workspace packages.
-  outputFileTracingRoot: repoRoot,
+  // (In Next 14 this lives under `experimental`.)
+  experimental: {
+    outputFileTracingRoot: repoRoot,
+  },
   // Shared workspace packages ship raw TS/TSX source; Next must transpile them.
   transpilePackages: ['@vectra/ui', '@vectra/auth', '@vectra/api-client', '@vectra/types', '@vectra/data'],
   eslint: {
