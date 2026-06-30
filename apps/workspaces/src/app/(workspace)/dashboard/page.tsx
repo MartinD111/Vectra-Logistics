@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { marketplaceApi, Shipment } from '@vectra/data';
 import { fleetApi, Vehicle } from '@vectra/data';
+import { crossAppUrl } from '@vectra/ui';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -249,12 +250,12 @@ function RecentShipmentsTable({ shipments, isLoading }: { shipments: Shipment[] 
               {formatDate(s.created_at)}
             </td>
             <td className="px-4 py-3.5 text-right">
-              <Link
-                href="/board"
+              <a
+                href={crossAppUrl('marketplace', '/board')}
                 className="inline-flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 font-medium opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 View <ArrowRight className="w-3 h-3" />
-              </Link>
+              </a>
             </td>
           </tr>
         ))}
@@ -511,12 +512,12 @@ export default function DashboardPage() {
                 {isLoading ? '—' : Math.min((shipments ?? []).length, 5)}
               </span>
             </div>
-            <Link
-              href="/board"
+            <a
+              href={crossAppUrl('marketplace', '/board')}
               className="flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
             >
               View all <ArrowRight className="w-3 h-3" />
-            </Link>
+            </a>
           </div>
 
           {shipmentsError ? (

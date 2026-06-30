@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MapProvider, useCapacities, useShipments, useBookShipment, StatusBadge } from "@vectra/data";
+import { crossAppUrl } from "@vectra/ui";
 import {
   Map,
   Cpu,
@@ -931,14 +932,14 @@ function TabMatching() {
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-100 dark:border-slate-700 flex-shrink-0">
-            <Link href="/post-shipment" className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white text-xs font-semibold rounded-lg transition-colors">
+            <a href={crossAppUrl('marketplace', '/post-shipment')} className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white text-xs font-semibold rounded-lg transition-colors">
               <Plus className="w-3.5 h-3.5" />
               Post Shipment
-            </Link>
-            <Link href="/add-capacity" className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg transition-colors border border-slate-200 dark:border-slate-600">
+            </a>
+            <a href={crossAppUrl('marketplace', '/add-capacity')} className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg transition-colors border border-slate-200 dark:border-slate-600">
               <Truck className="w-3.5 h-3.5" />
               Add Capacity
-            </Link>
+            </a>
           </div>
         </div>
       </div>
