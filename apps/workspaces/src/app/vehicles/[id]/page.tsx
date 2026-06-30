@@ -6,11 +6,10 @@ import { useState } from 'react';
 import {
   AlertCircle, ArrowLeft, Hash, Loader2, Package, Scale, Truck, Weight,
 } from 'lucide-react';
-import { useVehicle, useUpdateVehicle } from '@/lib/hooks/useFleet';
+import { useVehicle, useUpdateVehicle } from '@vectra/data';
 import { ApiError } from '@/lib/api/client';
-import FileUploader from '@/components/documents/FileUploader';
-import DocumentList from '@/components/documents/DocumentList';
-import type { Vehicle } from '@/lib/api/fleet.api';
+import { FileUploader, DocumentList } from '@vectra/data';
+import type { Vehicle } from '@vectra/data';
 
 export default function VehicleDetailPage() {
   const params = useParams<{ id: string }>();

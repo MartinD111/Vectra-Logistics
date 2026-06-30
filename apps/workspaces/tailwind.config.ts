@@ -9,6 +9,7 @@ const config: Config = {
     // Shared UI packages so their Tailwind classes are generated too.
     '../../packages/ui/src/**/*.{js,ts,jsx,tsx}',
     '../../packages/auth/src/**/*.{js,ts,jsx,tsx}',
+    '../../packages/data/src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {

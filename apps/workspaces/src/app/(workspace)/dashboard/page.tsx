@@ -8,8 +8,8 @@ import {
   ArrowRight, FileText, Zap, AlertCircle,
   CheckCircle2, Circle, BarChart3,
 } from 'lucide-react';
-import { marketplaceApi, Shipment } from '@/lib/api/marketplace.api';
-import { fleetApi, Vehicle } from '@/lib/api/fleet.api';
+import { marketplaceApi, Shipment } from '@vectra/data';
+import { fleetApi, Vehicle } from '@vectra/data';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

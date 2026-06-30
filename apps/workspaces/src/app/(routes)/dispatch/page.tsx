@@ -16,8 +16,8 @@ import {
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { marketplaceApi, type Shipment } from '@/lib/api/marketplace.api';
-import { fleetApi, type Vehicle } from '@/lib/api/fleet.api';
+import { marketplaceApi, type Shipment } from '@vectra/data';
+import { fleetApi, type Vehicle } from '@vectra/data';
 
 // ── Droppable ID namespacing ─────────────────────────────────────────────────
 // Vehicle card drop zones use "vehicle:<id>"

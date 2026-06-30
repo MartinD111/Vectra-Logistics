@@ -4,9 +4,7 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import MapProvider from "@/components/map/MapProvider";
-import { useCapacities, useShipments, useBookShipment } from "@/lib/hooks/useMarketplace";
-import StatusBadge from "@/components/marketplace/StatusBadge";
+import { MapProvider, useCapacities, useShipments, useBookShipment, StatusBadge } from "@vectra/data";
 import {
   Map,
   Cpu,
@@ -28,7 +26,7 @@ import {
   Banknote,
 } from "lucide-react";
 
-const MapComponent = dynamic(() => import("@/components/map/VectraMap"), {
+const MapComponent = dynamic(() => import("@vectra/data/map").then((m) => m.VectraMap), {
   ssr: false,
 });
 

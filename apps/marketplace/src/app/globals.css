@@ -1,0 +1,2 @@
+/* App globals import the shared base; app-specific overrides (if any) go below. */
+@import '@vectra/config/globals.css';

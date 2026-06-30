@@ -6,7 +6,7 @@ import {
   Archive, Download, FileText, X, Truck, Users,
   Calendar, Weight, ChevronRight, AlertCircle, Search,
 } from 'lucide-react';
-import { marketplaceApi, ArchiveLog } from '@/lib/api/marketplace.api';
+import { marketplaceApi, ArchiveLog } from '@vectra/data';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

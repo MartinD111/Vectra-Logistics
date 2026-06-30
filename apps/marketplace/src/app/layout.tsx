@@ -2,14 +2,15 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import 'leaflet/dist/leaflet.css'
-import Navbar from '@/components/layout/Navbar'
-import { Providers } from '@/components/layout/Providers'
+import Navbar from '@/components/Navbar'
+import { Providers } from '@/components/Providers'
+import SmartActionsToast from '@/components/SmartActionsToast'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Vectra Workspaces',
-  description: 'Your company operational cockpit — programs, fleet, automations, and KPIs.',
+  title: 'Vectra Marketplace',
+  description: 'Find and offer freight capacity on the Vectra network.',
 }
 
 export default function RootLayout({
@@ -25,6 +26,7 @@ export default function RootLayout({
           <main className="flex-1 w-full relative">
             {children}
           </main>
+          <SmartActionsToast />
         </Providers>
       </body>
     </html>

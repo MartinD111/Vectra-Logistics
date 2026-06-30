@@ -6,11 +6,10 @@ import {
   AlertCircle, ArrowLeft, CreditCard, Loader2, Mail, Phone, User as UserIcon,
 } from 'lucide-react';
 import { useState } from 'react';
-import { useDriver, useUpdateDriver } from '@/lib/hooks/useFleet';
+import { useDriver, useUpdateDriver } from '@vectra/data';
 import { ApiError } from '@/lib/api/client';
-import FileUploader from '@/components/documents/FileUploader';
-import DocumentList from '@/components/documents/DocumentList';
-import type { Driver, UpdateDriverDto } from '@/lib/api/fleet.api';
+import { FileUploader, DocumentList } from '@vectra/data';
+import type { Driver, UpdateDriverDto } from '@vectra/data';
 
 const STATUS_LABELS: Record<Driver['status'], string> = {
   active: 'Active',

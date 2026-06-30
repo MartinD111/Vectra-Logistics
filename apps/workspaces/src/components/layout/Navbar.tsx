@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Navbar as SharedNavbar, AppSwitcher, type NavItem } from "@vectra/ui";
 import { useAuth } from "@/context/AuthContext";
-import NotificationBell from "@/components/notifications/NotificationBell";
+import { NotificationBell } from "@vectra/data";
 
 // Workspaces-app navigation. Each app owns its own nav array — the shared
 // Navbar shell renders whatever it is given. CMR moved to its own app (reach it

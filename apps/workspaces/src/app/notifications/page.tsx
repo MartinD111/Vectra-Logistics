@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Bell, Check, CheckCheck, Loader2 } from 'lucide-react';
 import {
   useMarkAllRead, useMarkNotificationRead, useNotifications,
-} from '@/lib/hooks/useNotifications';
+} from '@vectra/data';
 
 function fmt(iso: string) {
   try { return new Date(iso).toLocaleString(); } catch { return iso; }

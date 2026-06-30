@@ -11,9 +11,9 @@ import {
   fleetApi,
   Vehicle, Driver,
   CreateVehicleDto, CreateDriverDto,
-} from '@/lib/api/fleet.api';
+} from '@vectra/data';
 import { useRouter } from 'next/navigation';
-import DocumentExpiryBanner from '@/components/documents/DocumentExpiryBanner';
+import { DocumentExpiryBanner } from '@vectra/data';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
