@@ -13,6 +13,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/1-init.sql:ro
       - ./database/extensions.sql:/docker-entrypoint-initdb.d/2-extensions.sql:ro
+      - ./database/migrations/002_realtime_and_documents.sql:/docker-entrypoint-initdb.d/3-realtime.sql:ro
+      - ./database/migrations/003_workspaces_and_presets.sql:/docker-entrypoint-initdb.d/4-workspaces.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -33,11 +35,12 @@ services:
       timeout: 5s
       retries: 5
 
-  backend:
+  # ── Backend API (shared by all three frontends) ─────────────────────────────
+  api:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
-    container_name: vectra_backend
+    container_name: vectra_api
     restart: always
     command: npm run dev
     environment:
@@ -74,25 +77,81 @@ services:
     volumes:
       - ./services/matching-engine:/app
 
-  # Vectra Workspaces app (per-company tenant cockpit). Marketplace and CMR
-  # apps are added as their own services in Phase 4 of the rework.
-  workspaces:
+  # ── Frontends: one image (monorepo), three services ─────────────────────────
+  # Build context is the repo root so the workspace packages are available. Each
+  # service runs its own dev script. The cross-app URLs + a shared cookie domain
+  # let a single login flow through all three (SSO). In dev the cookie is
+  # host-only on localhost (shared across ports); set NEXT_PUBLIC_COOKIE_DOMAIN
+  # to the parent domain (e.g. .vectra.app) in production.
+
+  marketplace:
     build:
-      context: ./apps/workspaces
-      dockerfile: Dockerfile.dev
-    container_name: vectra_workspaces
+      context: .
+      dockerfile: Dockerfile.web.dev
+    container_name: vectra_marketplace
     restart: always
+    command: npm run dev:marketplace
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_MARKETPLACE_URL=http://localhost:3000
+      - NEXT_PUBLIC_WORKSPACES_URL=http://localhost:3001
+      - NEXT_PUBLIC_CMR_URL=http://localhost:3002
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps:/repo/apps
+      - ./packages:/repo/packages
+      - /repo/node_modules
+      - /repo/apps/marketplace/.next
+    depends_on:
+      - api
+
+  workspaces:
+    build:
+      context: .
+      dockerfile: Dockerfile.web.dev
+    container_name: vectra_workspaces
+    restart: always
+    command: npm run dev:workspaces
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_MARKETPLACE_URL=http://localhost:3000
+      - NEXT_PUBLIC_WORKSPACES_URL=http://localhost:3001
+      - NEXT_PUBLIC_CMR_URL=http://localhost:3002
     ports:
       - "3001:3001"
     volumes:
-      - ./apps/workspaces:/app
-      - /app/node_modules
-      - /app/.next
+      - ./apps:/repo/apps
+      - ./packages:/repo/packages
+      - /repo/node_modules
+      - /repo/apps/workspaces/.next
     depends_on:
-      - backend
+      - api
+
+  cmr:
+    build:
+      context: .
+      dockerfile: Dockerfile.web.dev
+    container_name: vectra_cmr
+    restart: always
+    command: npm run dev:cmr
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_MARKETPLACE_URL=http://localhost:3000
+      - NEXT_PUBLIC_WORKSPACES_URL=http://localhost:3001
+      - NEXT_PUBLIC_CMR_URL=http://localhost:3002
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./apps:/repo/apps
+      - ./packages:/repo/packages
+      - /repo/node_modules
+      - /repo/apps/cmr/.next
+    depends_on:
+      - api
 
 volumes:
   postgres_data:

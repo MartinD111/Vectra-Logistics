@@ -26,13 +26,18 @@ vectra-platform/
 1. Ensure [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) are installed on your machine.
 2. Clone this repository.
 3. Copy `.env.example` to `.env` in the root directory.
-4. Run `docker-compose up --build -d` to build and start the containers.
+4. Run `docker compose up --build -d` to build and start the containers.
 5. The services will be available at:
-   - Frontend: http://localhost:3000
+   - Marketplace app: http://localhost:3000
+   - Workspaces app: http://localhost:3001
+   - CMR Manager app: http://localhost:3002
    - Backend API: http://localhost:8080
-   - Python Matching Engine: http://localhost:8000
-   - PostgreSQL DB exposed on 5432
-   - Redis exposed on 6379
+   - Python Matching Engine: http://localhost:8001
+   - PostgreSQL DB exposed on 5433
+   - Redis exposed on 6380
+
+See `docs/DEPLOYMENT.md` for production topology, subdomain routing, and the
+single sign-on (SSO) cookie configuration.
 
 ## Technology Stack
 

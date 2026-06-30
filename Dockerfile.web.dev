@@ -1,0 +1,20 @@
+# Shared dev image for the three Vectra Next.js apps. Build context is the REPO
+# ROOT so the workspace packages (packages/*) and the npm-workspaces lockfile
+# are available. Each app's compose service overrides the command to run its own
+# dev script (e.g. `npm run dev:marketplace`). Source is bind-mounted in compose.
+FROM node:18-alpine
+
+WORKDIR /repo
+
+# Install the whole workspace once; the bind mount in compose layers live source
+# on top. node_modules stays in the image layer via an anonymous volume.
+COPY package.json package-lock.json ./
+COPY apps ./apps
+COPY packages ./packages
+RUN npm ci
+
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV HOSTNAME "0.0.0.0"
+
+# Default command is overridden per service in docker-compose.
+CMD ["npm", "run", "dev:workspaces"]
