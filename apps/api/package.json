@@ -1,7 +1,7 @@
 {
-  "name": "vectra-backend",
+  "name": "@vectra/api",
   "version": "1.0.0",
-  "description": "VECTRA Logistics Platform Backend",
+  "description": "Vectra platform backend API (shared by all three product surfaces)",
   "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",

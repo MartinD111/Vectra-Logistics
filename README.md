@@ -8,8 +8,12 @@ This repository is built as a complete monorepo, encompassing the frontend UI, m
 
 ```text
 vectra-platform/
-├── frontend/         # Next.js (React) application
-├── backend/          # Node.js Express backend
+├── apps/
+│   ├── marketplace/  # Vectra Marketplace  (Next.js)  — added in rework Phase 2
+│   ├── workspaces/   # Vectra Workspaces   (Next.js)  — per-company tenant cockpit
+│   ├── cmr/          # Vectra CMR Manager  (Next.js)  — added in rework Phase 2
+│   └── api/          # Node.js Express backend (shared by all three apps)
+├── packages/         # Shared code: ui, auth, api-client, config, types
 ├── services/         # Microservices (e.g. Python Matching Engine)
 ├── database/         # Database migrations / initialization scripts
 ├── docs/             # Project documentation

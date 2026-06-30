@@ -1,0 +1,11 @@
+{
+  "name": "@vectra/config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared build config for Vectra apps: base tsconfig, tailwind preset, eslint config.",
+  "files": [
+    "tsconfig.base.json",
+    "tailwind.preset.js",
+    "eslint.base.json"
+  ]
+}

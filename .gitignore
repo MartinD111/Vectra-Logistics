@@ -8,8 +8,6 @@ lerna-debug.log*
 
 # Node
 node_modules/
-backend/node_modules/
-frontend/node_modules/
 npm-debug.log
 .npm/
 
@@ -31,8 +29,8 @@ __pycache__/
 *.pyo
 
 # Next.js
-frontend/.next/
-frontend/out/
+.next/
+out/
 
 # TypeScript
 *.tsbuildinfo
@@ -44,5 +42,3 @@ frontend/out/
 # Build dirs
 dist/
 build/
-backend/dist/
-frontend/build/

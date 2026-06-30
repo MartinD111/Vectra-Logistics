@@ -35,7 +35,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ./apps/api
       dockerfile: Dockerfile
     container_name: vectra_backend
     restart: always
@@ -55,7 +55,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ./backend:/app
+      - ./apps/api:/app
       - /app/node_modules
 
   matching-engine:
@@ -74,19 +74,21 @@ services:
     volumes:
       - ./services/matching-engine:/app
 
-  frontend:
+  # Vectra Workspaces app (per-company tenant cockpit). Marketplace and CMR
+  # apps are added as their own services in Phase 4 of the rework.
+  workspaces:
     build:
-      context: ./frontend
+      context: ./apps/workspaces
       dockerfile: Dockerfile.dev
-    container_name: vectra_frontend
+    container_name: vectra_workspaces
     restart: always
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8080
     ports:
-      - "3000:3000"
+      - "3001:3001"
     volumes:
-      - ./frontend:/app
+      - ./apps/workspaces:/app
       - /app/node_modules
       - /app/.next
     depends_on:
