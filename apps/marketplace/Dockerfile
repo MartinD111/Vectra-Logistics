@@ -18,14 +18,14 @@ FROM base AS builder
 WORKDIR /repo
 COPY --from=deps /repo/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build --workspace @vectra/marketplace
 
 # ── Runner (Next standalone) ─────────────────────────────────────────────────
 FROM base AS runner
 WORKDIR /app
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
 # Next standalone for a monorepo emits the server under the app's path.
@@ -35,6 +35,6 @@ COPY --from=builder --chown=nextjs:nodejs /repo/apps/marketplace/public ./apps/m
 
 USER nextjs
 EXPOSE 3000
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 CMD ["node", "apps/marketplace/server.js"]
