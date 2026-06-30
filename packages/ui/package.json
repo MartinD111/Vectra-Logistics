@@ -11,6 +11,7 @@
     "react-dom": "^18"
   },
   "dependencies": {
+    "@vectra/auth": "*",
     "@vectra/types": "*",
     "lucide-react": "^0.294.0"
   }

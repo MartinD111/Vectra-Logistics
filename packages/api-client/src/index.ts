@@ -1,6 +1,7 @@
-// @vectra/api-client — typed fetch clients for the Vectra API.
+// @vectra/api-client — typed fetch client for the Vectra API, shared across apps.
 //
-// Populated in Phase 1 of the rework, consolidating the per-app lib/api/*
-// modules into one shared, typed client used by all three frontends.
+// The token is read from @vectra/auth's shared session, so all three apps
+// authenticate identically. Domain-specific API modules (marketplace, fleet,
+// etc.) still live in their owning app and call apiFetch from here.
 
-export {};
+export { apiFetch, ApiError } from './client';

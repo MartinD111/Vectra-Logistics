@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { db } from '../config/db';
 import { v4 as uuidv4 } from 'uuid';
+import { AuthRequest } from '../middleware/authMiddleware';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-for-dev';
 const JWT_EXPIRES_IN = '24h';
@@ -257,6 +258,32 @@ export const resetPassword = async (req: Request, res: Response) => {
     res.status(200).json({ message: 'Password reset successfully' });
   } catch (error) {
     console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Get current session user — validates the JWT (via authenticateToken middleware)
+// and returns the canonical user object. Frontends call this on load to confirm
+// the session is real rather than trusting a client-decoded token. Underpins SSO.
+export const getMe = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const result = await db.query(
+      `SELECT id, email, first_name, last_name, role, phone, company_id,
+              subscription, is_verified, avatar_url
+       FROM users WHERE id = $1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({ user: result.rows[0] });
+  } catch (error) {
+    console.error('Get me error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

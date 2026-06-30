@@ -1,7 +1,8 @@
 // @vectra/ui — shared UI components for all three Vectra apps.
 //
-// Populated in Phase 1 of the rework. Will export: the Navbar shell (with
-// `navigation` and branding supplied per-app via props), the app-switcher,
-// theme provider, and shared layout primitives.
+// The Navbar is a shell: each app supplies its own `navigation` and `branding`
+// (and, for the Workspaces app, tenant branding) via props. The app-switcher
+// lands in Phase 2.
 
-export {};
+export { Navbar } from './Navbar';
+export type { NavbarProps, NavbarBranding, NavItem } from './Navbar';
