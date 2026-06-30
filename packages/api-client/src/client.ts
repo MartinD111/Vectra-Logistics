@@ -51,7 +51,12 @@ export async function apiFetch<T>(
     if (res.status === 401) {
       if (typeof window !== 'undefined') {
         clearSession();
-        window.location.href = '/auth';
+        // Only redirect if we're not already on the auth page — otherwise a
+        // 401 from a component that renders ON /auth (e.g. a shared Navbar)
+        // would redirect to /auth and reload forever.
+        if (!window.location.pathname.startsWith('/auth')) {
+          window.location.href = '/auth';
+        }
       }
       // Throw so async callers that await this still get an error boundary
       throw new ApiError(401, 'Session expired — please sign in again');

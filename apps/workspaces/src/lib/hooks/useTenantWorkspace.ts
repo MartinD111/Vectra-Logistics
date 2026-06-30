@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
 import { tenantWorkspaceApi, type BrandingUpdate } from '@/lib/api/tenantWorkspace.api';
 
 const qk = {
@@ -8,11 +9,18 @@ const qk = {
   presets: ['workspace', 'presets'] as const,
 };
 
-/** The caller company's workspace (with applied presets + union of modules). */
+/**
+ * The caller company's workspace (with applied presets + union of modules).
+ * Only runs when a user is signed in with a company — otherwise the request
+ * would 401 and the api-client would hard-redirect to /auth, creating a loop
+ * with the Navbar (which renders this on every page).
+ */
 export function useCurrentWorkspace() {
+  const { user } = useAuth();
   return useQuery({
     queryKey: qk.current,
     queryFn: tenantWorkspaceApi.getCurrent,
+    enabled: !!user?.company_id,
     staleTime: 1000 * 60 * 5,
     retry: false, // a 404 (no workspace yet) shouldn't retry
   });
@@ -20,9 +28,11 @@ export function useCurrentWorkspace() {
 
 /** System seed presets + the company's own custom presets. */
 export function useWorkspacePresets() {
+  const { user } = useAuth();
   return useQuery({
     queryKey: qk.presets,
     queryFn: tenantWorkspaceApi.listPresets,
+    enabled: !!user,
     staleTime: 1000 * 60 * 10,
   });
 }
