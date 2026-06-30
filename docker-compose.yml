@@ -15,6 +15,7 @@ services:
       - ./database/extensions.sql:/docker-entrypoint-initdb.d/2-extensions.sql:ro
       - ./database/migrations/002_realtime_and_documents.sql:/docker-entrypoint-initdb.d/3-realtime.sql:ro
       - ./database/migrations/003_workspaces_and_presets.sql:/docker-entrypoint-initdb.d/4-workspaces.sql:ro
+      - ./database/migrations/004_projects_and_programs.sql:/docker-entrypoint-initdb.d/5-projects.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
