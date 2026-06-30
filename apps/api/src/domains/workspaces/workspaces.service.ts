@@ -76,10 +76,11 @@ class WorkspacesService {
   async updateBranding(
     workspaceId: string,
     requestingCompanyId: string | null,
+    requestingRole: string,
     actorId: string | null,
     body: unknown,
   ): Promise<Workspace> {
-    await this.assertOwner(workspaceId, requestingCompanyId);
+    await this.assertAdminOwner(workspaceId, requestingCompanyId, requestingRole);
 
     const parsed = UpdateBrandingSchema.safeParse(body);
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
@@ -103,10 +104,11 @@ class WorkspacesService {
   async applyPresets(
     workspaceId: string,
     requestingCompanyId: string | null,
+    requestingRole: string,
     actorId: string | null,
     body: unknown,
   ): Promise<WorkspaceWithPresets> {
-    const ws = await this.assertOwner(workspaceId, requestingCompanyId);
+    const ws = await this.assertAdminOwner(workspaceId, requestingCompanyId, requestingRole);
 
     const parsed = ApplyPresetsSchema.safeParse(body);
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
@@ -136,9 +138,10 @@ class WorkspacesService {
     workspaceId: string,
     presetId: string,
     requestingCompanyId: string | null,
+    requestingRole: string,
     actorId: string | null,
   ): Promise<WorkspaceWithPresets> {
-    const ws = await this.assertOwner(workspaceId, requestingCompanyId);
+    const ws = await this.assertAdminOwner(workspaceId, requestingCompanyId, requestingRole);
     await workspacesRepository.removePreset(workspaceId, presetId);
     await recordEvent({
       tenantId: ws.company_id,
@@ -153,13 +156,19 @@ class WorkspacesService {
 
   // ── Internal ──────────────────────────────────────────────────────────────────
 
-  private async assertOwner(
+  // Mutations to a workspace (branding, types) are company-config actions and
+  // require an admin of the OWNING company.
+  private async assertAdminOwner(
     workspaceId: string,
     requestingCompanyId: string | null,
+    requestingRole: string,
   ): Promise<Workspace> {
     const ws = await workspacesRepository.findWorkspaceById(workspaceId);
     if (!ws) throw new AppError(404, 'Workspace not found');
     if (ws.company_id !== requestingCompanyId) throw new AppError(403, 'Forbidden');
+    if (requestingRole !== 'admin') {
+      throw new AppError(403, 'Only an admin can change workspace settings');
+    }
     return ws;
   }
 }

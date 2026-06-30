@@ -65,11 +65,17 @@ export const signup = async (req: Request, res: Response) => {
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
+    // The user who creates a company is its owner — assigned the 'admin' role so
+    // they can complete workspace setup (pick types) and manage branding. Admin
+    // is already treated as a superset of carrier/shipper in route guards.
+    // Users who join an existing company later keep their carrier/shipper role.
+    const effectiveRole = companyId ? 'admin' : role;
+
     // Create user
     const userResult = await client.query(
       `INSERT INTO users (email, password_hash, first_name, last_name, role, phone, company_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, email, first_name, last_name, role`,
-      [email, passwordHash, first_name, last_name, role, phone, companyId]
+      [email, passwordHash, first_name, last_name, effectiveRole, phone, companyId]
     );
 
     const newUser = userResult.rows[0];

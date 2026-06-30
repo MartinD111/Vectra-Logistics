@@ -46,6 +46,7 @@ export const updateBranding = asyncHandler(async (req: AuthRequest, res: Respons
   const ws = await workspacesService.updateBranding(
     req.params.id,
     req.user?.company_id ?? null,
+    req.user?.role ?? '',
     req.user?.id ?? null,
     req.body,
   );
@@ -57,6 +58,7 @@ export const applyPresets = asyncHandler(async (req: AuthRequest, res: Response)
   const ws = await workspacesService.applyPresets(
     req.params.id,
     req.user?.company_id ?? null,
+    req.user?.role ?? '',
     req.user?.id ?? null,
     req.body,
   );
@@ -69,6 +71,7 @@ export const removePreset = asyncHandler(async (req: AuthRequest, res: Response)
     req.params.id,
     req.params.presetId,
     req.user?.company_id ?? null,
+    req.user?.role ?? '',
     req.user?.id ?? null,
   );
   res.status(200).json({ workspace: ws });
