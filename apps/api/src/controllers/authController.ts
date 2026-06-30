@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { db } from '../config/db';
 import { v4 as uuidv4 } from 'uuid';
 import { AuthRequest } from '../middleware/authMiddleware';
+import { recordEvent } from '../core/events/activityLog';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-for-dev';
 const JWT_EXPIRES_IN = '24h';
@@ -39,11 +40,25 @@ export const signup = async (req: Request, res: Response) => {
       }
 
       const companyResult = await client.query(
-        `INSERT INTO companies (name, vat_number, address, city, country, postal_code, status) 
+        `INSERT INTO companies (name, vat_number, address, city, country, postal_code, status)
          VALUES ($1, $2, $3, $4, $5, $6, 'pending') RETURNING id`,
         [company_name, company_vat, company_address, company_city, company_country, company_postal_code]
       );
       companyId = companyResult.rows[0].id;
+
+      // Create the company's default Workspace in the same transaction. The
+      // workspace type(s) are chosen afterward in the setup wizard, not here —
+      // there is no hardcoded vertical at signup (see CLAUDE.md §1). The old
+      // `company_type` request field is intentionally ignored.
+      const baseSlug = (company_name as string)
+        .toLowerCase().normalize('NFKD')
+        .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'workspace';
+      const workspaceSlug = `${baseSlug}-${(companyId as string).slice(0, 8)}`;
+      await client.query(
+        `INSERT INTO workspaces (company_id, name, slug, header_title)
+         VALUES ($1, $2, $3, $2)`,
+        [companyId, company_name, workspaceSlug]
+      );
     }
 
     // Hash password
@@ -77,9 +92,20 @@ export const signup = async (req: Request, res: Response) => {
 
     await client.query('COMMIT');
 
+    // Event spine: record workspace creation after the transaction commits.
+    if (companyId) {
+      await recordEvent({
+        tenantId: companyId,
+        actorId: newUser.id,
+        verb: 'workspace.created',
+        objectType: 'workspace',
+        payload: { via: 'signup', company_name },
+      });
+    }
+
     // Here we would normally send an email with the verification token
 
-    res.status(201).json({ 
+    res.status(201).json({
       message: 'User registered successfully',
       user: newUser 
     });

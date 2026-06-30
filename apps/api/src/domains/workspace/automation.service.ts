@@ -18,6 +18,7 @@ interface AssignmentContext {
   clientEmail:     string | null;
   dispatcherEmail: string | null;
   accountingEmail: string | null;
+  brandName:       string; // tenant's workspace header title — never hardcoded
 }
 
 export interface AssignmentCommunications {
@@ -116,7 +117,27 @@ async function fetchAssignmentContext(
   const driver = dRows[0] ?? { first_name: 'Driver', last_name: '', phone: null };
   const vehicle = vRows[0] ?? { license_plate: 'N/A' };
 
+  // Tenant branding for the message signature — pulled from the company's
+  // workspace header title, never hardcoded (see CLAUDE.md §1). Falls back to
+  // the company name, then a neutral default.
+  let brandName = 'Logistics';
+  try {
+    const { rows: bRows } = await db.query<{ brand: string | null }>(
+      `SELECT COALESCE(w.header_title, c.name) AS brand
+       FROM companies c
+       LEFT JOIN workspaces w ON w.company_id = c.id
+       WHERE c.id = $1
+       ORDER BY w.created_at ASC
+       LIMIT 1`,
+      [companyId],
+    );
+    if (bRows[0]?.brand) brandName = bRows[0].brand;
+  } catch {
+    // workspaces table may not exist yet on older DBs — keep the neutral default
+  }
+
   return {
+    brandName,
     shipmentId:      s.id,
     pickupAddress:   s.pickup_address,
     deliveryAddress: s.delivery_address,
@@ -173,7 +194,7 @@ function buildFallbackMessages(ctx: AssignmentContext): { whatsappText: string; 
     `Driver:         ${driverName}\n` +
     `Vehicle:        ${ctx.vehiclePlate}\n\n` +
     `Please do not hesitate to contact us should you require any further information.\n\n` +
-    `Kind regards,\nVECTRA Logistics`;
+    `Kind regards,\n${ctx.brandName}`;
 
   return { whatsappText, emailBody };
 }
@@ -189,7 +210,7 @@ async function generateWithGemini(ctx: AssignmentContext): Promise<{ whatsappTex
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     const prompt =
-      `You are a logistics assistant for VECTRA, a European road freight platform.\n\n` +
+      `You are a logistics assistant for ${ctx.brandName}, a freight operator.\n\n` +
       `Generate two professional messages based on this shipment data:\n` +
       `- Driver: ${ctx.driverFirstName} ${ctx.driverLastName}\n` +
       `- Vehicle: ${ctx.vehiclePlate}\n` +

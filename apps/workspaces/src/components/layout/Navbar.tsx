@@ -11,6 +11,7 @@ import {
 import { Navbar as SharedNavbar, AppSwitcher, type NavItem } from "@vectra/ui";
 import { useAuth } from "@/context/AuthContext";
 import { NotificationBell } from "@vectra/data";
+import { useCurrentWorkspace } from "@/lib/hooks/useTenantWorkspace";
 
 // Workspaces-app navigation. Each app owns its own nav array — the shared
 // Navbar shell renders whatever it is given. CMR moved to its own app (reach it
@@ -28,18 +29,27 @@ const navigation: NavItem[] = [
 
 export default function Navbar() {
   const { user } = useAuth();
+  const { data: workspace } = useCurrentWorkspace();
+
+  // Tenant-branded header: when the company's workspace has a custom logo or
+  // title, show those; otherwise fall back to the default Vectra branding. A
+  // tenant-uploaded logo is a normal-color image, so the white-logo invert
+  // filter is only applied to the default asset.
+  const tenantLogo = workspace?.logo_url ?? null;
+  const tenantTitle = workspace?.header_title || workspace?.name || null;
+  const branding = tenantLogo
+    ? { logoSrc: tenantLogo, title: tenantTitle ?? "Workspace", homeHref: "/" }
+    : {
+        logoSrc: tenantTitle ? null : "/logo.png",
+        title: tenantTitle ?? "VECTRA",
+        logoStyle: { filter: "invert(1)", mixBlendMode: "screen" as const },
+        homeHref: "/",
+      };
 
   return (
     <SharedNavbar
       navigation={navigation}
-      branding={{
-        // White logo asset inverted for light/dark; tenant branding wires in
-        // here in Phase 3 (logo/title/colors from the active workspace).
-        logoSrc: "/logo.png",
-        title: "VECTRA",
-        logoStyle: { filter: "invert(1)", mixBlendMode: "screen" },
-        homeHref: "/",
-      }}
+      branding={branding}
       rightSlot={
         <>
           {user && <NotificationBell />}

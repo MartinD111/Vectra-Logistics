@@ -3,6 +3,7 @@
 import { useTheme } from 'next-themes';
 import { Moon, Sun, Monitor, Bell, Globe, Lock } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import WorkspaceSettings from '@/components/workspaces/WorkspaceSettings';
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -16,6 +17,9 @@ export default function SettingsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       <h1 className="text-2xl font-bold dark:text-white">Account Settings</h1>
+
+      {/* Workspace branding + types (admin-editable) */}
+      <WorkspaceSettings />
 
       {/* Theme Settings */}
       <div className="saas-card">
