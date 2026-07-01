@@ -157,7 +157,8 @@ export default function ProjectDetailPage() {
         ) : (
           <div className="space-y-2">
             {(programs ?? []).map((pr) => (
-              <div key={pr.id} className="saas-card !py-4 flex items-center justify-between">
+              <Link key={pr.id} href={`/programs/${pr.id}`}
+                className="saas-card !py-4 flex items-center justify-between hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
                 <div className="min-w-0">
                   <p className="font-semibold text-gray-900 dark:text-white truncate">{pr.name}</p>
                   <p className="text-xs text-gray-400 capitalize">{pr.type} · {pr.status}</p>
@@ -167,7 +168,7 @@ export default function ProjectDetailPage() {
                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                     : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
                 }`}>{pr.status}</span>
-              </div>
+              </Link>
             ))}
           </div>
         )}

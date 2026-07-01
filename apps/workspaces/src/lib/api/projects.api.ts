@@ -49,6 +49,8 @@ export const projectsApi = {
     const qs = projectId ? `?project_id=${projectId}` : '';
     return apiFetch<{ programs: Program[] }>(`${BASE}/programs${qs}`).then((r) => r.programs);
   },
+  getProgram: (id: string) =>
+    apiFetch<{ program: Program }>(`${BASE}/programs/${id}`).then((r) => r.program),
   createProgram: (data: { name: string; description?: string; type?: string; project_id?: string | null }) =>
     apiFetch<{ program: Program }>(`${BASE}/programs`, 'POST', data).then((r) => r.program),
   updateProgram: (id: string, data: Partial<{ name: string; project_id: string | null; status: string; config: Record<string, unknown> }>) =>

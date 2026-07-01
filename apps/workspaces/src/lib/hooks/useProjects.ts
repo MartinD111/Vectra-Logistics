@@ -49,6 +49,28 @@ export function usePrograms(projectId?: string) {
   });
 }
 
+export function useProgram(id: string) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['program', id],
+    queryFn: () => projectsApi.getProgram(id),
+    enabled: !!user?.company_id && !!id,
+  });
+}
+
+export function useUpdateProgram(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Partial<{ name: string; project_id: string | null; status: string; config: Record<string, unknown> }>) =>
+      projectsApi.updateProgram(id, data),
+    onSuccess: (program) => {
+      qc.invalidateQueries({ queryKey: ['program', id] });
+      qc.invalidateQueries({ queryKey: ['programs'] });
+      if (program.project_id) qc.invalidateQueries({ queryKey: ['projects', program.project_id, 'stats'] });
+    },
+  });
+}
+
 export function useCreateProject() {
   const qc = useQueryClient();
   return useMutation({
