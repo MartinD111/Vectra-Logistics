@@ -15,6 +15,7 @@ import {
   Clock,
   Wrench,
 } from 'lucide-react';
+import OutlookCard from '@/components/integrations/OutlookCard';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -341,6 +342,9 @@ export default function IntegrationsPage() {
             </p>
           </div>
         </div>
+
+        {/* ── Live connections ── */}
+        <OutlookCard />
 
         {/* ── Tab Navigation ── */}
         <div className="flex flex-wrap gap-0 border-b border-gray-200 dark:border-dark-border mb-8">

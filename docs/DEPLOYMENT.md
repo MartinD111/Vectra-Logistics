@@ -103,3 +103,38 @@ psql "$DATABASE_URL" -f database/migrations/003_workspaces_and_presets.sql
 Migration 003 seeds five example workspace-type presets (`is_system_seed`).
 These are editable tenant data, not platform logic — a tenant may clone, edit,
 or delete them.
+
+## Outlook / Microsoft 365 integration
+
+The Outlook connector links a company mailbox so programs and automations can
+read and send mail. It runs in two modes:
+
+- **Demo mode (default):** with no Microsoft credentials set, clicking *Connect
+  Outlook* simulates a successful link (marked `DEMO` in the UI). The whole
+  flow, status, and disconnect work — useful for development and demos.
+- **Live mode:** set the `MS_*` env vars and the same *Connect* button starts the
+  real Microsoft OAuth sign-in.
+
+### Enabling live mode
+
+1. In the [Azure / Entra admin center](https://entra.microsoft.com) → **App
+   registrations** → **New registration**.
+2. Set a **Redirect URI** (Web) to your API callback:
+   `https://api.your-domain/api/v1/outlook/callback`
+   (dev: `http://localhost:8080/api/v1/outlook/callback`).
+3. Under **Certificates & secrets**, create a **client secret**.
+4. Under **API permissions**, add Microsoft Graph **delegated** permissions:
+   `Mail.Read`, `Mail.Send`, `offline_access`, `openid`, `profile`, `email`.
+5. Set the API env vars (see `.env.example`):
+   ```
+   MS_CLIENT_ID=<application (client) id>
+   MS_CLIENT_SECRET=<client secret value>
+   MS_REDIRECT_URI=https://api.your-domain/api/v1/outlook/callback
+   MS_TENANT=common            # or your tenant id for single-tenant
+   WORKSPACES_APP_URL=https://app.your-domain
+   ```
+
+Tokens are stored per-company in `integration_credentials` (encrypt this column
+at rest in production — CLAUDE.md §8). The OAuth `state` is a short-lived signed
+JWT that carries the company id through the round-trip and is validated on the
+callback, which is otherwise unauthenticated.
