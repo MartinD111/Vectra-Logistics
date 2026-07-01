@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard, Settings, Truck, Zap, BarChart3, FileText,
-  Boxes, LayoutTemplate, FolderArchive, Plus, FolderKanban,
+  Boxes, LayoutTemplate, FolderArchive, Plus, FolderKanban, Users,
 } from 'lucide-react';
 import { crossAppUrl } from '@vectra/ui';
 import { useCurrentWorkspace } from '@/lib/hooks/useTenantWorkspace';
@@ -38,6 +38,7 @@ const ITEMS: SidebarItem[] = [
 ];
 
 const ALWAYS_BOTTOM: SidebarItem[] = [
+  { name: 'Team', href: '/team', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
