@@ -8,10 +8,17 @@ import type { LucideIcon } from 'lucide-react';
 import { Menu, X, User, LogOut, Settings, CreditCard } from 'lucide-react';
 import { useAuth } from '@vectra/auth';
 
+export interface NavSubItem {
+  name: string;
+  href: string;
+  icon?: LucideIcon;
+}
+
 export interface NavItem {
   name: string;
   href: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  subItems?: NavSubItem[];
 }
 
 export interface NavbarBranding {
@@ -33,6 +40,8 @@ export interface NavbarProps {
   navigation?: NavItem[];
   /** Per-app/per-tenant branding for the header. */
   branding: NavbarBranding;
+  /** Optional slot rendered left of the brand logo (e.g. sidebar toggle). */
+  leftSlot?: ReactNode;
   /** Optional slot rendered left of the profile menu (e.g. notifications). */
   rightSlot?: ReactNode;
   /** Where "Sign In" and post-logout routing point. Defaults to "/auth". */
@@ -45,7 +54,7 @@ export interface NavbarProps {
  * specific content of its own. With no `navigation`, it renders a minimal
  * header: logo (links home) + Sign In / profile menu.
  */
-export function Navbar({ navigation = [], branding, rightSlot, authHref = '/auth' }: NavbarProps) {
+export function Navbar({ navigation = [], branding, leftSlot, rightSlot, authHref = '/auth' }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -68,11 +77,12 @@ export function Navbar({ navigation = [], branding, rightSlot, authHref = '/auth
   return (
     <header className="sticky top-0 z-50 bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md border-b border-gray-200 dark:border-dark-border transition-colors">
       <nav
-        className="max-w-7xl mx-auto flex items-center justify-between px-4 lg:px-8 h-16"
+        className="w-full flex items-center justify-between px-4 lg:px-8 h-16"
         aria-label="Global"
       >
         {/* Logo / brand — far left */}
-        <div className="flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {leftSlot}
           <Link href={homeHref} className="flex items-center">
             {branding.logoSrc ? (
               <Image
@@ -97,6 +107,43 @@ export function Navbar({ navigation = [], branding, rightSlot, authHref = '/auth
           {navigation.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
+
+            if (item.subItems && item.subItems.length > 0) {
+              return (
+                <div key={item.name} className="relative group flex items-center">
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      active
+                        ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    {Icon && <Icon className="w-4 h-4" />}
+                    {item.name}
+                  </Link>
+                  {/* Dropdown Menu */}
+                  <div className="absolute left-0 top-full pt-1.5 hidden group-hover:block z-50 w-56 animate-fade-in">
+                    <div className="rounded-xl bg-white dark:bg-dark-card shadow-lg border border-gray-100 dark:border-dark-border py-1">
+                      {item.subItems.map((sub) => {
+                        const SubIcon = sub.icon;
+                        return (
+                          <Link
+                            key={sub.name}
+                            href={sub.href}
+                            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors font-medium"
+                          >
+                            {SubIcon && <SubIcon className="h-4 w-4 text-gray-400" />}
+                            <span className="truncate">{sub.name}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.name}
@@ -107,7 +154,7 @@ export function Navbar({ navigation = [], branding, rightSlot, authHref = '/auth
                     : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                {Icon && <Icon className="w-4 h-4" />}
                 {item.name}
               </Link>
             );
@@ -273,19 +320,38 @@ export function Navbar({ navigation = [], branding, rightSlot, authHref = '/auth
                     const Icon = item.icon;
                     const active = isActive(item.href);
                     return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-semibold leading-7 transition-colors ${
-                          active
-                            ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20'
-                            : 'text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        <Icon className="h-5 w-5 flex-shrink-0" />
-                        {item.name}
-                      </Link>
+                      <div key={item.name} className="space-y-1">
+                        <Link
+                          href={item.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-semibold leading-7 transition-colors ${
+                            active
+                              ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20'
+                              : 'text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
+                          {item.name}
+                        </Link>
+                        {item.subItems && item.subItems.length > 0 && (
+                          <div className="pl-6 space-y-1 border-l border-gray-100 dark:border-slate-800 ml-5">
+                            {item.subItems.map((sub) => {
+                              const SubIcon = sub.icon;
+                              return (
+                                <Link
+                                  key={sub.name}
+                                  href={sub.href}
+                                  onClick={() => setMobileMenuOpen(false)}
+                                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                  {SubIcon && <SubIcon className="h-4 w-4 flex-shrink-0 text-gray-400" />}
+                                  {sub.name}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>

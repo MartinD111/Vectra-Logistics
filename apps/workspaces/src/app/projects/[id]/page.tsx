@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft, Plus, Loader2, Activity, Zap, Clock, FileCode2, Inbox,
@@ -9,6 +9,7 @@ import {
 import {
   useProject, useProjectStats, usePrograms, useCreateProgram,
 } from '@/lib/hooks/useProjects';
+import { STARTERS } from '@/lib/miniProgram/templates';
 
 function timeAgo(iso: string | null): string {
   if (!iso) return 'No activity yet';
@@ -21,16 +22,10 @@ function timeAgo(iso: string | null): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-const PROGRAM_TYPES = [
-  { value: 'transform', label: 'Data transform' },
-  { value: 'document', label: 'Document generation' },
-  { value: 'import', label: 'Scheduled import' },
-  { value: 'dashboard', label: 'Dashboard' },
-];
-
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id as string;
+  const router = useRouter();
 
   const { data: project, isLoading: pLoading } = useProject(id);
   const { data: stats } = useProjectStats(id);
@@ -39,13 +34,19 @@ export default function ProjectDetailPage() {
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
-  const [type, setType] = useState('transform');
+  const [templateId, setTemplateId] = useState('extractor');
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    await createProgram.mutateAsync({ name: name.trim(), type, project_id: id });
-    setName(''); setType('transform'); setOpen(false);
+    const starter = STARTERS.find((s) => s.id === templateId) ?? STARTERS[0];
+    const config = starter.build();
+    config.meta.title = name.trim();
+    const created = await createProgram.mutateAsync({
+      name: name.trim(), project_id: id, config: config as unknown as Record<string, unknown>,
+    });
+    setName(''); setTemplateId('extractor'); setOpen(false);
+    router.push(`/programs/${created.id}`);
   }
 
   if (pLoading) {
@@ -125,10 +126,16 @@ export default function ProjectDetailPage() {
                 onChange={(e) => setName(e.target.value)} placeholder="e.g. Clean & remap customs CSV" />
             </div>
             <div>
-              <span className="label-xs">Type</span>
-              <select className="saas-input" value={type} onChange={(e) => setType(e.target.value)}>
-                {PROGRAM_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
+              <span className="label-xs">Start from</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                {STARTERS.map((s) => (
+                  <button key={s.id} type="button" onClick={() => setTemplateId(s.id)}
+                    className={`text-left rounded-xl border p-3 transition ${templateId === s.id ? 'border-primary-500 bg-primary-50/60 dark:bg-primary-900/20' : 'border-gray-200 dark:border-slate-700 hover:border-primary-300'}`}>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{s.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{s.description}</p>
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <button type="submit" disabled={createProgram.isPending || !name.trim()}
@@ -138,7 +145,7 @@ export default function ProjectDetailPage() {
               <button type="button" onClick={() => setOpen(false)} className="text-sm text-gray-500 hover:text-gray-700">Cancel</button>
             </div>
             <p className="text-xs text-gray-400">
-              The visual builder (smart Excel parsing, transform steps, outputs) opens after creating the program.
+              The visual block builder opens after creating — assemble any tool from inputs, transforms and outputs.
             </p>
           </form>
         )}

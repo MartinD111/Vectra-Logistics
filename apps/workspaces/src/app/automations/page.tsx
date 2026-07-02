@@ -1,15 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { 
-  Zap, 
-  Plus, 
-  Play, 
-  Clock, 
-  MoreVertical, 
-  CheckCircle2, 
+import {
+  Zap,
+  Plus,
+  Play,
+  Clock,
+  MoreVertical,
+  CheckCircle2,
   AlertCircle,
-  FolderOpen
+  FolderOpen,
+  Blocks
 } from 'lucide-react';
 
 const mockWorkflows = [
@@ -34,9 +35,14 @@ export default function AutomationsDashboard() {
               Connect Vectra events, trigger advanced actions, and automate your daily logistics operations.
             </p>
           </div>
-          <Link href="/automations/builder" className="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-5 py-3 rounded-xl font-bold shadow-md transition hover:-translate-y-0.5 whitespace-nowrap">
-            <Plus className="w-5 h-5" /> Create New Workflow
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/programs" className="flex items-center gap-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border text-gray-900 dark:text-white px-5 py-3 rounded-xl font-bold shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 dark:hover:bg-slate-800 whitespace-nowrap">
+              <Blocks className="w-5 h-5 text-primary-500" /> Mini Programs
+            </Link>
+            <Link href="/automations/builder" className="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-5 py-3 rounded-xl font-bold shadow-md transition hover:-translate-y-0.5 whitespace-nowrap">
+              <Plus className="w-5 h-5" /> Create New Workflow
+            </Link>
+          </div>
         </div>
 
         {/* Quick Stats / Templates */}

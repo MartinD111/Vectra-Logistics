@@ -5,11 +5,11 @@ import { usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard, Settings, Truck, Zap, BarChart3, FileText,
-  Boxes, LayoutTemplate, FolderArchive, Plus, FolderKanban, Users,
+  Boxes, FolderArchive, Users,
 } from 'lucide-react';
 import { crossAppUrl } from '@vectra/ui';
 import { useCurrentWorkspace } from '@/lib/hooks/useTenantWorkspace';
-import { useProjects } from '@/lib/hooks/useProjects';
+import { usePlatform } from '@/context/PlatformContext';
 
 interface SidebarItem {
   name: string;
@@ -27,7 +27,6 @@ const ITEMS: SidebarItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Records', href: '/records', icon: Boxes, module: 'records' },
   { name: 'Programs', href: '/automations', icon: Zap, module: 'programs' },
-  { name: 'Templates', href: '/templates', icon: LayoutTemplate, module: 'templates' },
   { name: 'Automations', href: '/automations', icon: Zap, module: 'automations' },
   { name: 'My Fleet', href: '/fleet', icon: Truck, module: 'fleet' },
   { name: 'Marketplace Intelligence', href: '/marketplace', icon: BarChart3, module: 'marketplace' },
@@ -45,7 +44,7 @@ const ALWAYS_BOTTOM: SidebarItem[] = [
 export default function WorkspaceSidebar() {
   const pathname = usePathname();
   const { data: workspace } = useCurrentWorkspace();
-  const { data: projects } = useProjects();
+  const { sidebarOpen } = usePlatform();
   const enabled = new Set(workspace?.enabled_modules ?? []);
 
   // Show an item if it's always-on (no module) or its module is enabled.
@@ -83,64 +82,23 @@ export default function WorkspaceSidebar() {
     );
   };
 
-  const projectActive = (id: string) => pathname.startsWith(`/projects/${id}`);
-
   return (
-    <aside className="hidden lg:flex flex-col w-60 flex-shrink-0 border-r border-gray-200 dark:border-dark-border bg-white/50 dark:bg-dark-bg/50 px-3 py-5 gap-1 overflow-y-auto">
-      <nav className="space-y-1">{visible.map(renderItem)}</nav>
-
-      {/* Projects — user-created containers that organize programs + stats */}
-      <div className="mt-5 flex-1">
-        <div className="flex items-center justify-between px-3 mb-1.5">
-          <Link
-            href="/projects"
-            className="text-[11px] font-bold uppercase tracking-wider text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center gap-1.5"
-          >
-            <FolderKanban className="w-3.5 h-3.5" /> Projects
-          </Link>
-          <Link
-            href="/projects?new=1"
-            title="New project"
-            className="text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
-          >
-            <Plus className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-        <div className="space-y-0.5">
-          {(projects ?? []).map((p) => (
-            <Link
-              key={p.id}
-              href={`/projects/${p.id}`}
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                projectActive(p.id)
-                  ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 font-medium'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              <span
-                className="h-2 w-2 rounded-full flex-shrink-0"
-                style={{ backgroundColor: p.color ?? '#94a3b8' }}
-              />
-              <span className="truncate flex-1">{p.name}</span>
-              {typeof p.program_count === 'number' && p.program_count > 0 && (
-                <span className="text-[10px] text-gray-400">{p.program_count}</span>
-              )}
-            </Link>
-          ))}
-          {(projects ?? []).length === 0 && (
-            <Link
-              href="/projects?new=1"
-              className="block px-3 py-1.5 text-xs text-gray-400 hover:text-primary-600 dark:hover:text-primary-400"
-            >
-              + Create your first project
-            </Link>
-          )}
-        </div>
-      </div>
-
-      <div className="pt-3 mt-3 border-t border-gray-200 dark:border-dark-border space-y-1">
-        {ALWAYS_BOTTOM.map(renderItem)}
-      </div>
+    <aside
+      className={`hidden lg:flex flex-col flex-shrink-0 bg-white/50 dark:bg-dark-bg/50 gap-1 overflow-y-auto transition-all duration-300 ${
+        sidebarOpen
+          ? 'w-60 border-r border-gray-200 dark:border-dark-border px-3 py-5'
+          : 'w-0 border-none px-0 py-0 overflow-hidden'
+      }`}
+    >
+      {sidebarOpen && (
+        <>
+          <nav className="space-y-1">{visible.map(renderItem)}</nav>
+          <div className="flex-1" />
+          <div className="pt-3 mt-3 border-t border-gray-200 dark:border-dark-border space-y-1">
+            {ALWAYS_BOTTOM.map(renderItem)}
+          </div>
+        </>
+      )}
     </aside>
   );
 }

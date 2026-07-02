@@ -8,6 +8,8 @@ export type Platform = 'marketplace' | 'fleet' | 'routes' | 'workspace';
 interface PlatformContextValue {
   activePlatform: Platform | null;
   setActivePlatform: (platform: Platform) => void;
+  sidebarOpen: boolean;
+  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const PlatformContext = createContext<PlatformContextValue | null>(null);
@@ -31,6 +33,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
   const [activePlatform, setActivePlatform] = useState<Platform | null>(
     resolvePlatform(pathname),
   );
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     const resolved = resolvePlatform(pathname);
@@ -38,7 +41,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   return (
-    <PlatformContext.Provider value={{ activePlatform, setActivePlatform }}>
+    <PlatformContext.Provider value={{ activePlatform, setActivePlatform, sidebarOpen, setSidebarOpen }}>
       {children}
     </PlatformContext.Provider>
   );

@@ -14,6 +14,8 @@ import { downloadRows } from '@/lib/programBuilder/exporter';
 import {
   emptyPipeline, type PipelineConfig, type TransformStep, type TransformOp, type Row, type ColumnType,
 } from '@/lib/programBuilder/types';
+import { isMiniProgramConfig } from '@/lib/miniProgram/blocks';
+import MiniProgramBuilderView from '@/components/miniProgram/MiniProgramBuilderView';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -147,6 +149,11 @@ export default function ProgramBuilderPage() {
   }
   if (!program) {
     return <div className="max-w-3xl mx-auto px-6 py-16 text-gray-500">Program not found. <Link href="/projects" className="text-primary-600 underline">Back</Link></div>;
+  }
+
+  // v2 (block-based mini program) → new builder; v1/legacy → the linear builder below.
+  if (isMiniProgramConfig(program.config)) {
+    return <MiniProgramBuilderView program={program} />;
   }
 
   return (

@@ -51,7 +51,7 @@ export const projectsApi = {
   },
   getProgram: (id: string) =>
     apiFetch<{ program: Program }>(`${BASE}/programs/${id}`).then((r) => r.program),
-  createProgram: (data: { name: string; description?: string; type?: string; project_id?: string | null }) =>
+  createProgram: (data: { name: string; description?: string; type?: string; project_id?: string | null; config?: Record<string, unknown> }) =>
     apiFetch<{ program: Program }>(`${BASE}/programs`, 'POST', data).then((r) => r.program),
   updateProgram: (id: string, data: Partial<{ name: string; project_id: string | null; status: string; config: Record<string, unknown> }>) =>
     apiFetch<{ program: Program }>(`${BASE}/programs/${id}`, 'PATCH', data).then((r) => r.program),
