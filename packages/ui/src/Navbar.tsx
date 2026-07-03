@@ -12,6 +12,8 @@ export interface NavSubItem {
   name: string;
   href: string;
   icon?: LucideIcon;
+  /** One further nesting level (e.g. a subfolder's own items). */
+  subItems?: NavSubItem[];
 }
 
 export interface NavItem {
@@ -127,15 +129,36 @@ export function Navbar({ navigation = [], branding, leftSlot, rightSlot, authHre
                     <div className="rounded-xl bg-white dark:bg-dark-card shadow-lg border border-gray-100 dark:border-dark-border py-1">
                       {item.subItems.map((sub) => {
                         const SubIcon = sub.icon;
+                        const hasNested = sub.subItems && sub.subItems.length > 0;
                         return (
-                          <Link
-                            key={sub.name}
-                            href={sub.href}
-                            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors font-medium"
-                          >
-                            {SubIcon && <SubIcon className="h-4 w-4 text-gray-400" />}
-                            <span className="truncate">{sub.name}</span>
-                          </Link>
+                          <div key={sub.name} className={hasNested ? 'relative group/sub' : undefined}>
+                            <Link
+                              href={sub.href}
+                              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors font-medium"
+                            >
+                              {SubIcon && <SubIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />}
+                              <span className="truncate">{sub.name}</span>
+                            </Link>
+                            {hasNested && (
+                              <div className="absolute left-full top-0 pl-1.5 hidden group-hover/sub:block z-50 w-56 animate-fade-in">
+                                <div className="rounded-xl bg-white dark:bg-dark-card shadow-lg border border-gray-100 dark:border-dark-border py-1">
+                                  {sub.subItems!.map((leaf) => {
+                                    const LeafIcon = leaf.icon;
+                                    return (
+                                      <Link
+                                        key={leaf.name}
+                                        href={leaf.href}
+                                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors font-medium"
+                                      >
+                                        {LeafIcon && <LeafIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />}
+                                        <span className="truncate">{leaf.name}</span>
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
@@ -338,15 +361,34 @@ export function Navbar({ navigation = [], branding, leftSlot, rightSlot, authHre
                             {item.subItems.map((sub) => {
                               const SubIcon = sub.icon;
                               return (
-                                <Link
-                                  key={sub.name}
-                                  href={sub.href}
-                                  onClick={() => setMobileMenuOpen(false)}
-                                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                                >
-                                  {SubIcon && <SubIcon className="h-4 w-4 flex-shrink-0 text-gray-400" />}
-                                  {sub.name}
-                                </Link>
+                                <div key={sub.name}>
+                                  <Link
+                                    href={sub.href}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                                  >
+                                    {SubIcon && <SubIcon className="h-4 w-4 flex-shrink-0 text-gray-400" />}
+                                    {sub.name}
+                                  </Link>
+                                  {sub.subItems && sub.subItems.length > 0 && (
+                                    <div className="pl-6 space-y-1 border-l border-gray-100 dark:border-slate-800 ml-3">
+                                      {sub.subItems.map((leaf) => {
+                                        const LeafIcon = leaf.icon;
+                                        return (
+                                          <Link
+                                            key={leaf.name}
+                                            href={leaf.href}
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                                          >
+                                            {LeafIcon && <LeafIcon className="h-4 w-4 flex-shrink-0 text-gray-400" />}
+                                            {leaf.name}
+                                          </Link>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
                               );
                             })}
                           </div>

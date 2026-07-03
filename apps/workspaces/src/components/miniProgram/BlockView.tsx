@@ -11,13 +11,14 @@ import {
 } from 'lucide-react';
 import type {
   Block, FileInputBlock, PasteInputBlock, TableBlock, ExportBlock, CopyBlock,
-  DocumentBlock, TextBlock, FormBlock, RecordsBlock, Row,
+  DocumentBlock, TextBlock, FormBlock, RecordsBlock, TsvOutputBlock, DropdownBlock, Row,
 } from '@/lib/miniProgram/blocks';
 import { useRuntime, resolvePlaceholders } from '@/lib/miniProgram/runtime';
 import { parseFilesToDataset, parsePaste } from '@/lib/programBuilder/parse';
 import { saveRows, type AnyFormat } from '@/lib/programBuilder/exporter';
 import { pickFolder, downloadBlob, saveBlob, supportsFolderSave, type FolderTarget } from '@/lib/miniProgram/fileSaver';
 import { emlBlob, printHtml, htmlToPdfBlob } from '@/lib/miniProgram/docExport';
+import { DynamicBlockView } from './DynamicBlockView';
 
 const clean = (html: string): string =>
   typeof window === 'undefined' ? '' : DOMPurify.sanitize(html);
@@ -33,6 +34,10 @@ export function BlockView({ block }: { block: Block }) {
     case 'document': return <DocumentView block={block} />;
     case 'form': return <FormView block={block} />;
     case 'records': return <RecordsView block={block} />;
+    case 'tsv-output': return <TsvOutputView block={block} />;
+    case 'dropdown': return <DropdownView block={block} />;
+    case 'plugin': return <DynamicBlockView block={block} />;
+    case 'code':
     case 'columns':
     case 'transform':
       return null; // processing blocks are invisible at runtime
@@ -318,6 +323,78 @@ function RecordsView({ block }: { block: RecordsBlock }) {
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── TSV output ────────────────────────────────────────────────────────────────
+
+function TsvOutputView({ block }: { block: TsvOutputBlock }) {
+  const data = useDatasetFor(block.id);
+  const [copied, setCopied] = useState(false);
+
+  const tsv = useMemo(() => {
+    if (!data.length) return '';
+    const cols = Object.keys(data[0]);
+    const limit = block.maxRows ?? 500;
+    return [cols.join('\t'), ...data.slice(0, limit).map((r) => cols.map((c) => String(r[c] ?? '')).join('\t'))].join('\n');
+  }, [data, block.maxRows]);
+
+  function copyAll() {
+    navigator.clipboard.writeText(tsv).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); });
+  }
+
+  return (
+    <div className="saas-card !p-4">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm font-semibold text-gray-900 dark:text-white">{block.label}</p>
+        {data.length > 0 && (
+          <button onClick={copyAll}
+            className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800">
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? 'Copied!' : 'Copy all'}
+          </button>
+        )}
+      </div>
+      {data.length === 0 ? (
+        <p className="text-xs text-gray-400">No data yet</p>
+      ) : (
+        <>
+          <textarea readOnly rows={8} className="saas-input font-mono text-xs resize-y" value={tsv} />
+          <p className="text-xs text-gray-400 mt-1">{data.length} rows · paste directly into Excel</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Dropdown list ─────────────────────────────────────────────────────────────
+
+function DropdownView({ block }: { block: DropdownBlock }) {
+  const rt = useRuntime();
+  const current = String(rt.state.vars[block.varKey] ?? '');
+
+  const options = useMemo(() => {
+    return block.items
+      .split('\n')
+      .map((line) => {
+        const parts = line.split('\t');
+        const value = parts[0].trim();
+        const label = parts.length > 1 ? parts[1].trim() : value;
+        return { value, label };
+      })
+      .filter((o) => o.value);
+  }, [block.items]);
+
+  return (
+    <div className="saas-card !p-4">
+      <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{block.label}</p>
+      <select className="saas-input !py-2 text-sm" value={current}
+        onChange={(e) => rt.setVar(block.varKey, e.target.value)}>
+        <option value="">{block.placeholder ?? 'Choose…'}</option>
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      {current && <p className="text-xs text-gray-400 mt-1.5">{block.varKey}: <span className="font-mono">{current}</span></p>}
     </div>
   );
 }

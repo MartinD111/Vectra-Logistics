@@ -1,7 +1,7 @@
 import { db } from '../../core/db';
-import { TeamMember, TeamMemberActivity, MemberStats } from './team.types';
+import { TeamMember, TeamMemberActivity, MemberStats, ProjectAssignment } from './team.types';
 
-const MEMBER_COLS = 'id, email, first_name, last_name, role, phone, is_verified, created_at';
+const MEMBER_COLS = 'id, email, first_name, last_name, role, custom_role_title, phone, is_verified, created_at';
 
 class TeamRepository {
   async listMembers(companyId: string): Promise<TeamMember[]> {
@@ -15,7 +15,7 @@ class TeamRepository {
   /** Members plus their event counts (single grouped query over the event spine). */
   async listMembersWithActivity(companyId: string): Promise<TeamMemberActivity[]> {
     const { rows } = await db.query<TeamMemberActivity>(
-      `SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.phone,
+      `SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.custom_role_title, u.phone,
               u.is_verified, u.created_at,
               COUNT(e.id)::int AS total_events,
               COUNT(e.id) FILTER (WHERE e.occurred_at > NOW() - INTERVAL '7 days')::int AS events_last_7d,
@@ -48,13 +48,16 @@ class TeamRepository {
 
   async createMember(
     companyId: string,
-    data: { email: string; password_hash: string; first_name: string; last_name: string; role: string; phone?: string | null },
+    data: { email: string; password_hash: string; first_name: string; last_name: string; role: string; custom_role_title?: string | null; phone?: string | null },
   ): Promise<TeamMember> {
     const { rows } = await db.query<TeamMember>(
-      `INSERT INTO users (company_id, email, password_hash, first_name, last_name, role, phone, is_verified)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE)
+      `INSERT INTO users (company_id, email, password_hash, first_name, last_name, role, custom_role_title, phone, is_verified)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE)
        RETURNING ${MEMBER_COLS}`,
-      [companyId, data.email, data.password_hash, data.first_name, data.last_name, data.role, data.phone ?? null],
+      [
+        companyId, data.email, data.password_hash, data.first_name, data.last_name,
+        data.role, data.custom_role_title ?? null, data.phone ?? null,
+      ],
     );
     return rows[0];
   }
@@ -64,6 +67,15 @@ class TeamRepository {
       `UPDATE users SET role = $3, updated_at = NOW()
        WHERE id = $1 AND company_id = $2 RETURNING ${MEMBER_COLS}`,
       [id, companyId, role],
+    );
+    return rows[0] ?? null;
+  }
+
+  async updateCustomRoleTitle(id: string, companyId: string, title: string | null): Promise<TeamMember | null> {
+    const { rows } = await db.query<TeamMember>(
+      `UPDATE users SET custom_role_title = $3, updated_at = NOW()
+       WHERE id = $1 AND company_id = $2 RETURNING ${MEMBER_COLS}`,
+      [id, companyId, title],
     );
     return rows[0] ?? null;
   }
@@ -102,6 +114,65 @@ class TeamRepository {
       by_verb: verbRows.map((r) => ({ verb: r.verb, count: parseInt(r.count, 10) })),
       last_activity_at: lastRows[0]?.last ? new Date(lastRows[0].last).toISOString() : null,
     };
+  }
+  // ── Project assignments ────────────────────────────────────────────────────
+
+  async findProjectCompany(projectId: string): Promise<string | null> {
+    const { rows } = await db.query<{ company_id: string }>(
+      `SELECT company_id FROM projects WHERE id = $1`, [projectId],
+    );
+    return rows[0]?.company_id ?? null;
+  }
+
+  async listAssignments(userId: string, companyId: string): Promise<ProjectAssignment[]> {
+    const { rows } = await db.query<ProjectAssignment>(
+      `SELECT * FROM project_assignments WHERE user_id = $1 AND company_id = $2 ORDER BY created_at ASC`,
+      [userId, companyId],
+    );
+    return rows;
+  }
+
+  async listAssignmentsByProject(projectId: string, companyId: string): Promise<ProjectAssignment[]> {
+    const { rows } = await db.query<ProjectAssignment>(
+      `SELECT * FROM project_assignments WHERE project_id = $1 AND company_id = $2 ORDER BY created_at ASC`,
+      [projectId, companyId],
+    );
+    return rows;
+  }
+
+  async findAssignment(id: string, companyId: string): Promise<ProjectAssignment | null> {
+    const { rows } = await db.query<ProjectAssignment>(
+      `SELECT * FROM project_assignments WHERE id = $1 AND company_id = $2`,
+      [id, companyId],
+    );
+    return rows[0] ?? null;
+  }
+
+  async upsertAssignment(
+    companyId: string, projectId: string, userId: string, plannedPct: number,
+  ): Promise<ProjectAssignment> {
+    const { rows } = await db.query<ProjectAssignment>(
+      `INSERT INTO project_assignments (company_id, project_id, user_id, planned_pct)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (project_id, user_id)
+       DO UPDATE SET planned_pct = EXCLUDED.planned_pct, updated_at = NOW()
+       RETURNING *`,
+      [companyId, projectId, userId, plannedPct],
+    );
+    return rows[0];
+  }
+
+  async updateAssignmentPct(id: string, companyId: string, plannedPct: number): Promise<ProjectAssignment | null> {
+    const { rows } = await db.query<ProjectAssignment>(
+      `UPDATE project_assignments SET planned_pct = $3, updated_at = NOW()
+       WHERE id = $1 AND company_id = $2 RETURNING *`,
+      [id, companyId, plannedPct],
+    );
+    return rows[0] ?? null;
+  }
+
+  async deleteAssignment(id: string, companyId: string): Promise<void> {
+    await db.query(`DELETE FROM project_assignments WHERE id = $1 AND company_id = $2`, [id, companyId]);
   }
 }
 

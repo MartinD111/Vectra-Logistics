@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
-  Users, Plus, Loader2, Activity, Clock, Trash2, ShieldCheck, X, BarChart3,
+  Users, Plus, Loader2, Activity, Clock, Trash2, ShieldCheck, X, BarChart3, Briefcase, Target, Gauge,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import {
   useTeam, useAddMember, useUpdateMemberRole, useRemoveMember, useMemberStats,
+  useUpdateCustomRoleTitle, useMemberAssignments, useAssignProject, useUpdateAssignment, useRemoveAssignment,
 } from '@/lib/hooks/useTeam';
+import { useProjects } from '@/lib/hooks/useProjects';
 import type { TeamMember } from '@/lib/api/team.api';
 
 const ROLE_BADGE: Record<string, string> = {
@@ -63,12 +66,18 @@ export default function TeamPage() {
               Company members and their activity. {isAdmin ? 'Add members and manage roles.' : ''}
             </p>
           </div>
-          {isAdmin && (
-            <button onClick={() => setOpen((v) => !v)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold">
-              <Plus className="w-4 h-4" /> Add member
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            <Link href="/team/kpis"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 text-sm font-semibold hover:bg-gray-50 dark:hover:bg-slate-800">
+              <Gauge className="w-4 h-4" /> KPIs
+            </Link>
+            {isAdmin && (
+              <button onClick={() => setOpen((v) => !v)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold">
+                <Plus className="w-4 h-4" /> Add member
+              </button>
+            )}
+          </div>
         </div>
 
         {isAdmin && open && (
@@ -123,6 +132,7 @@ export default function TeamPage() {
                     {m.id === user?.id && <span className="ml-2 text-xs text-gray-400">(you)</span>}
                   </p>
                   <p className="text-xs text-gray-500 truncate">{m.email}</p>
+                  <CustomRoleTitle member={m} isAdmin={isAdmin} />
                 </div>
 
                 {/* Per-user activity KPIs */}
@@ -146,7 +156,7 @@ export default function TeamPage() {
                   </span>
                 )}
 
-                <button onClick={() => setSelected(m)} title="View KPIs"
+                <button onClick={() => setSelected(m)} title="View KPIs & assigned projects"
                   className="p-2 text-gray-400 hover:text-primary-600"><BarChart3 className="w-4 h-4" /></button>
 
                 {isAdmin && m.id !== user?.id && (
@@ -162,6 +172,43 @@ export default function TeamPage() {
       {/* Per-user KPI drawer */}
       {selected && <MemberStatsDrawer member={selected} onClose={() => setSelected(null)} />}
     </div>
+  );
+}
+
+function CustomRoleTitle({ member, isAdmin }: { member: TeamMember; isAdmin: boolean }) {
+  const updateTitle = useUpdateCustomRoleTitle();
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(member.custom_role_title ?? '');
+
+  if (!isAdmin) {
+    return member.custom_role_title ? (
+      <p className="text-xs text-primary-600 dark:text-primary-400 truncate">{member.custom_role_title}</p>
+    ) : null;
+  }
+
+  if (editing) {
+    return (
+      <input
+        autoFocus
+        className="text-xs rounded-md border border-gray-200 dark:border-slate-700 bg-white dark:bg-dark-bg px-1.5 py-0.5 mt-0.5 w-40"
+        value={value}
+        placeholder="e.g. Dispatcher"
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={() => {
+          setEditing(false);
+          if (value.trim() !== (member.custom_role_title ?? '')) {
+            updateTitle.mutate({ id: member.id, title: value.trim() || null });
+          }
+        }}
+        onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+      />
+    );
+  }
+
+  return (
+    <button onClick={() => setEditing(true)} className="text-xs text-gray-400 hover:text-primary-600 truncate text-left">
+      {member.custom_role_title || '+ Set job title'}
+    </button>
   );
 }
 
@@ -215,7 +262,94 @@ function MemberStatsDrawer({ member, onClose }: { member: TeamMember; onClose: (
             )}
           </>
         )}
+
+        <div className="mt-8 pt-6 border-t border-gray-100 dark:border-dark-border">
+          <AssignedProjects member={member} />
+        </div>
       </div>
+    </div>
+  );
+}
+
+function AssignedProjects({ member }: { member: TeamMember }) {
+  const { data: projects } = useProjects();
+  const { data: assignments, isLoading } = useMemberAssignments(member.id);
+  const assignProject = useAssignProject(member.id);
+  const updateAssignment = useUpdateAssignment(member.id);
+  const removeAssignment = useRemoveAssignment(member.id);
+
+  const assignedIds = new Set((assignments ?? []).map((a) => a.project_id));
+  const availableProjects = (projects ?? []).filter((p) => !assignedIds.has(p.id));
+  const totalPct = (assignments ?? []).reduce((sum, a) => sum + Number(a.planned_pct), 0);
+
+  const [projectId, setProjectId] = useState('');
+  const [pct, setPct] = useState(20);
+
+  return (
+    <div>
+      <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-1.5">
+        <Briefcase className="w-4 h-4 text-gray-400" /> Assigned projects
+      </h3>
+
+      {isLoading ? (
+        <p className="text-sm text-gray-400">Loading…</p>
+      ) : (assignments ?? []).length === 0 ? (
+        <p className="text-sm text-gray-400 mb-3">No projects assigned yet.</p>
+      ) : (
+        <div className="space-y-2 mb-3">
+          {(assignments ?? []).map((a) => {
+            const project = (projects ?? []).find((p) => p.id === a.project_id);
+            return (
+              <div key={a.id} className="flex items-center gap-2 text-sm">
+                <span className="flex-1 truncate text-gray-700 dark:text-gray-200">{project?.name ?? a.project_id}</span>
+                <div className="flex items-center gap-1">
+                  <Target className="w-3.5 h-3.5 text-gray-400" />
+                  <input
+                    type="number" min={0} max={100}
+                    defaultValue={a.planned_pct}
+                    onBlur={(e) => {
+                      const v = Number(e.target.value);
+                      if (!Number.isNaN(v) && v !== Number(a.planned_pct)) {
+                        updateAssignment.mutate({ assignmentId: a.id, planned_pct: v });
+                      }
+                    }}
+                    className="w-14 text-xs rounded-md border border-gray-200 dark:border-slate-700 bg-white dark:bg-dark-bg px-1.5 py-1"
+                  />
+                  <span className="text-xs text-gray-400">%</span>
+                </div>
+                <button onClick={() => removeAssignment.mutate(a.id)} className="p-1 text-gray-400 hover:text-red-500">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            );
+          })}
+          {totalPct > 100 && (
+            <p className="text-xs text-amber-600 dark:text-amber-400">
+              Planned time totals {totalPct}% of the workday across assigned projects.
+            </p>
+          )}
+        </div>
+      )}
+
+      {availableProjects.length > 0 && (
+        <div className="flex items-center gap-2">
+          <select value={projectId} onChange={(e) => setProjectId(e.target.value)}
+            className="saas-input !py-1.5 !text-sm flex-1">
+            <option value="">Assign a project…</option>
+            {availableProjects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <input type="number" min={0} max={100} value={pct}
+            onChange={(e) => setPct(Number(e.target.value))}
+            className="w-16 text-sm rounded-md border border-gray-200 dark:border-slate-700 bg-white dark:bg-dark-bg px-1.5 py-1.5" />
+          <button
+            disabled={!projectId || assignProject.isPending}
+            onClick={() => { assignProject.mutate({ project_id: projectId, planned_pct: pct }); setProjectId(''); setPct(20); }}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white"
+          >
+            Assign
+          </button>
+        </div>
+      )}
     </div>
   );
 }

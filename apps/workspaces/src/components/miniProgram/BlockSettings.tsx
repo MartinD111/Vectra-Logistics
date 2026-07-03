@@ -8,33 +8,65 @@ import { Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import type {
   Block, FileInputBlock, PasteInputBlock, FormBlock, FormField, ColumnsBlock, TransformBlock,
   TableBlock, ExportBlock, CopyBlock, DocumentBlock, RecordsBlock, TextBlock, FileType, ExportFormat,
+  CodeBlock, TsvOutputBlock, DropdownBlock, DataSourceRef,
 } from '@/lib/miniProgram/blocks';
-import { uid } from '@/lib/miniProgram/blocks';
+import { uid, blockDef, getDataSource, ROW_PRODUCING_KINDS } from '@/lib/miniProgram/blocks';
 import { useRuntime, columnsOf } from '@/lib/miniProgram/runtime';
 import { inferColumns } from '@/lib/programBuilder/parse';
 import { derivedColumns } from '@/lib/programBuilder/engine';
 import type { TransformStep, TransformOp } from '@/lib/programBuilder/types';
+import { DynamicBlockSettings } from './DynamicBlockSettings';
 
-export function BlockSettings({ block, onChange }: { block: Block; onChange: (b: Block) => void }) {
+export function BlockSettings({ block, allBlocks, onChange }: { block: Block; allBlocks: Block[]; onChange: (b: Block) => void }) {
   const rt = useRuntime();
   const incoming = rt.result.inputTo[block.id] ?? [];
   const availableColumns = columnsOf(incoming);
   const patch = (p: Partial<Block>) => onChange({ ...block, ...p } as Block);
+  const sourcePicker = <SourcePicker block={block} allBlocks={allBlocks} patch={patch} />;
 
   switch (block.kind) {
     case 'text': return <TextSettings block={block} patch={patch} />;
     case 'file-input': return <FileInputSettings block={block} patch={patch} />;
     case 'paste-input': return <PasteSettings block={block} patch={patch} />;
     case 'form': return <FormSettings block={block} patch={patch} />;
-    case 'columns': return <ColumnsSettings block={block} patch={patch} sample={incoming} />;
-    case 'transform': return <TransformSettings block={block} patch={patch} columns={availableColumns} />;
-    case 'table': return <TableSettings block={block} patch={patch} columns={availableColumns} />;
-    case 'export': return <ExportSettings block={block} patch={patch} />;
-    case 'copy': return <CopySettings block={block} patch={patch} columns={availableColumns} />;
-    case 'document': return <DocumentSettings block={block} patch={patch} columns={availableColumns} />;
+    case 'columns': return <div className="space-y-3">{sourcePicker}<ColumnsSettings block={block} patch={patch} sample={incoming} /></div>;
+    case 'transform': return <div className="space-y-3">{sourcePicker}<TransformSettings block={block} patch={patch} columns={availableColumns} /></div>;
+    case 'table': return <div className="space-y-3">{sourcePicker}<TableSettings block={block} patch={patch} columns={availableColumns} /></div>;
+    case 'export': return <div className="space-y-3">{sourcePicker}<ExportSettings block={block} patch={patch} /></div>;
+    case 'copy': return <div className="space-y-3">{sourcePicker}<CopySettings block={block} patch={patch} columns={availableColumns} /></div>;
+    case 'document': return <div className="space-y-3">{sourcePicker}<DocumentSettings block={block} patch={patch} columns={availableColumns} /></div>;
     case 'records': return <RecordsSettings block={block} patch={patch} />;
+    case 'code': return <div className="space-y-3">{sourcePicker}<CodeSettings block={block} patch={patch} /></div>;
+    case 'tsv-output': return <div className="space-y-3">{sourcePicker}<TsvOutputSettings block={block} patch={patch} /></div>;
+    case 'dropdown': return <DropdownSettings block={block} patch={patch} />;
+    case 'plugin': return <div className="space-y-3">{sourcePicker}<DynamicBlockSettings block={block} columns={availableColumns} patch={(config) => patch({ config } as Partial<Block>)} /></div>;
     default: return null;
   }
+}
+
+/** Shared "data source" picker for every block kind that supports a `dataSource` override. Lists earlier row-producing blocks; blank = default (previous block's output). */
+function SourcePicker({ block, allBlocks, patch }: { block: Block; allBlocks: Block[]; patch: (p: Partial<Block>) => void }) {
+  const idx = allBlocks.findIndex((b) => b.id === block.id);
+  const earlier = idx < 0 ? allBlocks : allBlocks.slice(0, idx);
+  const candidates = earlier.filter((b) => ROW_PRODUCING_KINDS.includes(b.kind));
+  const current = getDataSource(block);
+  if (candidates.length === 0) return null;
+  return (
+    <div>
+      <span className="label-xs">Data source</span>
+      <select
+        className="saas-input !py-1.5 text-xs mt-1"
+        value={current?.blockId ?? ''}
+        onChange={(e) => {
+          const blockId = e.target.value;
+          patch({ dataSource: blockId ? ({ blockId } as DataSourceRef) : undefined } as Partial<Block>);
+        }}
+      >
+        <option value="">Same as previous block</option>
+        {candidates.map((c) => <option key={c.id} value={c.id}>{blockDef(c.kind)?.title ?? c.kind} ({c.id.slice(0, 4)})</option>)}
+      </select>
+    </div>
+  );
 }
 
 type P<T> = { block: T; patch: (p: Partial<Block>) => void };
@@ -110,6 +142,7 @@ const OPS: { op: TransformOp; label: string }[] = [
   { op: 'split', label: 'Split column' }, { op: 'concat', label: 'Combine columns' },
   { op: 'computed', label: 'Computed (math)' }, { op: 'rename', label: 'Rename column' },
   { op: 'drop', label: 'Drop column' }, { op: 'filter', label: 'Filter rows' },
+  { op: 'code', label: 'Custom code (JS)' },
 ];
 
 function newStep(op: TransformOp, col: string): TransformStep {
@@ -125,6 +158,7 @@ function newStep(op: TransformOp, col: string): TransformStep {
     case 'rename': return { id, op, column: col, to: col };
     case 'drop': return { id, op, column: col };
     case 'filter': return { id, op, column: col, condition: 'not_empty', value: '' };
+    case 'code': return { id, op, code: '// row.total = Number(row.price) * Number(row.qty)\n// return false to exclude the row' };
   }
 }
 
@@ -192,6 +226,18 @@ function StepEditor({ step, columns, onChange, onRemove, onMove }: {
             <option value="not_empty">is not empty</option><option value="equals">equals</option><option value="not_equals">not equal</option><option value="contains">contains</option><option value="gt">greater than</option><option value="lt">less than</option><option value="regex">matches regex</option>
           </select>
           {step.condition !== 'not_empty' && <div className="col-span-2">{T(step.value ?? '', (v) => onChange({ value: v }), 'value')}</div>}</>)}
+        {step.op === 'code' && (
+          <div className="col-span-2 space-y-1.5">
+            <textarea className="saas-input text-xs font-mono" rows={6} value={step.code}
+              onChange={(e) => onChange({ code: e.target.value })}
+              placeholder={'// row.total = Number(row.price) * Number(row.qty)\n// return false to exclude the row'} />
+            <div className="rounded bg-gray-100 dark:bg-slate-800 p-2 text-[10px] text-gray-400 space-y-0.5">
+              <p><span className="font-mono text-primary-500">row.col = value</span> — add or overwrite a column</p>
+              <p><span className="font-mono text-primary-500">return false</span> — exclude this row from output</p>
+              <p><span className="font-mono text-primary-500">Number(row.x)</span> — parse a column as number</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -310,6 +356,63 @@ function FormSettings({ block, patch }: P<FormBlock>) {
         ))}
         <button onClick={add} className="text-sm font-semibold text-primary-600 flex items-center gap-1"><Plus className="w-4 h-4" /> Add field</button>
       </div>
+    </div>
+  );
+}
+
+// ── Code / TSV output / Dropdown ──────────────────────────────────────────────
+
+function CodeSettings({ block, patch }: P<CodeBlock>) {
+  return (
+    <div className="space-y-3">
+      <Field label="JavaScript (row = current row object)">
+        <textarea className="saas-input text-xs font-mono" rows={9} value={block.code}
+          onChange={(e) => patch({ code: e.target.value })} />
+      </Field>
+      <div className="rounded-lg bg-gray-50 dark:bg-slate-800/60 p-2.5 text-[11px] text-gray-500 space-y-1">
+        <p><span className="font-mono text-primary-600">row.col = value</span> — add or overwrite a column</p>
+        <p><span className="font-mono text-primary-600">return false</span> — exclude the row from the dataset</p>
+        <p><span className="font-mono text-primary-600">Number(row.x)</span> — parse a column as a number</p>
+      </div>
+    </div>
+  );
+}
+
+function TsvOutputSettings({ block, patch }: P<TsvOutputBlock>) {
+  return (
+    <div className="space-y-3">
+      <Field label="Label">
+        <input className="saas-input !py-2 text-sm" value={block.label}
+          onChange={(e) => patch({ label: e.target.value })} />
+      </Field>
+      <Field label="Max rows">
+        <input type="number" min={1} className="saas-input !py-2 text-sm" value={block.maxRows ?? 500}
+          onChange={(e) => patch({ maxRows: Math.max(1, Number(e.target.value)) })} />
+      </Field>
+    </div>
+  );
+}
+
+function DropdownSettings({ block, patch }: P<DropdownBlock>) {
+  return (
+    <div className="space-y-3">
+      <Field label="Label">
+        <input className="saas-input !py-2 text-sm" value={block.label}
+          onChange={(e) => patch({ label: e.target.value })} />
+      </Field>
+      <Field label="Variable name (use {{selection}} in templates)">
+        <input className="saas-input !py-2 text-sm font-mono" value={block.varKey}
+          onChange={(e) => patch({ varKey: e.target.value })} />
+      </Field>
+      <Field label="Placeholder">
+        <input className="saas-input !py-2 text-sm" value={block.placeholder ?? ''}
+          onChange={(e) => patch({ placeholder: e.target.value })} />
+      </Field>
+      <Field label="Items — one per line, or paste from Excel (value[tab]label)">
+        <textarea className="saas-input text-xs font-mono" rows={10} value={block.items}
+          onChange={(e) => patch({ items: e.target.value })}
+          placeholder={'Option A\nOption B\nOption C'} />
+      </Field>
     </div>
   );
 }

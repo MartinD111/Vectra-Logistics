@@ -8,20 +8,56 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Blocks, Plus, Loader2, Play, Pencil, Inbox } from 'lucide-react';
-import { usePrograms, useCreateProgram } from '@/lib/hooks/useProjects';
+import { usePrograms, useCreateProgram, useUpdateProgram } from '@/lib/hooks/useProjects';
+import { useFolderTree } from '@/lib/hooks/useFolders';
 import { isMiniProgramConfig } from '@/lib/miniProgram/blocks';
 import { STARTERS } from '@/lib/miniProgram/templates';
 import { BlockIcon } from '@/components/miniProgram/icon';
+import { FolderIcon } from '@/components/icons/IconPicker';
+import type { FolderTree } from '@/lib/api/folders.api';
+
+function flattenFolders(tree: FolderTree[], depth = 0): { id: string; name: string; icon: string | null; depth: number }[] {
+  return tree.flatMap((f) => [
+    { id: f.id, name: f.name, icon: f.icon, depth },
+    ...flattenFolders(f.children, depth + 1),
+  ]);
+}
+
+function ProgramFolderMenu({ programId, currentFolderId, folders }: { programId: string; currentFolderId: string | null; folders: { id: string; name: string; depth: number }[] }) {
+  const update = useUpdateProgram(programId);
+  return (
+    <select
+      value={currentFolderId ?? ''}
+      onChange={(e) => update.mutate({ folder_id: e.target.value || null })}
+      onClick={(e) => e.stopPropagation()}
+      className="text-xs rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-dark-bg px-2 py-1 text-gray-600 dark:text-gray-300"
+    >
+      <option value="">Unfiled</option>
+      {folders.map((f) => (
+        <option key={f.id} value={f.id}>{'—'.repeat(f.depth)} {f.name}</option>
+      ))}
+    </select>
+  );
+}
 
 export default function MiniProgramsPage() {
   const router = useRouter();
   const { data: programs, isLoading } = usePrograms();
+  const { data: folderTree } = useFolderTree();
   const createProgram = useCreateProgram();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [templateId, setTemplateId] = useState('extractor');
+  const [folderFilter, setFolderFilter] = useState<string>('all');
 
-  const mini = (programs ?? []).filter((p) => isMiniProgramConfig(p.config));
+  const flatFolders = flattenFolders(folderTree ?? []);
+  const mini = (programs ?? [])
+    .filter((p) => isMiniProgramConfig(p.config))
+    .filter((p) => {
+      if (folderFilter === 'all') return true;
+      if (folderFilter === 'unfiled') return !p.folder_id;
+      return p.folder_id === folderFilter;
+    });
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,10 +82,25 @@ export default function MiniProgramsPage() {
               Build your own tools from blocks — like a mini-app maker for your data workflows.
             </p>
           </div>
-          <button onClick={() => setOpen((v) => !v)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold">
-            <Plus className="w-4 h-4" /> New program
-          </button>
+          <div className="flex items-center gap-3">
+            {flatFolders.length > 0 && (
+              <select
+                value={folderFilter}
+                onChange={(e) => setFolderFilter(e.target.value)}
+                className="saas-input !w-auto"
+              >
+                <option value="all">All folders</option>
+                <option value="unfiled">Unfiled</option>
+                {flatFolders.map((f) => (
+                  <option key={f.id} value={f.id}>{'—'.repeat(f.depth)} {f.name}</option>
+                ))}
+              </select>
+            )}
+            <button onClick={() => setOpen((v) => !v)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold">
+              <Plus className="w-4 h-4" /> New program
+            </button>
+          </div>
         </div>
 
         {open && (
@@ -116,6 +167,12 @@ export default function MiniProgramsPage() {
                       <Pencil className="w-3.5 h-3.5" /> Edit
                     </Link>
                   </div>
+                  {flatFolders.length > 0 && (
+                    <div className="flex items-center gap-1.5 text-xs text-gray-400 pt-1 border-t border-gray-100 dark:border-slate-800">
+                      <FolderIcon name={p.folder_id ? flatFolders.find((f) => f.id === p.folder_id)?.icon : null} className="w-3.5 h-3.5 shrink-0" />
+                      <ProgramFolderMenu programId={p.id} currentFolderId={p.folder_id} folders={flatFolders} />
+                    </div>
+                  )}
                 </div>
               );
             })}

@@ -26,28 +26,29 @@ class ProjectsRepository {
 
   async createProject(
     companyId: string, createdBy: string | null,
-    data: { name: string; description?: string | null; color?: string | null },
+    data: { name: string; description?: string | null; color?: string | null; folder_id?: string | null },
   ): Promise<Project> {
     const { rows } = await db.query<Project>(
-      `INSERT INTO projects (company_id, name, description, color, created_by)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [companyId, data.name, data.description ?? null, data.color ?? null, createdBy],
+      `INSERT INTO projects (company_id, name, description, color, folder_id, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [companyId, data.name, data.description ?? null, data.color ?? null, data.folder_id ?? null, createdBy],
     );
     return rows[0];
   }
 
   async updateProject(
     id: string,
-    data: { name?: string; description?: string | null; color?: string | null },
+    data: { name?: string; description?: string | null; color?: string | null; folder_id?: string | null },
   ): Promise<Project | null> {
     const { rows } = await db.query<Project>(
       `UPDATE projects SET
          name        = COALESCE($2, name),
          description  = COALESCE($3, description),
          color        = COALESCE($4, color),
+         folder_id    = COALESCE($5, folder_id),
          updated_at   = NOW()
        WHERE id = $1 RETURNING *`,
-      [id, data.name ?? null, data.description ?? null, data.color ?? null],
+      [id, data.name ?? null, data.description ?? null, data.color ?? null, data.folder_id ?? null],
     );
     return rows[0] ?? null;
   }
@@ -80,13 +81,13 @@ class ProjectsRepository {
 
   async createProgram(
     companyId: string, createdBy: string | null,
-    data: { name: string; description?: string | null; type?: string; project_id?: string | null; config?: Record<string, unknown> },
+    data: { name: string; description?: string | null; type?: string; project_id?: string | null; folder_id?: string | null; config?: Record<string, unknown> },
   ): Promise<Program> {
     const { rows } = await db.query<Program>(
-      `INSERT INTO programs (company_id, project_id, name, description, type, config, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      `INSERT INTO programs (company_id, project_id, folder_id, name, description, type, config, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
       [
-        companyId, data.project_id ?? null, data.name, data.description ?? null,
+        companyId, data.project_id ?? null, data.folder_id ?? null, data.name, data.description ?? null,
         data.type ?? 'transform', JSON.stringify(data.config ?? {}), createdBy,
       ],
     );
@@ -95,20 +96,21 @@ class ProjectsRepository {
 
   async updateProgram(
     id: string,
-    data: { name?: string; description?: string | null; project_id?: string | null; status?: string; config?: Record<string, unknown> },
+    data: { name?: string; description?: string | null; project_id?: string | null; folder_id?: string | null; status?: string; config?: Record<string, unknown> },
   ): Promise<Program | null> {
     const { rows } = await db.query<Program>(
       `UPDATE programs SET
          name        = COALESCE($2, name),
          description  = COALESCE($3, description),
          project_id   = COALESCE($4, project_id),
-         status       = COALESCE($5, status),
-         config       = COALESCE($6, config),
+         folder_id    = COALESCE($5, folder_id),
+         status       = COALESCE($6, status),
+         config       = COALESCE($7, config),
          updated_at   = NOW()
        WHERE id = $1 RETURNING *`,
       [
         id, data.name ?? null, data.description ?? null, data.project_id ?? null,
-        data.status ?? null, data.config ? JSON.stringify(data.config) : null,
+        data.folder_id ?? null, data.status ?? null, data.config ? JSON.stringify(data.config) : null,
       ],
     );
     return rows[0] ?? null;

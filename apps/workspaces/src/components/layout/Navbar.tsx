@@ -7,6 +7,10 @@ import { useCurrentWorkspace } from "@/lib/hooks/useTenantWorkspace";
 import { useAuth } from "@/context/AuthContext";
 import { usePlatform } from "@/context/PlatformContext";
 import { useProjects, usePrograms } from "@/lib/hooks/useProjects";
+import { useFolderTree } from "@/lib/hooks/useFolders";
+import { FOLDER_ICON_MAP } from "@/components/icons/IconPicker";
+import type { Project } from "@/lib/api/projects.api";
+import type { FolderTree } from "@/lib/api/folders.api";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -14,6 +18,7 @@ export default function Navbar() {
   const { data: workspace } = useCurrentWorkspace();
   const { data: projects } = useProjects();
   const { data: programs } = usePrograms();
+  const { data: folderTree } = useFolderTree();
   const { sidebarOpen, setSidebarOpen } = usePlatform();
 
   const NO_SIDEBAR = ["/", "/auth", "/setup", "/how-it-works"];
@@ -43,19 +48,40 @@ export default function Navbar() {
     </button>
   ) : null;
 
-  const navigation = (projects ?? []).map((project) => {
-    const projectPrograms = (programs ?? []).filter((p) => p.project_id === project.id);
-    return {
-      name: project.name,
-      href: `/projects/${project.id}`,
-      icon: FolderKanban,
-      subItems: projectPrograms.map((prog) => ({
-        name: prog.name,
-        href: `/programs/${prog.id}`,
-        icon: FileCode2,
-      })),
-    };
+  const projectNavItem = (project: Project) => ({
+    name: project.name,
+    href: `/projects/${project.id}`,
+    icon: FolderKanban,
+    subItems: (programs ?? [])
+      .filter((p) => p.project_id === project.id)
+      .map((prog) => ({ name: prog.name, href: `/programs/${prog.id}`, icon: FileCode2 })),
   });
+
+  // Root folders render as top-level nav items. Their dropdown lists direct
+  // child folders (as leaf links — deeper nesting is managed from the
+  // folder-aware Projects/Programs views, not the navbar) and the projects
+  // filed directly in the folder (with their programs one level deeper).
+  // Unfiled projects keep rendering exactly as before, with no folders in play.
+  const folderNavItem = (folder: FolderTree) => ({
+    name: folder.name,
+    href: "/projects",
+    icon: FOLDER_ICON_MAP[folder.icon ?? ""] ?? FolderKanban,
+    subItems: [
+      ...folder.children.map((child) => ({
+        name: child.name,
+        href: "/projects",
+        icon: FOLDER_ICON_MAP[child.icon ?? ""] ?? FolderKanban,
+      })),
+      ...(projects ?? [])
+        .filter((p) => p.folder_id === folder.id)
+        .map((project) => projectNavItem(project)),
+    ],
+  });
+
+  const navigation = [
+    ...(folderTree ?? []).map((folder) => folderNavItem(folder)),
+    ...(projects ?? []).filter((p) => !p.folder_id).map((project) => projectNavItem(project)),
+  ];
 
   return <SharedNavbar branding={branding} leftSlot={leftSlot} navigation={navigation} />;
 }

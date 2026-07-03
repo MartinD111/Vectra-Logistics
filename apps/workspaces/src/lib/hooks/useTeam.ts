@@ -7,6 +7,7 @@ import { teamApi, type AddMemberInput } from '@/lib/api/team.api';
 const qk = {
   team: ['team'] as const,
   memberStats: (id: string) => ['team', id, 'stats'] as const,
+  assignments: (id: string) => ['team', id, 'assignments'] as const,
 };
 
 export function useTeam() {
@@ -49,5 +50,47 @@ export function useRemoveMember() {
   return useMutation({
     mutationFn: (id: string) => teamApi.remove(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.team }),
+  });
+}
+
+export function useUpdateCustomRoleTitle() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, title }: { id: string; title: string | null }) => teamApi.updateCustomRoleTitle(id, title),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.team }),
+  });
+}
+
+export function useMemberAssignments(id: string | null) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: qk.assignments(id ?? ''),
+    queryFn: () => teamApi.listAssignments(id as string),
+    enabled: !!user?.company_id && !!id,
+  });
+}
+
+export function useAssignProject(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { project_id: string; planned_pct: number }) => teamApi.assignProject(id, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.assignments(id) }),
+  });
+}
+
+export function useUpdateAssignment(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ assignmentId, planned_pct }: { assignmentId: string; planned_pct: number }) =>
+      teamApi.updateAssignment(id, assignmentId, planned_pct),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.assignments(id) }),
+  });
+}
+
+export function useRemoveAssignment(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (assignmentId: string) => teamApi.removeAssignment(id, assignmentId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.assignments(id) }),
   });
 }

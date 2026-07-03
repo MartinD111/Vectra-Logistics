@@ -7,6 +7,7 @@ export interface Project {
   name: string;
   description: string | null;
   color: string | null;
+  folder_id: string | null;
   created_by: string | null;
   created_at: Date;
   updated_at: Date;
@@ -16,6 +17,7 @@ export interface Program {
   id: string;
   company_id: string;
   project_id: string | null;
+  folder_id: string | null;
   name: string;
   description: string | null;
   type: string;

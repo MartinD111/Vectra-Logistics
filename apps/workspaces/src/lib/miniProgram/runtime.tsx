@@ -8,7 +8,7 @@
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import { applyPipeline, projectColumns } from '@/lib/programBuilder/engine';
-import type { Block, MiniProgramConfig, Row } from './blocks';
+import { getDataSource, sourceKey, type Block, type MiniProgramConfig, type Row } from './blocks';
 
 export interface RuntimeState {
   /** Rows produced by each input block (keyed by block id). */
@@ -17,6 +17,12 @@ export interface RuntimeState {
   vars: Record<string, unknown>;
   /** Growing list of saved records (from a 'records'-target form). */
   records: Row[];
+  /**
+   * Output of each plugin TRANSFORM block, computed asynchronously in the
+   * sandbox worker and cached here (keyed by block id) — evaluate() reads it
+   * like an input, so the fold stays synchronous.
+   */
+  pluginOutputs: Record<string, Row[]>;
 }
 
 export interface EvalResult {
@@ -29,30 +35,63 @@ export interface EvalResult {
 }
 
 export function emptyRuntimeState(): RuntimeState {
-  return { inputs: {}, vars: {}, records: [] };
+  return { inputs: {}, vars: {}, records: [], pluginOutputs: {} };
 }
 
-/** Fold the block list into a dataset, snapshotting what each block sees. Pure. */
+/**
+ * Fold the block list into a dataset, snapshotting what each block sees. Pure.
+ *
+ * By default each block sees the previous block's output (`current`). A block
+ * may instead pin its input to an earlier block's output via `dataSource`
+ * (see blocks.ts) — resolved against `outputOf`, which is why refs must point
+ * BACKWARD in the array; a missing/forward/deleted ref resolves to `[]` rather
+ * than throwing.
+ */
 export function evaluate(blocks: Block[], state: RuntimeState): EvalResult {
   let current: Row[] = [];
   const inputTo: Record<string, Row[]> = {};
   const outputOf: Record<string, Row[]> = {};
 
   for (const b of blocks) {
-    inputTo[b.id] = current;
+    const key = sourceKey(getDataSource(b));
+    const effectiveInput = key !== undefined ? (outputOf[key] ?? []) : current;
+    inputTo[b.id] = effectiveInput;
+
     switch (b.kind) {
       case 'file-input':
       case 'paste-input':
         current = state.inputs[b.id] ?? current;
         break;
       case 'columns':
-        if (b.columns.length > 0) current = projectColumns(current, b.columns);
+        current = b.columns.length > 0 ? projectColumns(effectiveInput, b.columns) : effectiveInput;
         break;
       case 'transform':
-        current = applyPipeline(current, b.steps);
+        current = applyPipeline(effectiveInput, b.steps);
+        break;
+      case 'code':
+        if (b.code.trim()) {
+          // eslint-disable-next-line no-new-func
+          const fn = new Function('row', b.code) as (row: Row) => unknown;
+          current = effectiveInput.flatMap((row) => {
+            try {
+              const r = { ...row };
+              const result = fn(r);
+              return result === false ? [] : [r];
+            } catch { return [row]; }
+          });
+        } else {
+          current = effectiveInput;
+        }
+        break;
+      case 'plugin':
+        // Plugin transform output is computed async in the sandbox and cached in
+        // state; read it here like an input. Action plugins / not-yet-computed
+        // transforms pass the dataset through unchanged.
+        current = state.pluginOutputs[b.id] ?? effectiveInput;
         break;
       default:
-        break; // form / output / display blocks don't mutate the chain
+        current = effectiveInput; // form / output / display blocks pass the dataset through unchanged
+        break;
     }
     outputOf[b.id] = current;
   }
@@ -92,6 +131,8 @@ export interface RuntimeApi {
   setVars: (values: Record<string, unknown>) => void;
   addRecord: (row: Row) => void;
   removeRecord: (index: number) => void;
+  /** Cache a plugin transform block's sandbox output (or clear it with null). */
+  setPluginOutput: (blockId: string, rows: Row[] | null) => void;
   resetAll: () => void;
 }
 
@@ -115,6 +156,12 @@ export function RuntimeProvider({ config, children }: { config: MiniProgramConfi
       setVars: (values) => setState((s) => ({ ...s, vars: { ...s.vars, ...values } })),
       addRecord: (row) => setState((s) => ({ ...s, records: [...s.records, row] })),
       removeRecord: (index) => setState((s) => ({ ...s, records: s.records.filter((_, i) => i !== index) })),
+      setPluginOutput: (blockId, rows) => setState((s) => {
+        const pluginOutputs = { ...s.pluginOutputs };
+        if (rows === null) delete pluginOutputs[blockId];
+        else pluginOutputs[blockId] = rows;
+        return { ...s, pluginOutputs };
+      }),
       resetAll: () => setState(emptyRuntimeState()),
     };
   }, [config.blocks, state]);

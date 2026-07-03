@@ -1,5 +1,6 @@
 import { AppError } from '../../core/errors/AppError';
 import { recordEvent } from '../../core/events/activityLog';
+import { foldersRepository } from '../folders/folders.repository';
 import { projectsRepository } from './projects.repository';
 import { Project, Program, ProjectWithCounts, ProjectStats } from './projects.types';
 import { CreateProjectSchema, UpdateProjectSchema } from './dto/project.dto';
@@ -19,6 +20,7 @@ class ProjectsService {
   async createProject(companyId: string, actorId: string | null, body: unknown): Promise<Project> {
     const parsed = CreateProjectSchema.safeParse(body);
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
+    if (parsed.data.folder_id) await this.assertOwnedFolder(parsed.data.folder_id, companyId);
     const project = await projectsRepository.createProject(companyId, actorId, parsed.data);
     await recordEvent({
       tenantId: companyId, actorId, verb: 'project.created',
@@ -32,6 +34,7 @@ class ProjectsService {
     await this.assertOwnedProject(id, companyId);
     const parsed = UpdateProjectSchema.safeParse(body);
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
+    if (parsed.data.folder_id) await this.assertOwnedFolder(parsed.data.folder_id, companyId);
     const updated = await projectsRepository.updateProject(id, parsed.data);
     if (!updated) throw new AppError(404, 'Project not found');
     return updated;
@@ -63,6 +66,7 @@ class ProjectsService {
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
     // If assigning to a project, verify it belongs to this company.
     if (parsed.data.project_id) await this.assertOwnedProject(parsed.data.project_id, companyId);
+    if (parsed.data.folder_id) await this.assertOwnedFolder(parsed.data.folder_id, companyId);
 
     const program = await projectsRepository.createProgram(companyId, actorId, parsed.data);
     await recordEvent({
@@ -78,6 +82,7 @@ class ProjectsService {
     const parsed = UpdateProgramSchema.safeParse(body);
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
     if (parsed.data.project_id) await this.assertOwnedProject(parsed.data.project_id, companyId);
+    if (parsed.data.folder_id) await this.assertOwnedFolder(parsed.data.folder_id, companyId);
 
     const updated = await projectsRepository.updateProgram(id, parsed.data);
     if (!updated) throw new AppError(404, 'Program not found');
@@ -110,6 +115,12 @@ class ProjectsService {
     if (!p) throw new AppError(404, 'Program not found');
     if (p.company_id !== companyId) throw new AppError(403, 'Forbidden');
     return p;
+  }
+
+  private async assertOwnedFolder(id: string, companyId: string): Promise<void> {
+    const f = await foldersRepository.findFolder(id);
+    if (!f) throw new AppError(404, 'Folder not found');
+    if (f.company_id !== companyId) throw new AppError(403, 'Forbidden');
   }
 }
 

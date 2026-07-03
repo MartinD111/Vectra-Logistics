@@ -4,6 +4,7 @@ import { useTheme } from 'next-themes';
 import { Moon, Sun, Monitor, Bell, Globe, Lock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import WorkspaceSettings from '@/components/workspaces/WorkspaceSettings';
+import AiProviderCard from '@/components/settings/AiProviderCard';
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -20,6 +21,9 @@ export default function SettingsPage() {
 
       {/* Workspace branding + types (admin-editable) */}
       <WorkspaceSettings />
+
+      {/* AI provider (admin-only; powers the program generator) */}
+      <AiProviderCard />
 
       {/* Theme Settings */}
       <div className="saas-card">

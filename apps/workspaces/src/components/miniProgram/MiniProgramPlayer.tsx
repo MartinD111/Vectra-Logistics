@@ -7,11 +7,13 @@ import { RotateCcw } from 'lucide-react';
 import type { MiniProgramConfig } from '@/lib/miniProgram/blocks';
 import { RuntimeProvider, useRuntime } from '@/lib/miniProgram/runtime';
 import { BlockView } from './BlockView';
+import PluginTransformRunner from './PluginTransformRunner';
 import { BlockIcon } from './icon';
 
 export default function MiniProgramPlayer({ config, compact = false }: { config: MiniProgramConfig; compact?: boolean }) {
   return (
     <RuntimeProvider config={config}>
+      <PluginTransformRunner blocks={config.blocks} />
       <div className={compact ? '' : 'max-w-4xl mx-auto px-4 py-8'}>
         <PlayerHeader config={config} />
         <div className="space-y-4">

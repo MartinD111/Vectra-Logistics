@@ -35,7 +35,8 @@ export type TransformStep =
       id: string; op: 'filter'; column: string;
       condition: 'equals' | 'not_equals' | 'contains' | 'not_empty' | 'gt' | 'lt' | 'regex';
       value?: string;
-    };
+    }
+  | { id: string; op: 'code'; code: string };
 
 export type TransformOp = TransformStep['op'];
 

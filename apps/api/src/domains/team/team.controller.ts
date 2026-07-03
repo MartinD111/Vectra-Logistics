@@ -36,3 +36,35 @@ export const removeMember = asyncHandler(async (req: AuthRequest, res: Response)
   await teamService.removeMember(req.params.id, companyOf(req), req.user?.role ?? '', req.user?.id ?? null);
   res.status(204).send();
 });
+
+export const updateCustomRoleTitle = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const member = await teamService.updateCustomRoleTitle(
+    req.params.id, companyOf(req), req.user?.role ?? '', req.user?.id ?? null, req.body,
+  );
+  res.json({ member });
+});
+
+// ── Project assignments ────────────────────────────────────────────────────
+
+export const listAssignments = asyncHandler(async (req: AuthRequest, res: Response) => {
+  res.json({ assignments: await teamService.listAssignments(req.params.id, companyOf(req)) });
+});
+
+export const assignProject = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const assignment = await teamService.assignProject(
+    req.params.id, companyOf(req), req.user?.role ?? '', req.user?.id ?? null, req.body,
+  );
+  res.status(201).json({ assignment });
+});
+
+export const updateAssignment = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const assignment = await teamService.updateAssignment(
+    req.params.id, req.params.assignmentId, companyOf(req), req.user?.role ?? '', req.user?.id ?? null, req.body,
+  );
+  res.json({ assignment });
+});
+
+export const removeAssignment = asyncHandler(async (req: AuthRequest, res: Response) => {
+  await teamService.removeAssignment(req.params.id, req.params.assignmentId, companyOf(req), req.user?.role ?? '');
+  res.status(204).send();
+});

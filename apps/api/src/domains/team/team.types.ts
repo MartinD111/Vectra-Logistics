@@ -7,9 +7,21 @@ export interface TeamMember {
   first_name: string;
   last_name: string;
   role: string;
+  custom_role_title: string | null;
   phone: string | null;
   is_verified: boolean;
   created_at: Date;
+}
+
+/** A project the member is assigned to, with their planned % of workday. */
+export interface ProjectAssignment {
+  id: string;
+  company_id: string;
+  project_id: string;
+  user_id: string;
+  planned_pct: number;
+  created_at: Date;
+  updated_at: Date;
 }
 
 /** Per-member activity summary for the team overview. */

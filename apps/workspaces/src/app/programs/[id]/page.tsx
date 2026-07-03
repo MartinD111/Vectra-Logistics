@@ -38,6 +38,7 @@ const OPS: { op: TransformOp; label: string }[] = [
   { op: 'rename', label: 'Rename column' },
   { op: 'drop', label: 'Drop column' },
   { op: 'filter', label: 'Filter rows' },
+  { op: 'code', label: 'Custom code (JS)' },
 ];
 
 function newStep(op: TransformOp, col: string): TransformStep {
@@ -53,6 +54,7 @@ function newStep(op: TransformOp, col: string): TransformStep {
     case 'rename': return { id, op, column: col, to: col };
     case 'drop': return { id, op, column: col };
     case 'filter': return { id, op, column: col, condition: 'not_empty', value: '' };
+    case 'code': return { id, op, code: '// row.total = Number(row.price) * Number(row.qty)\n// return false to exclude the row' };
   }
 }
 
@@ -418,6 +420,19 @@ function StepCard({
           </select>
           {step.condition !== 'not_empty' && <div className="col-span-2">{txt(step.value ?? '', (v) => onChange({ value: v }), 'value')}</div>}
         </>)}
+
+        {step.op === 'code' && (
+          <div className="col-span-2 space-y-1.5">
+            <textarea className="saas-input text-xs font-mono" rows={6} value={step.code}
+              onChange={(e) => onChange({ code: e.target.value })}
+              placeholder={'// row.total = Number(row.price) * Number(row.qty)\n// return false to exclude the row'} />
+            <div className="rounded bg-gray-100 dark:bg-slate-800 p-2 text-[10px] text-gray-400 space-y-0.5">
+              <p><span className="font-mono text-primary-500">row.col = value</span> — add or overwrite a column</p>
+              <p><span className="font-mono text-primary-500">return false</span> — exclude this row from output</p>
+              <p><span className="font-mono text-primary-500">Number(row.x)</span> — parse column as number</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -61,12 +61,24 @@ export function useProgram(id: string) {
 export function useUpdateProgram(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: Partial<{ name: string; project_id: string | null; status: string; config: Record<string, unknown> }>) =>
+    mutationFn: (data: Partial<{ name: string; project_id: string | null; folder_id: string | null; status: string; config: Record<string, unknown> }>) =>
       projectsApi.updateProgram(id, data),
     onSuccess: (program) => {
       qc.invalidateQueries({ queryKey: ['program', id] });
       qc.invalidateQueries({ queryKey: ['programs'] });
       if (program.project_id) qc.invalidateQueries({ queryKey: ['projects', program.project_id, 'stats'] });
+    },
+  });
+}
+
+export function useUpdateProject(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Partial<{ name: string; description: string | null; color: string | null; folder_id: string | null }>) =>
+      projectsApi.update(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.project(id) });
+      qc.invalidateQueries({ queryKey: qk.projects });
     },
   });
 }

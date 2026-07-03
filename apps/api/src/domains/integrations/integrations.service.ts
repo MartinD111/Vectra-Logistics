@@ -1,47 +1,10 @@
 import crypto from 'crypto';
 import { AppError } from '../../core/errors/AppError';
+import { encryptSecret as encrypt, decryptSecret as decrypt } from '../../core/crypto/secretBox';
 import { integrationsRepository } from './integrations.repository';
-import { ApiCredential, InternalApiKey, InternalApiKeyCreated, EncryptedEnvelope } from './integrations.types';
+import { ApiCredential, InternalApiKey, InternalApiKeyCreated } from './integrations.types';
 import { SaveIntegrationSchema } from './dto/save-integration.dto';
 import { GenerateApiKeySchema } from './dto/generate-api-key.dto';
-
-// ── Encryption helpers (AES-256-GCM) ─────────────────────────────────────
-//
-// ENCRYPTION_KEY must be a 64-char hex string (32 bytes) in the environment.
-// Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-
-const ALGORITHM = 'aes-256-gcm' as const;
-
-function getEncryptionKey(): Buffer {
-  const hex = process.env.ENCRYPTION_KEY;
-  if (!hex || hex.length !== 64) {
-    throw new AppError(500, 'ENCRYPTION_KEY env var is missing or invalid (must be 64-char hex)');
-  }
-  return Buffer.from(hex, 'hex');
-}
-
-function encrypt(plaintext: string): string {
-  const key = getEncryptionKey();
-  const iv = crypto.randomBytes(12); // 96-bit IV recommended for GCM
-  const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-  const ciphertext = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
-  const tag = cipher.getAuthTag();
-
-  const envelope: EncryptedEnvelope = {
-    iv:         iv.toString('hex'),
-    tag:        tag.toString('hex'),
-    ciphertext: ciphertext.toString('hex'),
-  };
-  return JSON.stringify(envelope);
-}
-
-function decrypt(envelopeJson: string): string {
-  const key = getEncryptionKey();
-  const { iv, tag, ciphertext } = JSON.parse(envelopeJson) as EncryptedEnvelope;
-  const decipher = crypto.createDecipheriv(ALGORITHM, key, Buffer.from(iv, 'hex'));
-  decipher.setAuthTag(Buffer.from(tag, 'hex'));
-  return decipher.update(Buffer.from(ciphertext, 'hex')) + decipher.final('utf8');
-}
 
 // ── Provider telematics stubs ─────────────────────────────────────────────
 

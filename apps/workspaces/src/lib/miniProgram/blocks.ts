@@ -20,16 +20,22 @@ export type BlockKind =
   | 'file-input'
   | 'paste-input'
   | 'form'
+  | 'dropdown'
   // Processing — read + rewrite the dataset
   | 'columns'
   | 'transform'
+  | 'code'
   // Outputs / display — render or act on the current dataset
   | 'table'
   | 'export'
   | 'copy'
   | 'document'
   | 'records'
-  | 'text';
+  | 'text'
+  | 'tsv-output'
+  // A block contributed by a plugin (see lib/miniProgram/plugins). Its real
+  // identity is `pluginId`; behaviour/UI come from the plugin manifest.
+  | 'plugin';
 
 export type BlockGroup = 'input' | 'process' | 'output' | 'layout';
 
@@ -37,6 +43,21 @@ interface BlockBase {
   id: string;
   kind: BlockKind;
 }
+
+// ── Multi-source data references ────────────────────────────────────────────
+// Most blocks implicitly read "whatever dataset the previous block produced" —
+// that stays the default. A block may instead pin its input to an EARLIER
+// block's output explicitly (used for lookup/join-style blocks and for reusing
+// an upstream dataset out of position). `port` is only meaningful for blocks
+// that produce more than one named output (e.g. a future split block).
+
+export interface DataSourceRef {
+  blockId: string;
+  port?: string;
+}
+
+/** Block kinds whose output is a plain dataset other blocks can point `source` at. */
+export const ROW_PRODUCING_KINDS: BlockKind[] = ['file-input', 'paste-input', 'columns', 'transform', 'code'];
 
 // ── Input blocks ──────────────────────────────────────────────────────────────
 
@@ -86,11 +107,15 @@ export interface ColumnsBlock extends BlockBase {
   kind: 'columns';
   /** Empty = infer from incoming data at runtime. */
   columns: ColumnDef[];
+  /** Optional explicit input; default = previous block's output. */
+  dataSource?: DataSourceRef;
 }
 
 export interface TransformBlock extends BlockBase {
   kind: 'transform';
   steps: TransformStep[];
+  /** Optional explicit input; default = previous block's output. */
+  dataSource?: DataSourceRef;
 }
 
 // ── Output / display blocks ───────────────────────────────────────────────────
@@ -101,6 +126,8 @@ export interface TableBlock extends BlockBase {
   columns: string[];
   emptyText?: string;
   maxHeight?: number;
+  /** Optional explicit input; default = previous block's output. */
+  dataSource?: DataSourceRef;
 }
 
 export type ExportFormat = 'xlsx' | 'csv' | 'pdf';
@@ -112,6 +139,8 @@ export interface ExportBlock extends BlockBase {
   fileName: string;
   /** Offer "Save to folder" (File System Access API) alongside download. */
   saveToFolder: boolean;
+  /** Optional explicit input; default = previous block's output. */
+  dataSource?: DataSourceRef;
 }
 
 export interface CopyBlock extends BlockBase {
@@ -119,6 +148,8 @@ export interface CopyBlock extends BlockBase {
   label: string;
   /** 'all' (TSV of all columns) or a single column label. */
   source: 'all' | string;
+  /** Optional explicit input; default = previous block's output. */
+  dataSource?: DataSourceRef;
 }
 
 export interface DocumentBlock extends BlockBase {
@@ -132,6 +163,8 @@ export interface DocumentBlock extends BlockBase {
   fileName: string;
   /** For 'eml' output. Values may contain placeholders. */
   eml?: { to?: string; cc?: string; subject?: string };
+  /** Optional explicit input; default = previous block's output. */
+  dataSource?: DataSourceRef;
 }
 
 export interface RecordsBlock extends BlockBase {
@@ -147,20 +180,62 @@ export interface TextBlock extends BlockBase {
   html: string;
 }
 
+export interface DropdownBlock extends BlockBase {
+  kind: 'dropdown';
+  label: string;
+  /** Runtime variable that receives the selected value. */
+  varKey: string;
+  /** One item per line; TSV = col 0 is value, col 1 (optional) is display label. */
+  items: string;
+  placeholder?: string;
+}
+
+export interface CodeBlock extends BlockBase {
+  kind: 'code';
+  /** JS executed per row. `row` is the current row object — mutate it to add/change columns. Return false to exclude the row. */
+  code: string;
+  /** Optional explicit input; default = previous block's output. */
+  dataSource?: DataSourceRef;
+}
+
+export interface TsvOutputBlock extends BlockBase {
+  kind: 'tsv-output';
+  label: string;
+  maxRows?: number;
+  /** Optional explicit input; default = previous block's output. */
+  dataSource?: DataSourceRef;
+}
+
+export interface PluginBlockInstance extends BlockBase {
+  kind: 'plugin';
+  /** Which installed plugin this instance is (resolved via the plugin registry). */
+  pluginId: string;
+  /** Manifest version this instance was configured against (for update warnings). */
+  version: string;
+  /** Values for the plugin's settingsSchema fields. */
+  config: Record<string, unknown>;
+  /** Optional explicit input; default = previous block's output. */
+  dataSource?: DataSourceRef;
+}
+
 // ── The union ─────────────────────────────────────────────────────────────────
 
 export type Block =
   | FileInputBlock
   | PasteInputBlock
   | FormBlock
+  | DropdownBlock
   | ColumnsBlock
   | TransformBlock
+  | CodeBlock
   | TableBlock
   | ExportBlock
   | CopyBlock
   | DocumentBlock
   | RecordsBlock
-  | TextBlock;
+  | TextBlock
+  | TsvOutputBlock
+  | PluginBlockInstance;
 
 export interface MiniProgramMeta {
   title: string;
@@ -222,6 +297,11 @@ export const BLOCK_REGISTRY: BlockDef[] = [
     create: () => ({ id: uid(), kind: 'form', title: 'Details', fields: [{ key: 'field1', label: 'Field 1', type: 'text' }], target: 'vars', submitLabel: 'Save' }),
   },
   {
+    kind: 'dropdown', group: 'input', title: 'Dropdown list', icon: 'ListFilter',
+    description: 'Paste a list from Excel or TSV — renders as a dropdown selector that sets a variable.',
+    create: () => ({ id: uid(), kind: 'dropdown', label: 'Select', varKey: 'selection', items: 'Option A\nOption B\nOption C', placeholder: 'Choose…' }),
+  },
+  {
     kind: 'columns', group: 'process', title: 'Columns', icon: 'Columns',
     description: 'Choose, rename and type the columns to keep.',
     create: () => ({ id: uid(), kind: 'columns', columns: [] }),
@@ -230,6 +310,11 @@ export const BLOCK_REGISTRY: BlockDef[] = [
     kind: 'transform', group: 'process', title: 'Transform', icon: 'Wand2',
     description: 'Clean and reshape data: trim, case, replace, extract, filter, compute…',
     create: () => ({ id: uid(), kind: 'transform', steps: [] }),
+  },
+  {
+    kind: 'code', group: 'process', title: 'Code', icon: 'Code2',
+    description: 'Run JavaScript on every row — add columns, compute values, return false to filter.',
+    create: () => ({ id: uid(), kind: 'code', code: '// row.total = Number(row.price) * Number(row.qty)\n// return false to exclude the row' }),
   },
   {
     kind: 'table', group: 'output', title: 'Results table', icon: 'Table2',
@@ -257,6 +342,11 @@ export const BLOCK_REGISTRY: BlockDef[] = [
     create: () => ({ id: uid(), kind: 'records', title: 'Records', fields: [] }),
   },
   {
+    kind: 'tsv-output', group: 'output', title: 'TSV text', icon: 'AlignLeft',
+    description: 'Show the current data as tab-separated text — paste-ready for Excel.',
+    create: () => ({ id: uid(), kind: 'tsv-output', label: 'TSV output' }),
+  },
+  {
     kind: 'text', group: 'layout', title: 'Text / heading', icon: 'Type',
     description: 'Instructions, headings or branding.',
     create: () => ({ id: uid(), kind: 'text', html: '<h2>Section title</h2>' }),
@@ -265,4 +355,19 @@ export const BLOCK_REGISTRY: BlockDef[] = [
 
 export function blockDef(kind: BlockKind): BlockDef | undefined {
   return BLOCK_REGISTRY.find((b) => b.kind === kind);
+}
+
+/** Kinds whose block interface carries an optional `dataSource` override. */
+const DATA_SOURCE_KINDS: BlockKind[] = ['table', 'export', 'copy', 'tsv-output', 'columns', 'transform', 'code', 'document', 'plugin'];
+
+/** Read a block's `dataSource` override, if its kind supports one. Type-erased on purpose — only some union members declare the field. */
+export function getDataSource(b: Block): DataSourceRef | undefined {
+  if (!DATA_SOURCE_KINDS.includes(b.kind)) return undefined;
+  return (b as unknown as { dataSource?: DataSourceRef }).dataSource;
+}
+
+/** Build the `outputOf` lookup key for a source ref. */
+export function sourceKey(ref: DataSourceRef | undefined): string | undefined {
+  if (!ref || !ref.blockId) return undefined;
+  return ref.port ? `${ref.blockId}::${ref.port}` : ref.blockId;
 }

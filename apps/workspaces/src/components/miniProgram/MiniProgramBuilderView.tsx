@@ -11,6 +11,7 @@ import { useUpdateProgram } from '@/lib/hooks/useProjects';
 import type { Program } from '@/lib/api/projects.api';
 import { isMiniProgramConfig, emptyMiniProgram, type MiniProgramConfig } from '@/lib/miniProgram/blocks';
 import MiniProgramBuilder from './MiniProgramBuilder';
+import AiGeneratePanel from './AiGeneratePanel';
 
 export default function MiniProgramBuilderView({ program }: { program: Program }) {
   const update = useUpdateProgram(program.id);
@@ -23,6 +24,19 @@ export default function MiniProgramBuilderView({ program }: { program: Program }
     await update.mutateAsync({ config: config as unknown as Record<string, unknown>, status: 'published', name: config.meta.title });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  }
+
+  // Apply an AI-generated program as an editable draft (not saved until the user hits Save).
+  function applyGenerated(generated: MiniProgramConfig, mode: 'replace' | 'append') {
+    setConfig((prev) =>
+      mode === 'replace'
+        ? generated
+        : {
+            ...prev,
+            meta: prev.blocks.length === 0 ? generated.meta : prev.meta,
+            blocks: [...prev.blocks, ...generated.blocks],
+          },
+    );
   }
 
   return (
@@ -40,6 +54,7 @@ export default function MiniProgramBuilderView({ program }: { program: Program }
           </div>
           <div className="flex items-center gap-2">
             {saved && <span className="text-sm text-primary-600 inline-flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Saved</span>}
+            <AiGeneratePanel onApply={applyGenerated} />
             <Link href={`/programs/${program.id}/run`} target="_blank"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border text-gray-900 dark:text-white text-sm font-semibold hover:bg-gray-50">
               <Play className="w-4 h-4" /> Open

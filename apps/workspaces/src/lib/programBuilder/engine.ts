@@ -112,6 +112,20 @@ export function applyStep(rows: Row[], step: TransformStep): Row[] {
       });
     }
 
+    case 'code':
+      if (step.code.trim()) {
+        // eslint-disable-next-line no-new-func
+        const fn = new Function('row', step.code) as (row: Row) => unknown;
+        return rows.flatMap((r) => {
+          try {
+            const copy = { ...r };
+            const result = fn(copy);
+            return result === false ? [] : [copy];
+          } catch { return [r]; }
+        });
+      }
+      return rows;
+
     default:
       return rows;
   }
