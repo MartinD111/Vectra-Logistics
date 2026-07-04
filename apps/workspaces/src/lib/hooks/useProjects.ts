@@ -9,7 +9,30 @@ const qk = {
   project: (id: string) => ['projects', id] as const,
   stats: (id: string) => ['projects', id, 'stats'] as const,
   programs: (projectId?: string) => ['programs', projectId ?? 'all'] as const,
+  activity: (id: string) => ['projects', id, 'activity'] as const,
+  calendar: (id: string) => ['projects', id, 'calendar'] as const,
 };
+
+export function useProjectActivity(id: string, limit = 20) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: qk.activity(id),
+    queryFn: () => projectsApi.listActivity(id, { limit }),
+    enabled: !!user?.company_id && !!id,
+    staleTime: 1000 * 15,
+    refetchInterval: 1000 * 30,
+  });
+}
+
+export function useProjectCalendar(id: string, opts?: { start?: string; end?: string }) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: [...qk.calendar(id), opts ?? {}],
+    queryFn: () => projectsApi.listCalendarEvents(id, opts),
+    enabled: !!user?.company_id && !!id,
+    staleTime: 1000 * 30,
+  });
+}
 
 export function useProjects() {
   const { user } = useAuth();

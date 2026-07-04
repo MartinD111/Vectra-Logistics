@@ -37,3 +37,11 @@ export function useDisconnectOutlook() {
     onSuccess: () => qc.invalidateQueries({ queryKey: qk }),
   });
 }
+
+export function useSyncOutlookCalendar() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: outlookApi.syncCalendar,
+    onSuccess: () => qc.invalidateQueries({ predicate: (q) => q.queryKey.includes('calendar') }),
+  });
+}

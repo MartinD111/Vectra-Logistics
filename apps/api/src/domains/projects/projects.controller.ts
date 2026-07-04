@@ -63,3 +63,48 @@ export const deleteProgram = asyncHandler(async (req: AuthRequest, res: Response
   await projectsService.deleteProgram(req.params.id, companyOf(req));
   res.status(204).send();
 });
+
+// ── Project pages ─────────────────────────────────────────────────────────────
+
+export const listPages = asyncHandler(async (req: AuthRequest, res: Response) => {
+  res.json({ pages: await projectsService.listPages(req.params.id, companyOf(req)) });
+});
+
+export const listAllPages = asyncHandler(async (req: AuthRequest, res: Response) => {
+  res.json({ pages: await projectsService.listAllPages(companyOf(req)) });
+});
+
+export const getPage = asyncHandler(async (req: AuthRequest, res: Response) => {
+  res.json({ page: await projectsService.getPage(req.params.pageId, companyOf(req)) });
+});
+
+export const createPage = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const page = await projectsService.createPage(req.params.id, companyOf(req), req.user?.id ?? null, req.body);
+  res.status(201).json({ page });
+});
+
+export const updatePage = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const page = await projectsService.updatePage(req.params.pageId, companyOf(req), req.user?.id ?? null, req.body);
+  res.json({ page });
+});
+
+export const deletePage = asyncHandler(async (req: AuthRequest, res: Response) => {
+  await projectsService.deletePage(req.params.pageId, companyOf(req), req.user?.id ?? null);
+  res.status(204).send();
+});
+
+// ── Project activity feed ──────────────────────────────────────────────────────
+
+export const listActivity = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : undefined;
+  const before = typeof req.query.before === 'string' ? req.query.before : undefined;
+  res.json({ activity: await projectsService.listActivity(req.params.id, companyOf(req), { limit, before }) });
+});
+
+// ── Calendar ────────────────────────────────────────────────────────────────
+
+export const listCalendarEvents = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const start = typeof req.query.start === 'string' ? req.query.start : new Date(Date.now() - 7 * 86400000).toISOString();
+  const end = typeof req.query.end === 'string' ? req.query.end : new Date(Date.now() + 30 * 86400000).toISOString();
+  res.json({ events: await projectsService.listCalendarEvents(req.params.id, companyOf(req), { start, end }) });
+});

@@ -1,7 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from core.scorer import calculate_match_score
+from core.ltl import match_partials
 
 app = FastAPI(title="VECTRA Matching Engine")
 
@@ -12,6 +13,12 @@ class MatchRequest(BaseModel):
 class BatchMatchRequest(BaseModel):
     shipments: List[Dict[str, Any]]
     capacities: List[Dict[str, Any]]
+
+class LtlMatchRequest(BaseModel):
+    routes: List[Dict[str, Any]]
+    partials: List[Dict[str, Any]]
+    max_detour_pct: Optional[float] = None
+    cost_per_km: Optional[float] = None
 
 @app.get("/ping")
 async def ping():
@@ -56,3 +63,18 @@ async def batch_match(request: BatchMatchRequest):
                     "estimated_revenue": shipment.get("cargo_weight_kg", 0) * 0.1 # dummy calc
                 })
     return {"matches": results}
+
+@app.post("/ltl-match")
+async def ltl_match(request: LtlMatchRequest):
+    """
+    Silent LTL matching (Phase 7): scan active FTL routes against unassigned
+    partial loads and return profitable detour insertions. Called by the Node
+    ltl service on a scan; the best profitable route per partial is returned.
+    """
+    kwargs = {}
+    if request.max_detour_pct is not None:
+        kwargs["max_detour_pct"] = request.max_detour_pct
+    if request.cost_per_km is not None:
+        kwargs["cost_per_km"] = request.cost_per_km
+    suggestions = match_partials(request.routes, request.partials, **kwargs)
+    return {"suggestions": suggestions}

@@ -29,6 +29,10 @@ export const disconnect = asyncHandler(async (req: AuthRequest, res: Response) =
   res.status(204).send();
 });
 
+export const syncCalendar = asyncHandler(async (req: AuthRequest, res: Response) => {
+  res.json(await outlookService.syncCalendar(companyOf(req), req.user?.id ?? null));
+});
+
 // Unauthenticated — Microsoft redirects here. Validated via the signed `state`.
 export const callback = asyncHandler(async (req: Request, res: Response) => {
   const code = req.query.code as string | undefined;

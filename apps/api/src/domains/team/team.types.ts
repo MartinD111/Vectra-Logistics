@@ -39,3 +39,14 @@ export interface MemberStats {
   by_verb: { verb: string; count: number }[];
   last_activity_at: string | null;
 }
+
+/** A project's assigned members, joined with user identity — used by the people block. */
+export interface ProjectMember {
+  assignment_id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  custom_role_title: string | null;
+  planned_pct: number;
+}

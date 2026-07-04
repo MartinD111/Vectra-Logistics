@@ -8,7 +8,18 @@ const qk = {
   team: ['team'] as const,
   memberStats: (id: string) => ['team', id, 'stats'] as const,
   assignments: (id: string) => ['team', id, 'assignments'] as const,
+  projectMembers: (projectId: string) => ['team', 'by-project', projectId] as const,
 };
+
+export function useProjectMembers(projectId: string) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: qk.projectMembers(projectId),
+    queryFn: () => teamApi.listProjectMembers(projectId),
+    enabled: !!user?.company_id && !!projectId,
+    staleTime: 1000 * 30,
+  });
+}
 
 export function useTeam() {
   const { user } = useAuth();

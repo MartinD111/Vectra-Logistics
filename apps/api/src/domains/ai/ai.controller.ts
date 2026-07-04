@@ -24,3 +24,8 @@ export const completeAi = asyncHandler(async (req: AuthRequest, res: Response) =
   const companyId = requireCompany(req);
   res.status(200).json(await aiService.complete(companyId, req.body));
 });
+
+export const translateAi = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const companyId = requireCompany(req);
+  res.status(200).json(await aiService.translate(companyId, req.body));
+});

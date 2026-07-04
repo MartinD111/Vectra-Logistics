@@ -2,10 +2,12 @@ import jwt from 'jsonwebtoken';
 import { AppError } from '../../core/errors/AppError';
 import { recordEvent } from '../../core/events/activityLog';
 import { outlookRepository } from './outlook.repository';
+import { calendarRepository, type UpsertCalendarEventInput } from './calendar.repository';
+import { projectsRepository } from '../projects/projects.repository';
 import { OutlookStatus, OutlookCredentials } from './outlook.types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-for-dev';
-const SCOPES = 'openid profile email offline_access Mail.Read Mail.Send';
+const SCOPES = 'openid profile email offline_access Mail.Read Mail.Send Calendars.Read';
 
 // Microsoft credentials come from env. When any are missing we run in "demo
 // mode": connecting simulates a successful link so the whole flow/UI works, and
@@ -135,6 +137,113 @@ class OutlookService {
       tenantId: companyId, actorId, verb: 'integration.disconnected',
       objectType: 'integration', payload: { provider: 'outlook' },
     });
+  }
+
+  /**
+   * A valid (refreshed if needed) access token for the connected mailbox, for
+   * callers that need to hit Graph directly (e.g. sending mail). Returns null
+   * in demo mode, when disconnected, or when no token can be obtained — never
+   * throws, so callers can degrade gracefully instead of failing a whole flow.
+   */
+  async getFreshAccessToken(companyId: string): Promise<{ accessToken: string; email: string | null } | null> {
+    const conn = await outlookRepository.find(companyId);
+    if (!conn || conn.status !== 'connected' || conn.creds.demo) return null;
+    const creds = await this.ensureFreshToken(companyId, conn.creds);
+    if (!creds.access_token) return null;
+    return { accessToken: creds.access_token, email: creds.email };
+  }
+
+  /**
+   * Pull the connected mailbox's calendar (next 14 days back, next 30 days
+   * forward) and categorize events to projects by matching a Graph event's
+   * `categories` against this company's project names (case-insensitive) —
+   * the Outlook-side equivalent of tagging a meeting with a project label.
+   * No-op (returns synced: 0) in demo mode or once the access token can't be
+   * refreshed — never throws into a scheduled/best-effort caller's happy path.
+   */
+  async syncCalendar(companyId: string, actorId: string | null): Promise<{ synced: number; skipped?: string }> {
+    const conn = await outlookRepository.find(companyId);
+    if (!conn || conn.status !== 'connected') return { synced: 0, skipped: 'not connected' };
+    if (conn.creds.demo) return { synced: 0, skipped: 'demo mode has no real calendar to sync' };
+
+    const creds = await this.ensureFreshToken(companyId, conn.creds);
+    if (!creds.access_token) return { synced: 0, skipped: 'no access token' };
+
+    const start = new Date(Date.now() - 14 * 24 * 3600 * 1000).toISOString();
+    const end = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString();
+    const params = new URLSearchParams({ startDateTime: start, endDateTime: end, $top: '250' });
+    const res = await fetch(`https://graph.microsoft.com/v1.0/me/calendarview?${params}`, {
+      headers: { Authorization: `Bearer ${creds.access_token}`, Prefer: 'outlook.timezone="UTC"' },
+    });
+    if (!res.ok) return { synced: 0, skipped: `Graph calendarview failed (${res.status})` };
+    const body = (await res.json()) as {
+      value: {
+        id: string; subject?: string; isAllDay?: boolean; categories?: string[];
+        start: { dateTime: string }; end: { dateTime: string };
+        attendees?: { emailAddress?: { address?: string } }[];
+      }[];
+    };
+
+    const projects = await projectsRepository.listProjects(companyId);
+    const byName = new Map(projects.map((p) => [p.name.trim().toLowerCase(), p.id]));
+
+    const events: UpsertCalendarEventInput[] = (body.value ?? []).map((e) => {
+      const matchedProjectId = (e.categories ?? [])
+        .map((c) => byName.get(c.trim().toLowerCase()))
+        .find((id): id is string => !!id) ?? null;
+      return {
+        external_id: e.id,
+        project_id: matchedProjectId,
+        subject: e.subject ?? null,
+        start_at: e.start.dateTime.endsWith('Z') ? e.start.dateTime : `${e.start.dateTime}Z`,
+        end_at: e.end.dateTime.endsWith('Z') ? e.end.dateTime : `${e.end.dateTime}Z`,
+        is_all_day: !!e.isAllDay,
+        categories: e.categories ?? [],
+        attendee_emails: (e.attendees ?? [])
+          .map((a) => a.emailAddress?.address?.toLowerCase())
+          .filter((a): a is string => !!a),
+      };
+    });
+
+    await calendarRepository.upsertEvents(companyId, events);
+    await recordEvent({
+      tenantId: companyId, actorId, verb: 'integration.calendar_synced',
+      objectType: 'integration', payload: { provider: 'outlook', count: events.length },
+    });
+    return { synced: events.length };
+  }
+
+  /** Refresh the access token via refresh_token if it's expired, persisting the new one. */
+  private async ensureFreshToken(companyId: string, creds: OutlookCredentials): Promise<OutlookCredentials> {
+    if (!creds.expires_at || creds.expires_at > Date.now() + 60_000) return creds;
+    if (!creds.refresh_token) return creds;
+    const cfg = msConfig();
+    if (!cfg.configured) return creds;
+
+    const body = new URLSearchParams({
+      client_id: cfg.clientId!,
+      client_secret: cfg.clientSecret!,
+      redirect_uri: cfg.redirectUri!,
+      grant_type: 'refresh_token',
+      refresh_token: creds.refresh_token,
+      scope: SCOPES,
+    });
+    const res = await fetch(`https://login.microsoftonline.com/${cfg.tenant}/oauth2/v2.0/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    if (!res.ok) return creds;
+    const tok = (await res.json()) as { access_token: string; refresh_token?: string; expires_in?: number; scope?: string };
+    const refreshed: OutlookCredentials = {
+      ...creds,
+      access_token: tok.access_token,
+      refresh_token: tok.refresh_token ?? creds.refresh_token,
+      expires_at: tok.expires_in ? Date.now() + tok.expires_in * 1000 : undefined,
+      scope: tok.scope ?? creds.scope,
+    };
+    await outlookRepository.upsert(companyId, refreshed);
+    return refreshed;
   }
 }
 

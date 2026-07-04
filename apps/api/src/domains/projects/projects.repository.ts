@@ -1,6 +1,6 @@
 import { db } from '../../core/db';
 import {
-  Project, Program, ProjectWithCounts, ProjectStats,
+  Project, Program, ProjectWithCounts, ProjectStats, ProjectPage, ActivityEventRow,
 } from './projects.types';
 
 class ProjectsRepository {
@@ -158,6 +158,124 @@ class ProjectsRepository {
       by_verb: verbRows.map((r) => ({ verb: r.verb, count: parseInt(r.count, 10) })),
       last_activity_at: lastRows[0]?.last ? new Date(lastRows[0].last).toISOString() : null,
     };
+  }
+
+  // ── Project pages ─────────────────────────────────────────────────────────────
+
+  async listPages(companyId: string, projectId: string): Promise<ProjectPage[]> {
+    const { rows } = await db.query<ProjectPage>(
+      `SELECT * FROM project_pages WHERE company_id = $1 AND project_id = $2
+       ORDER BY sort_order ASC, created_at ASC`,
+      [companyId, projectId],
+    );
+    return rows;
+  }
+
+  async findPage(id: string): Promise<ProjectPage | null> {
+    const { rows } = await db.query<ProjectPage>(`SELECT * FROM project_pages WHERE id = $1`, [id]);
+    return rows[0] ?? null;
+  }
+
+  async createPage(
+    companyId: string, projectId: string, createdBy: string | null,
+    data: {
+      title?: string; icon?: string | null; is_default?: boolean; parent_page_id?: string | null;
+      config?: Record<string, unknown>; cover_image_url?: string | null; header_settings?: Record<string, unknown>;
+    },
+  ): Promise<ProjectPage> {
+    const { rows: sortRows } = await db.query<{ next: number }>(
+      `SELECT COALESCE(MAX(sort_order) + 1, 0) AS next FROM project_pages WHERE project_id = $1`,
+      [projectId],
+    );
+    if (data.is_default) {
+      await db.query(
+        `UPDATE project_pages SET is_default = FALSE WHERE project_id = $1`,
+        [projectId],
+      );
+    }
+    const { rows } = await db.query<ProjectPage>(
+      `INSERT INTO project_pages (company_id, project_id, parent_page_id, title, icon, is_default, sort_order, config, cover_image_url, header_settings, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [
+        companyId, projectId, data.parent_page_id ?? null, data.title ?? 'Untitled', data.icon ?? null, data.is_default ?? false,
+        sortRows[0].next, JSON.stringify(data.config ?? { version: 1, blocks: [] }),
+        data.cover_image_url ?? null, JSON.stringify(data.header_settings ?? {}), createdBy,
+      ],
+    );
+    return rows[0];
+  }
+
+  async updatePage(
+    id: string, projectId: string,
+    data: {
+      title?: string; icon?: string | null; is_default?: boolean; sort_order?: number; parent_page_id?: string | null;
+      config?: Record<string, unknown>; cover_image_url?: string | null; header_settings?: Record<string, unknown>;
+    },
+  ): Promise<ProjectPage | null> {
+    if (data.is_default) {
+      await db.query(
+        `UPDATE project_pages SET is_default = FALSE WHERE project_id = $1 AND id != $2`,
+        [projectId, id],
+      );
+    }
+    // Nullable fields use a provided-flag + CASE so an explicit null clears the
+    // value; COALESCE alone could never reset them.
+    const { rows } = await db.query<ProjectPage>(
+      `UPDATE project_pages SET
+         title           = COALESCE($2, title),
+         icon            = CASE WHEN $3::boolean THEN $4 ELSE icon END,
+         is_default      = COALESCE($5, is_default),
+         sort_order      = COALESCE($6, sort_order),
+         config          = COALESCE($7, config),
+         parent_page_id  = CASE WHEN $8::boolean THEN $9::uuid ELSE parent_page_id END,
+         cover_image_url = CASE WHEN $10::boolean THEN $11 ELSE cover_image_url END,
+         header_settings = COALESCE($12, header_settings),
+         updated_at      = NOW()
+       WHERE id = $1 RETURNING *`,
+      [
+        id, data.title ?? null,
+        data.icon !== undefined, data.icon ?? null,
+        data.is_default ?? null, data.sort_order ?? null,
+        data.config ? JSON.stringify(data.config) : null,
+        data.parent_page_id !== undefined, data.parent_page_id ?? null,
+        data.cover_image_url !== undefined, data.cover_image_url ?? null,
+        data.header_settings ? JSON.stringify(data.header_settings) : null,
+      ],
+    );
+    return rows[0] ?? null;
+  }
+
+  async listAllPages(companyId: string): Promise<ProjectPage[]> {
+    const { rows } = await db.query<ProjectPage>(
+      `SELECT * FROM project_pages WHERE company_id = $1 ORDER BY project_id, sort_order ASC, created_at ASC`,
+      [companyId],
+    );
+    return rows;
+  }
+
+  async deletePage(id: string): Promise<void> {
+    await db.query(`DELETE FROM project_pages WHERE id = $1`, [id]);
+  }
+
+  // ── Project activity feed (paginated raw event feed) ──────────────────────────
+
+  async listActivity(
+    companyId: string, projectId: string, opts: { limit: number; before?: string | null },
+  ): Promise<ActivityEventRow[]> {
+    const params: unknown[] = [companyId, projectId];
+    let where = `tenant_id = $1 AND project_id = $2`;
+    if (opts.before) {
+      params.push(opts.before);
+      where += ` AND occurred_at < $${params.length}`;
+    }
+    params.push(opts.limit);
+    const { rows } = await db.query<ActivityEventRow>(
+      `SELECT id, actor_id, verb, object_type, object_id, project_id, payload, occurred_at
+       FROM activity_events WHERE ${where}
+       ORDER BY occurred_at DESC LIMIT $${params.length}`,
+      params,
+    );
+    return rows;
   }
 }
 

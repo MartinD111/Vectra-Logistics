@@ -104,6 +104,61 @@ Migration 003 seeds five example workspace-type presets (`is_system_seed`).
 These are editable tenant data, not platform logic — a tenant may clone, edit,
 or delete them.
 
+Migration 013 adds project page header metadata (`cover_image_url`,
+`header_settings`) to `project_pages`; apply it manually on existing databases
+(idempotent):
+
+```bash
+psql "$DATABASE_URL" -f database/migrations/013_page_header.sql
+```
+
+Migration 014 adds the dispatcher-widget tables (`fleet_exceptions`, project
+chat threads, message channels); apply it manually on existing databases
+(idempotent):
+
+```bash
+psql "$DATABASE_URL" -f database/migrations/014_dispatcher_widgets.sql
+```
+
+Migration 015 adds the Smart Inbox tables (`locations` reference data +
+`shipment_drafts`); apply it manually on existing databases (idempotent):
+
+```bash
+psql "$DATABASE_URL" -f database/migrations/015_smart_inbox.sql
+```
+
+Migration 016 adds the spatial yard-management tables (`yard_zones`,
+`yard_slots`, `yard_assets`, `rail_wagons`). It deliberately does **not** use
+PostGIS — the yard is a 2D floor plan stored as plain numeric coordinates, so
+no database image change is required. Apply it manually on existing databases
+(idempotent):
+
+```bash
+psql "$DATABASE_URL" -f database/migrations/016_yard_management.sql
+```
+
+Migration 018 adds the `pod_requests` table (single-use proof-of-delivery
+upload links). Apply it manually on existing databases (idempotent):
+
+```bash
+psql "$DATABASE_URL" -f database/migrations/018_field_execution.sql
+```
+
+Migration 019 adds the CRM/billing tables (`clients` with credit limits,
+`invoices` with the Smart-VAT treatment) and links POD requests to clients.
+Apply it manually on existing databases (idempotent):
+
+```bash
+psql "$DATABASE_URL" -f database/migrations/019_crm_billing.sql
+```
+
+Migration 020 adds the Silent LTL matching tables (`partial_loads`,
+`ltl_suggestions`). Apply it manually on existing databases (idempotent):
+
+```bash
+psql "$DATABASE_URL" -f database/migrations/020_ltl_matching.sql
+```
+
 ## Outlook / Microsoft 365 integration
 
 The Outlook connector links a company mailbox so programs and automations can

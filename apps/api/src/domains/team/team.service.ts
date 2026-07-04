@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { AppError } from '../../core/errors/AppError';
 import { recordEvent } from '../../core/events/activityLog';
 import { teamRepository } from './team.repository';
-import { TeamMember, TeamMemberActivity, MemberStats, ProjectAssignment } from './team.types';
+import { TeamMember, TeamMemberActivity, MemberStats, ProjectAssignment, ProjectMember } from './team.types';
 import { AddMemberSchema, UpdateRoleSchema, UpdateCustomRoleTitleSchema } from './dto/member.dto';
 import { AssignProjectSchema, UpdateAssignmentSchema } from './dto/assignment.dto';
 
@@ -151,6 +151,11 @@ class TeamService {
     const assignment = await teamRepository.findAssignment(assignmentId, companyId);
     if (!assignment || assignment.user_id !== id) throw new AppError(404, 'Assignment not found');
     await teamRepository.deleteAssignment(assignmentId, companyId);
+  }
+
+  async listProjectMembers(projectId: string, companyId: string): Promise<ProjectMember[]> {
+    await this.assertOwnedProject(projectId, companyId);
+    return teamRepository.listProjectMembers(projectId, companyId);
   }
 
   private async assertOwnedProject(projectId: string, companyId: string): Promise<void> {

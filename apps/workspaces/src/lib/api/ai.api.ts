@@ -40,11 +40,21 @@ export interface AiCompletion {
 
 const BASE = '/api/v1/ai';
 
+export interface AiTranslation {
+  translated: string;
+  target_lang: string;
+  /** True when no cloud provider is configured and a placeholder translation was returned. */
+  demo: boolean;
+}
+
 export const aiApi = {
   getConfig:  ()                       => apiFetch<AiConfigPublic>(`${BASE}/config`),
   saveConfig: (dto: SaveAiConfigDto)   => apiFetch<AiConfigPublic>(`${BASE}/config`, 'POST', dto),
   /** Cloud completion proxied through the backend (key stays server-side). */
   complete:   (req: AiCompleteRequest) => apiFetch<AiCompletion>(`${BASE}/complete`, 'POST', req),
+  /** Chat auto-translate; demo-marked fallback when no cloud provider is set. */
+  translate:  (text: string, targetLang: string) =>
+    apiFetch<AiTranslation>(`${BASE}/translate`, 'POST', { text, target_lang: targetLang }),
 };
 
 // ── Local (Ollama-compatible) direct-from-browser completion ────────────────

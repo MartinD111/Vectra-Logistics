@@ -39,7 +39,20 @@
       "Bash(curl -s -o /dev/null -w \"programs: %{http_code}\\\\n\" --max-time 40 \"http://localhost:3001/programs\")",
       "Bash(curl -s -o /dev/null -w \"root: %{http_code}\\\\n\" --max-time 20 \"http://localhost:3001/\")",
       "Read(//c/Users/marti/AppData/Local/Temp/claude/c--Users-marti-AMS-d-o-o-vectra-platform/939a136c-3555-442f-a384-673f025df025/scratchpad/**)",
-      "Bash(python sandbox_test.py)"
+      "Bash(python sandbox_test.py)",
+      "Bash(curl -s -H 'Authorization: Bearer __CMDSUB_OUTPUT__' http://localhost:8080/api/v1/campaigns/__TRACKED_VAR__)",
+      "Bash(curl -s -o /tmp/pixel.gif -D - http://localhost:8080/api/v1/campaigns/track/open/97d80c553dc78293cbc8aa6e3de1b173)",
+      "Bash(xxd /tmp/pixel.gif)",
+      "Bash(node -pe \"JSON.stringify\\(JSON.parse\\(require\\('fs'\\).readFileSync\\(0\\)\\).campaign.recipients[0], null, 2\\)\")",
+      "PowerShell(node \"C:\\\\Users\\\\marti\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-marti-AMS-d-o-o-vectra-platform\\\\d8dbd6ff-0755-428b-8dfc-99543f3ca722\\\\scratchpad\\\\apply014.js\")",
+      "PowerShell(& \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\resources\\\\bin\\\\docker.exe\" restart vectra_api; Start-Sleep -Seconds 9; try { \\(Invoke-WebRequest -Uri \"http://localhost:8080/api/v1/ai/config\" -Method GET\\).StatusCode } catch { $_.Exception.Response.StatusCode.value__ })",
+      "Bash('/c/Program Files/Docker/Docker/resources/bin/docker.exe' exec vectra_postgres sh -c 'ls /usr/local/share/postgresql/extension/ 2>/dev/null | grep -i postgis | head')",
+      "Bash(find apps/api/src -iname \"*webhook*\")",
+      "Bash(find packages/data/src/map -type f)",
+      "Bash(grep -i \"leaflet\" apps/workspaces/package.json packages/data/package.json)",
+      "PowerShell(python \"C:\\\\Users\\\\marti\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-marti-AMS-d-o-o-vectra-platform\\\\d8dbd6ff-0755-428b-8dfc-99543f3ca722\\\\scratchpad\\\\verify-phase4-ui.py\")",
+      "PowerShell(node \"C:\\\\Users\\\\marti\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-marti-AMS-d-o-o-vectra-platform\\\\d8dbd6ff-0755-428b-8dfc-99543f3ca722\\\\scratchpad\\\\apply018.js\")",
+      "Bash(docker exec *)"
     ]
   }
 }

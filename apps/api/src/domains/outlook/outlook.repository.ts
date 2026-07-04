@@ -1,4 +1,5 @@
 import { db } from '../../core/db';
+import { encryptSecret, decryptSecret } from '../../core/crypto/secretBox';
 import { OutlookCredentials } from './outlook.types';
 
 const PROVIDER = 'outlook';
@@ -18,12 +19,12 @@ class OutlookRepository {
     );
     if (rows.length === 0) return null;
     let creds: OutlookCredentials = { demo: false, email: null };
-    try { creds = JSON.parse(rows[0].credentials_json); } catch { /* keep default */ }
+    try { creds = JSON.parse(decryptSecret(rows[0].credentials_json)); } catch { /* keep default */ }
     return { status: rows[0].status, creds, connected_at: rows[0].connected_at };
   }
 
   async upsert(companyId: string, creds: OutlookCredentials): Promise<void> {
-    // NOTE: credentials_json should be encrypted at rest in production (CLAUDE.md §8).
+    // Tokens are encrypted at rest (AES-256-GCM) — see core/crypto/secretBox.
     await db.query(
       `INSERT INTO integration_credentials
          (company_id, provider_id, credentials_json, status, connected_at, updated_at)
@@ -32,7 +33,7 @@ class OutlookRepository {
        DO UPDATE SET credentials_json = EXCLUDED.credentials_json,
                      status = 'connected', connected_at = NOW(), updated_at = NOW(),
                      sync_error = NULL`,
-      [companyId, PROVIDER, JSON.stringify(creds)],
+      [companyId, PROVIDER, encryptSecret(JSON.stringify(creds))],
     );
   }
 

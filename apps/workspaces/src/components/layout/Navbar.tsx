@@ -1,15 +1,18 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Menu, FolderKanban, FileCode2 } from "lucide-react";
+import { Menu, FolderKanban, FileCode2, FileText } from "lucide-react";
 import { Navbar as SharedNavbar } from "@vectra/ui";
 import { useCurrentWorkspace } from "@/lib/hooks/useTenantWorkspace";
 import { useAuth } from "@/context/AuthContext";
 import { usePlatform } from "@/context/PlatformContext";
 import { useProjects, usePrograms } from "@/lib/hooks/useProjects";
+import { useAllProjectPages } from "@/lib/hooks/useProjectPages";
 import { useFolderTree } from "@/lib/hooks/useFolders";
 import { FOLDER_ICON_MAP } from "@/components/icons/IconPicker";
+import { NewProjectButton } from "./NewProjectButton";
 import type { Project } from "@/lib/api/projects.api";
+import type { ProjectPage } from "@/lib/api/projects.api";
 import type { FolderTree } from "@/lib/api/folders.api";
 
 export default function Navbar() {
@@ -18,6 +21,7 @@ export default function Navbar() {
   const { data: workspace } = useCurrentWorkspace();
   const { data: projects } = useProjects();
   const { data: programs } = usePrograms();
+  const { data: allPages } = useAllProjectPages();
   const { data: folderTree } = useFolderTree();
   const { sidebarOpen, setSidebarOpen } = usePlatform();
 
@@ -48,13 +52,30 @@ export default function Navbar() {
     </button>
   ) : null;
 
+  // A project's dropdown lists its top-level pages first (each with its own
+  // sub-pages one level deeper — matches the shared Navbar's two-level nesting),
+  // then its programs as flat leaves.
+  const pageNavItem = (project: Project, page: ProjectPage) => ({
+    name: page.title,
+    href: `/projects/${project.id}/pages/${page.id}`,
+    icon: FileText,
+    subItems: (allPages ?? [])
+      .filter((p) => p.parent_page_id === page.id)
+      .map((child) => ({ name: child.title, href: `/projects/${project.id}/pages/${child.id}`, icon: FileText })),
+  });
+
   const projectNavItem = (project: Project) => ({
     name: project.name,
     href: `/projects/${project.id}`,
     icon: FolderKanban,
-    subItems: (programs ?? [])
-      .filter((p) => p.project_id === project.id)
-      .map((prog) => ({ name: prog.name, href: `/programs/${prog.id}`, icon: FileCode2 })),
+    subItems: [
+      ...(allPages ?? [])
+        .filter((p) => p.project_id === project.id && !p.parent_page_id)
+        .map((page) => pageNavItem(project, page)),
+      ...(programs ?? [])
+        .filter((p) => p.project_id === project.id)
+        .map((prog) => ({ name: prog.name, href: `/programs/${prog.id}`, icon: FileCode2 })),
+    ],
   });
 
   // Root folders render as top-level nav items. Their dropdown lists direct
@@ -83,5 +104,7 @@ export default function Navbar() {
     ...(projects ?? []).filter((p) => !p.folder_id).map((project) => projectNavItem(project)),
   ];
 
-  return <SharedNavbar branding={branding} leftSlot={leftSlot} navigation={navigation} />;
+  const rightSlot = user && !hideSidebar ? <NewProjectButton /> : null;
+
+  return <SharedNavbar branding={branding} leftSlot={leftSlot} rightSlot={rightSlot} navigation={navigation} />;
 }

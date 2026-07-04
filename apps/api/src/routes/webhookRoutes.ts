@@ -1,7 +1,16 @@
 import { Router } from 'express';
 import { receiveWebhook } from '../controllers/integrationsController';
+import { anprWebhook, ocrWebhook } from '../domains/yard/gate.controller';
 
 const router = Router();
+
+/**
+ * Edge-AI gate cameras (Phase 4). Registered BEFORE the `/:provider` catch-all
+ * so they aren't swallowed as a generic provider. ANPR = number plate, OCR =
+ * container number. Each read auto-checks-in the asset and assigns a yard slot.
+ */
+router.post('/anpr', anprWebhook);
+router.post('/ocr', ocrWebhook);
 
 /**
  * POST /api/webhooks/:provider

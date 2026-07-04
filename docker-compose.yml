@@ -20,6 +20,18 @@ services:
       - ./database/migrations/006_folders.sql:/docker-entrypoint-initdb.d/7-folders.sql:ro
       - ./database/migrations/007_team_assignments_and_roles.sql:/docker-entrypoint-initdb.d/8-team-assignments.sql:ro
       - ./database/migrations/008_kpi_rules.sql:/docker-entrypoint-initdb.d/9-kpi-rules.sql:ro
+      - ./database/migrations/009_project_pages.sql:/docker-entrypoint-initdb.d/10-project-pages.sql:ro
+      - ./database/migrations/010_calendar_events.sql:/docker-entrypoint-initdb.d/11-calendar-events.sql:ro
+      - ./database/migrations/011_email_campaigns.sql:/docker-entrypoint-initdb.d/12-email-campaigns.sql:ro
+      - ./database/migrations/012_page_hierarchy.sql:/docker-entrypoint-initdb.d/13-page-hierarchy.sql:ro
+      - ./database/migrations/013_page_header.sql:/docker-entrypoint-initdb.d/14-page-header.sql:ro
+      - ./database/migrations/014_dispatcher_widgets.sql:/docker-entrypoint-initdb.d/15-dispatcher-widgets.sql:ro
+      - ./database/migrations/015_smart_inbox.sql:/docker-entrypoint-initdb.d/16-smart-inbox.sql:ro
+      - ./database/migrations/016_yard_management.sql:/docker-entrypoint-initdb.d/17-yard-management.sql:ro
+      - ./database/migrations/017_seed_admin_user.sql:/docker-entrypoint-initdb.d/18-seed-admin-user.sql:ro
+      - ./database/migrations/018_field_execution.sql:/docker-entrypoint-initdb.d/19-field-execution.sql:ro
+      - ./database/migrations/019_crm_billing.sql:/docker-entrypoint-initdb.d/20-crm-billing.sql:ro
+      - ./database/migrations/020_ltl_matching.sql:/docker-entrypoint-initdb.d/21-ltl-matching.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -55,6 +67,13 @@ services:
       - REDIS_URL=redis://redis:6379
       - MATCHING_ENGINE_URL=http://matching-engine:8000
       - JWT_SECRET=${JWT_SECRET:-vectra-dev-secret-key-change-in-production}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-204a7160ec31da5e8aa66cdedaff651050c60f78e62001f6b8790c74bf8cda20}
+      - MS_CLIENT_ID=${MS_CLIENT_ID:-}
+      - MS_CLIENT_SECRET=${MS_CLIENT_SECRET:-}
+      - MS_REDIRECT_URI=${MS_REDIRECT_URI:-}
+      - MS_TENANT=${MS_TENANT:-common}
+      - WORKSPACES_APP_URL=${WORKSPACES_APP_URL:-http://localhost:3001}
+      - API_PUBLIC_URL=${API_PUBLIC_URL:-http://localhost:8080}
     ports:
       - "8080:8080"
     depends_on:

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticateToken } from '../../core/auth/middleware';
-import { getStatus, connect, disconnect, callback } from './outlook.controller';
+import { getStatus, connect, disconnect, callback, syncCalendar } from './outlook.controller';
 
 const router = Router();
 
@@ -11,5 +11,6 @@ router.get('/callback', callback);
 router.get('/status', authenticateToken, getStatus);
 router.post('/connect', authenticateToken, connect);
 router.post('/disconnect', authenticateToken, disconnect);
+router.post('/sync-calendar', authenticateToken, syncCalendar);
 
 export default router;

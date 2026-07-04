@@ -1,5 +1,5 @@
 import { db } from '../../core/db';
-import { TeamMember, TeamMemberActivity, MemberStats, ProjectAssignment } from './team.types';
+import { TeamMember, TeamMemberActivity, MemberStats, ProjectAssignment, ProjectMember } from './team.types';
 
 const MEMBER_COLS = 'id, email, first_name, last_name, role, custom_role_title, phone, is_verified, created_at';
 
@@ -135,6 +135,20 @@ class TeamRepository {
   async listAssignmentsByProject(projectId: string, companyId: string): Promise<ProjectAssignment[]> {
     const { rows } = await db.query<ProjectAssignment>(
       `SELECT * FROM project_assignments WHERE project_id = $1 AND company_id = $2 ORDER BY created_at ASC`,
+      [projectId, companyId],
+    );
+    return rows;
+  }
+
+  /** Assigned members joined with user identity — used by the project page "people" block. */
+  async listProjectMembers(projectId: string, companyId: string): Promise<ProjectMember[]> {
+    const { rows } = await db.query<ProjectMember>(
+      `SELECT a.id AS assignment_id, u.id AS user_id, u.first_name, u.last_name, u.email,
+              u.custom_role_title, a.planned_pct
+       FROM project_assignments a
+       JOIN users u ON u.id = a.user_id
+       WHERE a.project_id = $1 AND a.company_id = $2
+       ORDER BY u.first_name ASC`,
       [projectId, companyId],
     );
     return rows;

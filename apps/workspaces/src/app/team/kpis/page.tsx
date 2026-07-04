@@ -13,8 +13,8 @@ import { SOURCE_TYPES, type KpiSourceType, type CreateKpiRuleInput } from '@/lib
 const SOURCE_LABELS: Record<KpiSourceType, { label: string; description: string; computable: boolean }> = {
   outlook_calendar: {
     label: 'Outlook workday %',
-    description: 'Actual % of the workday spent on the project vs. the planned % from project assignments.',
-    computable: false,
+    description: 'Actual % of the workday spent on the project vs. the planned % from project assignments. Computed from Outlook meetings categorized to the project — sync the project\'s calendar block first.',
+    computable: true,
   },
   activity_volume: {
     label: 'Activity volume',

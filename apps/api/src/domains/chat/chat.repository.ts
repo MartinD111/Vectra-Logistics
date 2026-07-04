@@ -4,6 +4,7 @@ export interface ChatThread {
   id: string;
   shipment_id: string | null;
   booking_id: string | null;
+  project_id: string | null;
   created_at: Date;
 }
 
@@ -15,6 +16,8 @@ export interface ChatMessage {
   sender_id: string;
   sender_name: string | null;
   body: string;
+  /** Message origin: internal | whatsapp | email. */
+  channel: string;
   created_at: Date;
 }
 
@@ -63,6 +66,22 @@ class ChatRepository {
     return rows[0];
   }
 
+  async findThreadByProject(projectId: string): Promise<ChatThread | null> {
+    const { rows } = await db.query<ChatThread>(
+      `SELECT * FROM chat_threads WHERE project_id = $1 LIMIT 1`,
+      [projectId],
+    );
+    return rows[0] ?? null;
+  }
+
+  async createThreadForProject(projectId: string): Promise<ChatThread> {
+    const { rows } = await db.query<ChatThread>(
+      `INSERT INTO chat_threads (project_id) VALUES ($1) RETURNING *`,
+      [projectId],
+    );
+    return rows[0];
+  }
+
   async addParticipant(threadId: string, userId: string): Promise<void> {
     await db.query(
       `INSERT INTO chat_thread_participants (thread_id, user_id)
@@ -91,7 +110,7 @@ class ChatRepository {
     const { rows } = await db.query<ChatMessage>(
       `SELECT m.id, m.thread_id, t.shipment_id, t.booking_id,
               m.sender_id, (u.first_name || ' ' || u.last_name) AS sender_name,
-              m.body, m.created_at
+              m.body, m.channel, m.created_at
        FROM chat_messages m
        JOIN chat_threads t ON t.id = m.thread_id
        LEFT JOIN users u ON u.id = m.sender_id
@@ -101,19 +120,19 @@ class ChatRepository {
     return rows;
   }
 
-  async insertMessage(threadId: string, senderId: string, body: string): Promise<ChatMessage> {
+  async insertMessage(threadId: string, senderId: string, body: string, channel = 'internal'): Promise<ChatMessage> {
     const { rows } = await db.query<ChatMessage>(
       `WITH inserted AS (
-         INSERT INTO chat_messages (thread_id, sender_id, body)
-         VALUES ($1, $2, $3) RETURNING *
+         INSERT INTO chat_messages (thread_id, sender_id, body, channel)
+         VALUES ($1, $2, $3, $4) RETURNING *
        )
        SELECT i.id, i.thread_id, t.shipment_id, t.booking_id,
               i.sender_id, (u.first_name || ' ' || u.last_name) AS sender_name,
-              i.body, i.created_at
+              i.body, i.channel, i.created_at
        FROM inserted i
        JOIN chat_threads t ON t.id = i.thread_id
        LEFT JOIN users u ON u.id = i.sender_id`,
-      [threadId, senderId, body],
+      [threadId, senderId, body, channel],
     );
     return rows[0];
   }

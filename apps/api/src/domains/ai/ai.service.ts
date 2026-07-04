@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { z } from 'zod';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { AppError } from '../../core/errors/AppError';
 import { encryptSecret, decryptSecret } from '../../core/crypto/secretBox';
@@ -58,6 +59,12 @@ class AiService {
       userId,
     );
     return toPublic(row);
+  }
+
+  /** Whether the company has a usable server-side cloud provider (key stored). */
+  async hasCloudProvider(companyId: string): Promise<boolean> {
+    const row = await aiRepository.findByCompany(companyId);
+    return !!row && row.provider !== 'local' && !!row.api_key_enc;
   }
 
   /** Proxy a completion to the company's configured CLOUD provider. Local providers are handled client-side and rejected here. */
@@ -128,6 +135,32 @@ class AiService {
     } catch (err) {
       throw this.providerError('Gemini', err);
     }
+  }
+
+  /**
+   * Translate a chat message via the company's cloud provider. Falls back to a
+   * clearly-marked demo translation when no cloud provider is configured, so
+   * the omnichannel chat's auto-translate works out of the box.
+   */
+  async translate(companyId: string, body: unknown): Promise<{ translated: string; target_lang: string; demo: boolean }> {
+    const schema = z.object({
+      text: z.string().min(1).max(4000),
+      target_lang: z.string().min(2).max(32),
+    });
+    const parsed = schema.safeParse(body);
+    if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
+    const { text, target_lang } = parsed.data;
+
+    if (!(await this.hasCloudProvider(companyId))) {
+      return { translated: `[${target_lang}] ${text}`, target_lang, demo: true };
+    }
+
+    const completion = await this.complete(companyId, {
+      system: `You are a professional translator for logistics dispatch communication. Translate the user's message to ${target_lang}. Reply with ONLY the translation — no quotes, no explanations. Keep names, plate numbers, wagon numbers and reference codes unchanged.`,
+      prompt: text,
+      maxTokens: 1000,
+    });
+    return { translated: completion.text.trim(), target_lang, demo: false };
   }
 
   /** Normalise a provider error into an AppError without leaking the api key. */

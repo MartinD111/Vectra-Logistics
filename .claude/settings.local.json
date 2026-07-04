@@ -13,7 +13,22 @@
       "Bash(git ls-remote *)",
       "Bash(git remote *)",
       "Bash(git push *)",
-      "Bash(docker --version)"
+      "Bash(docker --version)",
+      "Bash(grep -v \"^$\")",
+      "Bash(PGPASSWORD=vectra_password psql -h localhost -p 5433 -U vectra_user -d vectra_db -c \"select 1\")",
+      "Bash(node -e ' *)",
+      "Bash(sed -n '/CREATE TABLE companies/,/\\);/p' database/init.sql)",
+      "Bash(sed -n '/CREATE TABLE transactions/,/\\);/p' database/init.sql)",
+      "Bash(grep -rn \"CREATE TABLE.*\\\\\\(client\\\\|invoice\\\\|crm\\\\\\)\" database/)",
+      "PowerShell(node \"C:\\\\Users\\\\marti\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-marti-AMS-d-o-o-vectra-platform\\\\d8dbd6ff-0755-428b-8dfc-99543f3ca722\\\\scratchpad\\\\apply019.js\")",
+      "Bash(node -e \"const l=require\\('c:/Users/marti/AMS d.o.o/vectra-platform/node_modules/lucide-react/dist/cjs/lucide-react.js'\\); ['Building2','Percent','Receipt'].forEach\\(n=>console.log\\(n, !!l[n]\\)\\)\")",
+      "PowerShell(python \"C:\\\\Users\\\\marti\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-marti-AMS-d-o-o-vectra-platform\\\\d8dbd6ff-0755-428b-8dfc-99543f3ca722\\\\scratchpad\\\\verify-phase6-ui.py\")",
+      "PowerShell(node \"C:\\\\Users\\\\marti\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-marti-AMS-d-o-o-vectra-platform\\\\d8dbd6ff-0755-428b-8dfc-99543f3ca722\\\\scratchpad\\\\apply020.js\")",
+      "Bash(node -e \"const l=require\\('c:/Users/marti/AMS d.o.o/vectra-platform/node_modules/lucide-react/dist/cjs/lucide-react.js'\\); ['Sparkles','Route','Milestone','TrendingUp'].forEach\\(n=>console.log\\(n, !!l[n]\\)\\)\")",
+      "PowerShell($docker = \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\resources\\\\bin\\\\docker.exe\"; & $docker start vectra_workspaces; Start-Sleep -Seconds 8; & $docker ps --filter \"name=vectra_workspaces\" --format \"{{.Names}}|{{.Status}}\"; Write-Output \"=== logs ===\"; & $docker logs vectra_workspaces --tail 15 2>&1)",
+      "PowerShell($docker = \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\resources\\\\bin\\\\docker.exe\"; & $docker exec vectra_workspaces sh -c \"cd /repo && npm ls @dnd-kit/sortable 2>/dev/null || echo MISSING; ls /repo/node_modules/@dnd-kit/ 2>/dev/null\")",
+      "PowerShell($docker = \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\resources\\\\bin\\\\docker.exe\"; & $docker exec vectra_workspaces sh -c \"cd /repo && npm install @dnd-kit/sortable@^10 --no-save 2>&1 | tail -5\")",
+      "PowerShell($docker = \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\resources\\\\bin\\\\docker.exe\"; & $docker exec vectra_workspaces sh -c \"ls /repo/node_modules/@dnd-kit/sortable/package.json 2>/dev/null && echo INSTALLED || echo STILL_MISSING\")"
     ]
   }
 }

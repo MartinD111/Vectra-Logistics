@@ -16,6 +16,13 @@ export type {
   ShipmentStatusEvent,
   ShipmentLocationEvent,
   ChatMessageEvent,
+  FleetExceptionEvent,
+  ShipmentDraftEvent,
+  YardAssetEvent,
+  RailWagonEvent,
+  PodRequestEvent,
+  InvoiceEvent,
+  LtlSuggestionEvent,
 } from './socket/socket';
 export {
   useSocket,

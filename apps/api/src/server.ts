@@ -15,6 +15,7 @@ import documentsRoutes from "./routes/documentsRoutes";
 import { startMatchingWorker } from "./workers/matchingJob";
 import integrationsRoutes from "./routes/integrationsRoutes";
 import webhookRoutes from "./routes/webhookRoutes";
+import podPublicRoutes from "./domains/pod/pod.public.routes";
 import ratingsRoutes from "./routes/ratingsRoutes";
 import companyRoutes from "./routes/companyRoutes";
 import { configureSocket } from "./core/realtime/socket";
@@ -47,6 +48,7 @@ app.use("/api/shipments", shipmentRoutes);
 app.use("/api/capacity", capacityRoutes);
 app.use("/api/integrations", integrationsRoutes);
 app.use("/api/webhooks", webhookRoutes);
+app.use("/api/pod", podPublicRoutes); // public, token-scoped driver POD uploads
 app.use("/api/ratings", ratingsRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/uploads", express.static("uploads"));

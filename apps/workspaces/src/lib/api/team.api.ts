@@ -25,6 +25,16 @@ export interface ProjectAssignment {
   updated_at: string;
 }
 
+export interface ProjectMember {
+  assignment_id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  custom_role_title: string | null;
+  planned_pct: number;
+}
+
 export interface MemberStats {
   user_id: string;
   total_events: number;
@@ -63,4 +73,7 @@ export const teamApi = {
     apiFetch<{ assignment: ProjectAssignment }>(`${BASE}/${id}/assignments/${assignmentId}`, 'PATCH', { planned_pct }).then((r) => r.assignment),
   removeAssignment: (id: string, assignmentId: string) =>
     apiFetch<void>(`${BASE}/${id}/assignments/${assignmentId}`, 'DELETE'),
+
+  listProjectMembers: (projectId: string) =>
+    apiFetch<{ members: ProjectMember[] }>(`${BASE}/by-project/${projectId}`).then((r) => r.members),
 };

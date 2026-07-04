@@ -189,6 +189,11 @@ class KpiRepository {
     return rows;
   }
 
+  async findUserEmail(userId: string): Promise<string | null> {
+    const { rows } = await db.query<{ email: string }>(`SELECT email FROM users WHERE id = $1`, [userId]);
+    return rows[0]?.email ?? null;
+  }
+
   async countActivityEvents(
     companyId: string, userId: string, periodStart: string, periodEnd: string,
   ): Promise<number> {

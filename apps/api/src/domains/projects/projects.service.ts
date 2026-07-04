@@ -2,9 +2,12 @@ import { AppError } from '../../core/errors/AppError';
 import { recordEvent } from '../../core/events/activityLog';
 import { foldersRepository } from '../folders/folders.repository';
 import { projectsRepository } from './projects.repository';
-import { Project, Program, ProjectWithCounts, ProjectStats } from './projects.types';
+import { calendarRepository } from '../outlook/calendar.repository';
+import { Project, Program, ProjectWithCounts, ProjectStats, ProjectPage, ActivityEventRow } from './projects.types';
+import { CalendarEvent } from '../outlook/outlook.types';
 import { CreateProjectSchema, UpdateProjectSchema } from './dto/project.dto';
 import { CreateProgramSchema, UpdateProgramSchema } from './dto/program.dto';
+import { CreatePageSchema, UpdatePageSchema } from './dto/page.dto';
 
 class ProjectsService {
   // ── Projects ────────────────────────────────────────────────────────────────
@@ -101,11 +104,90 @@ class ProjectsService {
     await projectsRepository.deleteProgram(id);
   }
 
+  // ── Project pages ─────────────────────────────────────────────────────────────
+
+  async listPages(projectId: string, companyId: string): Promise<ProjectPage[]> {
+    await this.assertOwnedProject(projectId, companyId);
+    return projectsRepository.listPages(companyId, projectId);
+  }
+
+  /** All pages across every project in the company — used to build the navbar's project/page hover menu. */
+  listAllPages(companyId: string): Promise<ProjectPage[]> {
+    return projectsRepository.listAllPages(companyId);
+  }
+
+  async getPage(id: string, companyId: string): Promise<ProjectPage> {
+    return this.assertOwnedPage(id, companyId);
+  }
+
+  async createPage(projectId: string, companyId: string, actorId: string | null, body: unknown): Promise<ProjectPage> {
+    await this.assertOwnedProject(projectId, companyId);
+    const parsed = CreatePageSchema.safeParse(body);
+    if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
+    const page = await projectsRepository.createPage(companyId, projectId, actorId, parsed.data);
+    await recordEvent({
+      tenantId: companyId, actorId, verb: 'page.created',
+      objectType: 'page', objectId: page.id, projectId,
+      payload: { title: page.title },
+    });
+    return page;
+  }
+
+  async updatePage(id: string, companyId: string, actorId: string | null, body: unknown): Promise<ProjectPage> {
+    const existing = await this.assertOwnedPage(id, companyId);
+    const parsed = UpdatePageSchema.safeParse(body);
+    if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
+    const updated = await projectsRepository.updatePage(id, existing.project_id, parsed.data);
+    if (!updated) throw new AppError(404, 'Page not found');
+    await recordEvent({
+      tenantId: companyId, actorId, verb: 'page.updated',
+      objectType: 'page', objectId: id, projectId: existing.project_id,
+      payload: { title: updated.title },
+    });
+    return updated;
+  }
+
+  async deletePage(id: string, companyId: string, actorId: string | null): Promise<void> {
+    const existing = await this.assertOwnedPage(id, companyId);
+    await projectsRepository.deletePage(id);
+    await recordEvent({
+      tenantId: companyId, actorId, verb: 'page.deleted',
+      objectType: 'page', objectId: id, projectId: existing.project_id,
+      payload: { title: existing.title },
+    });
+  }
+
+  // ── Project activity feed ──────────────────────────────────────────────────────
+
+  async listActivity(
+    projectId: string, companyId: string, opts: { limit?: number; before?: string | null },
+  ): Promise<ActivityEventRow[]> {
+    await this.assertOwnedProject(projectId, companyId);
+    const limit = Math.min(Math.max(opts.limit ?? 25, 1), 100);
+    return projectsRepository.listActivity(companyId, projectId, { limit, before: opts.before ?? null });
+  }
+
+  // ── Calendar (synced from Outlook, categorized by project) ────────────────────
+
+  async listCalendarEvents(
+    projectId: string, companyId: string, opts: { start: string; end: string },
+  ): Promise<CalendarEvent[]> {
+    await this.assertOwnedProject(projectId, companyId);
+    return calendarRepository.listForProject(companyId, projectId, opts.start, opts.end);
+  }
+
   // ── Internal ──────────────────────────────────────────────────────────────────
 
   private async assertOwnedProject(id: string, companyId: string): Promise<Project> {
     const p = await projectsRepository.findProject(id);
     if (!p) throw new AppError(404, 'Project not found');
+    if (p.company_id !== companyId) throw new AppError(403, 'Forbidden');
+    return p;
+  }
+
+  private async assertOwnedPage(id: string, companyId: string): Promise<ProjectPage> {
+    const p = await projectsRepository.findPage(id);
+    if (!p) throw new AppError(404, 'Page not found');
     if (p.company_id !== companyId) throw new AppError(403, 'Forbidden');
     return p;
   }

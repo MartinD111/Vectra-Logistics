@@ -68,3 +68,7 @@ export const removeAssignment = asyncHandler(async (req: AuthRequest, res: Respo
   await teamService.removeAssignment(req.params.id, req.params.assignmentId, companyOf(req), req.user?.role ?? '');
   res.status(204).send();
 });
+
+export const listProjectMembers = asyncHandler(async (req: AuthRequest, res: Response) => {
+  res.json({ members: await teamService.listProjectMembers(req.params.projectId, companyOf(req)) });
+});

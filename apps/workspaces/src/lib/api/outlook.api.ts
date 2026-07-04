@@ -13,8 +13,14 @@ type ConnectResult =
 
 const BASE = '/api/v1/outlook';
 
+export interface SyncCalendarResult {
+  synced: number;
+  skipped?: string;
+}
+
 export const outlookApi = {
   status: () => apiFetch<{ status: OutlookStatus }>(`${BASE}/status`).then((r) => r.status),
   connect: () => apiFetch<ConnectResult>(`${BASE}/connect`, 'POST', {}),
   disconnect: () => apiFetch<void>(`${BASE}/disconnect`, 'POST'),
+  syncCalendar: () => apiFetch<SyncCalendarResult>(`${BASE}/sync-calendar`, 'POST', {}),
 };
