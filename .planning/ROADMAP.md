@@ -24,7 +24,12 @@
   2. Frontend CRM components call a new `useCrm` hook instead of `useBilling` for client data
   3. New migrations exist (idempotent, `NNN_description.sql` convention) adding: `clients.address`, `clients.responsible_employee_id`, `clients.notes`; a client-project attachment/override table; `email_messages` table; and a resolution for `kpi_results.user_id` (e.g. nullable + new `client_id` column) so a client-subject KPI evaluator can write results
   4. Existing client list/credit-bar functionality (`CrmClientsBlock`) continues to work unchanged after the `useBilling` → `useCrm` swap (no regression)
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Schema migration (021_crm_extensions.sql): clients.address/responsible_employee_id, client_project_links, email_messages, kpi_results fix + run against dev DB
+- [ ] 01-02-PLAN.md — Dedicated crm API domain (types/dto/repository/service/controller/routes) mounted at /api/v1/crm
+- [ ] 01-03-PLAN.md — Frontend useCrm hook + crm.api.ts, swap CrmClientsBlock off useBilling
 
 ### Phase 2: CRM Dashboard, Navigation & Client Detail
 **Goal**: Users have a dedicated CRM home — a dashboard of clients and a full detail page for each — replacing the never-built "Records" slot and the cramped in-project block as the primary way to work with client data
