@@ -1,9 +1,9 @@
 ---
 phase: 02
 slug: crm-dashboard-navigation-client-detail
-status: draft
+status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-07-05
 ---
 
@@ -54,10 +54,10 @@ created: 2026-07-05
 
 ## Wave 0 Requirements
 
-- [ ] No test framework installed anywhere in the monorepo (`apps/api`, `apps/workspaces`) — installing one (e.g., Vitest) is a cross-cutting decision beyond this phase's scope. Flagged to project owner per RESEARCH.md; not decided unilaterally in this phase.
-- [ ] No `tests/` directory convention established yet in either app.
+- [x] No test framework installed anywhere in the monorepo (`apps/api`, `apps/workspaces`) — installing one (e.g., Vitest) is a cross-cutting decision beyond this phase's scope. **Decision recorded 2026-07-05:** project owner explicitly accepted manual-only verification for Phase 2 rather than blocking to stand up a framework first. Framework installation remains a separate, future cross-cutting concern, not a Phase 2 blocker.
+- [x] No `tests/` directory convention established yet in either app — same accepted-manual-only decision applies; no Wave 0 scaffolding task is required for this phase.
 
-*Per RESEARCH.md: "Given zero test infrastructure exists in this monorepo (a pre-existing condition, not introduced by this phase), full automated coverage per Nyquist sampling is not achievable without first standing up a framework." Manual verification is the accepted sampling mechanism for this phase.*
+*Per RESEARCH.md: "Given zero test infrastructure exists in this monorepo (a pre-existing condition, not introduced by this phase), full automated coverage per Nyquist sampling is not achievable without first standing up a framework." The project owner has explicitly decided (2026-07-05) that manual verification is the accepted sampling mechanism for this phase — this is a recorded decision, not a pending flag.*
 
 ---
 
@@ -79,11 +79,11 @@ created: 2026-07-05
 
 ## Validation Sign-Off
 
-- [x] All tasks have manual verification steps (no automated command available — Wave 0 gap, documented above)
+- [x] All tasks have manual verification steps (no automated command available — Wave 0 gap, explicitly accepted below)
 - [x] Sampling continuity: every task has a defined manual check; no 3 consecutive tasks without a verification step
-- [x] Wave 0 covers all MISSING references (no test framework anywhere in monorepo — flagged, not silently skipped)
+- [x] Wave 0 covers all MISSING references (no test framework anywhere in monorepo — explicitly accepted as this phase's compliance mode, not silently skipped)
 - [x] No watch-mode flags (N/A — no automated suite)
 - [x] Feedback latency: N/A — manual sampling only
-- [x] `nyquist_compliant: true` set in frontmatter (manual-verification path is the accepted compliance mode given zero pre-existing test infrastructure, per RESEARCH.md's explicit recommendation)
+- [x] `nyquist_compliant: true` set in frontmatter — valid because `wave_0_complete: true` reflects a real, recorded decision (manual-only verification accepted for this phase on 2026-07-05), not an unresolved gap
 
-**Approval:** approved 2026-07-05
+**Approval:** approved 2026-07-05 — manual-only verification explicitly accepted for Phase 2 given the pre-existing, monorepo-wide absence of any test framework. Installing a framework is deferred as a separate cross-cutting decision outside this phase's scope.
