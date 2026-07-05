@@ -27,9 +27,9 @@
 **Plans:** 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Schema migration (021_crm_extensions.sql): clients.address/responsible_employee_id, client_project_links, email_messages, kpi_results fix + run against dev DB
-- [ ] 01-02-PLAN.md — Dedicated crm API domain (types/dto/repository/service/controller/routes) mounted at /api/v1/crm
-- [ ] 01-03-PLAN.md — Frontend useCrm hook + crm.api.ts, swap CrmClientsBlock off useBilling
+- [x] 01-01-PLAN.md — Schema migration (021_crm_extensions.sql): clients.address/responsible_employee_id, client_project_links, email_messages, kpi_results fix + run against dev DB
+- [x] 01-02-PLAN.md — Dedicated crm API domain (types/dto/repository/service/controller/routes) mounted at /api/v1/crm
+- [x] 01-03-PLAN.md — Frontend useCrm hook + crm.api.ts, swap CrmClientsBlock off useBilling
 
 ### Phase 2: CRM Dashboard, Navigation & Client Detail
 **Goal**: Users have a dedicated CRM home — a dashboard of clients and a full detail page for each — replacing the never-built "Records" slot and the cramped in-project block as the primary way to work with client data
