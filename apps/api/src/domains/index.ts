@@ -18,6 +18,7 @@ import inboxRouter from './inbox/inbox.routes';
 import yardRouter from './yard/yard.routes';
 import podRouter from './pod/pod.routes';
 import billingRouter from './billing/billing.routes';
+import crmRouter from './crm/crm.routes';
 import ltlRouter from './ltl/ltl.routes';
 
 const router = Router();
@@ -41,6 +42,7 @@ router.use('/inbox', inboxRouter);
 router.use('/yard', yardRouter);
 router.use('/pod', podRouter);
 router.use('/billing', billingRouter);
+router.use('/crm', crmRouter);
 router.use('/ltl', ltlRouter);
 
 // Future domains mount here:
