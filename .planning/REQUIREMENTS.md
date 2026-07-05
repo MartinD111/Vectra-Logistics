@@ -80,45 +80,45 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAV-01 | TBD | Pending |
-| NAV-02 | TBD | Pending |
-| API-01 | TBD | Pending |
-| API-02 | TBD | Pending |
-| CLI-01 | TBD | Pending |
-| CLI-02 | TBD | Pending |
-| CLI-03 | TBD | Pending |
-| CLI-04 | TBD | Pending |
-| CLI-05 | TBD | Pending |
-| DET-01 | TBD | Pending |
-| DET-02 | TBD | Pending |
-| DET-03 | TBD | Pending |
-| DET-04 | TBD | Pending |
-| IMP-01 | TBD | Pending |
-| IMP-02 | TBD | Pending |
-| IMP-03 | TBD | Pending |
-| IMP-04 | TBD | Pending |
-| EML-01 | TBD | Pending |
-| EML-02 | TBD | Pending |
-| EML-03 | TBD | Pending |
-| RSK-01 | TBD | Pending |
-| RSK-02 | TBD | Pending |
-| RSK-03 | TBD | Pending |
+| NAV-01 | Phase 2 | Pending |
+| NAV-02 | Phase 2 | Pending |
+| API-01 | Phase 1 | Pending |
+| API-02 | Phase 1 | Pending |
+| CLI-01 | Phase 2 | Pending |
+| CLI-02 | Phase 2 | Pending |
+| CLI-03 | Phase 2 | Pending |
+| CLI-04 | Phase 3 | Pending |
+| CLI-05 | Phase 3 | Pending |
+| DET-01 | Phase 2 | Pending |
+| DET-02 | Phase 2 | Pending |
+| DET-03 | Phase 2 | Pending |
+| DET-04 | Phase 2 | Pending |
+| IMP-01 | Phase 4 | Pending |
+| IMP-02 | Phase 4 | Pending |
+| IMP-03 | Phase 4 | Pending |
+| IMP-04 | Phase 4 | Pending |
+| EML-01 | Phase 5 | Pending |
+| EML-02 | Phase 5 | Pending |
+| EML-03 | Phase 5 | Pending |
+| RSK-01 | Phase 6 | Pending |
+| RSK-02 | Phase 6 | Pending |
+| RSK-03 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 23 total
-- Mapped to phases: 0 (pending roadmap creation)
-- Unmapped: 23 ⚠️ (roadmap not yet created)
+- Mapped to phases: 23
+- Unmapped: 0 ✓
 
 ## Known Technical Constraints (from codebase concerns audit)
 
 These aren't requirements, but constrain how the roadmap should sequence work — see `.planning/codebase/CONCERNS.md` for full detail:
 
-- `kpi_results.user_id` is currently `NOT NULL` — a client-subject risk evaluator cannot write results under the existing schema as-is. Needs either a nullable `user_id` + new `client_id` column on `kpi_results`, or another resolution — this must be an explicit early decision in planning, not discovered mid-implementation.
-- No `email_messages` table exists yet — required before any email sync work can start.
-- No dedicated `crm` API domain exists yet — CRM logic currently lives in `billing`. Should be established early since most other v1 requirements depend on it.
+- `kpi_results.user_id` is currently `NOT NULL` — a client-subject risk evaluator cannot write results under the existing schema as-is. Needs either a nullable `user_id` + new `client_id` column on `kpi_results`, or another resolution — this must be an explicit early decision in planning, not discovered mid-implementation. **Resolved in roadmap: addressed in Phase 1 (Schema & CRM Domain Foundation), ahead of Phase 6's risk evaluator.**
+- No `email_messages` table exists yet — required before any email sync work can start. **Resolved in roadmap: table created in Phase 1, ahead of Phase 5 (Email History Sync).**
+- No dedicated `crm` API domain exists yet — CRM logic currently lives in `billing`. Should be established early since most other v1 requirements depend on it. **Resolved in roadmap: established in Phase 1, ahead of all feature phases.**
 - `integration_credentials` table has no formal migration (schema drift risk) — worth fixing incidentally if touching Outlook integration code.
 - Outlook calendar sync lacks Graph pagination handling — not required for this project, but the new email sync work should not repeat this mistake.
 
 ---
 *Requirements defined: 2026-07-05*
-*Last updated: 2026-07-05 after initial definition*
+*Last updated: 2026-07-05 after roadmap creation*
