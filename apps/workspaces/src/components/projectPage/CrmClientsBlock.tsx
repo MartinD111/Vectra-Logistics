@@ -7,8 +7,8 @@
 import { useState } from 'react';
 import { Loader2, Building2, Plus, AlertTriangle } from 'lucide-react';
 import type { CrmClientsBlock as CrmClientsBlockType } from '@/lib/projectPage/blocks';
-import { useClients, useCreateClient } from '@/lib/hooks/useBilling';
-import type { CrmClient } from '@/lib/api/billing.api';
+import { useClients, useCreateClient } from '@/lib/hooks/useCrm';
+import type { CrmClient } from '@/lib/api/crm.api';
 
 const COUNTRIES = ['SI', 'DE', 'AT', 'IT', 'HR', 'HU', 'FR', 'NL', 'BE', 'PL', 'CZ', 'SK', 'ES', 'RS', 'CH', 'GB', 'TR'];
 
