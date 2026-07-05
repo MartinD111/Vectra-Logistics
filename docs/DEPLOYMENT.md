@@ -159,6 +159,18 @@ Migration 020 adds the Silent LTL matching tables (`partial_loads`,
 psql "$DATABASE_URL" -f database/migrations/020_ltl_matching.sql
 ```
 
+Migration 021 adds CRM extensions: `clients.address` and
+`clients.responsible_employee_id`, a new `client_project_links` table
+(per-project rate/employee/notes overrides), a new `email_messages` table
+(synced Outlook metadata), and a `kpi_results` schema fix (`user_id` now
+nullable, new `client_id` column) so a client-subject credit-risk KPI
+evaluator can write results. Apply it manually on existing databases
+(idempotent):
+
+```bash
+psql "$DATABASE_URL" -f database/migrations/021_crm_extensions.sql
+```
+
 ## Outlook / Microsoft 365 integration
 
 The Outlook connector links a company mailbox so programs and automations can
