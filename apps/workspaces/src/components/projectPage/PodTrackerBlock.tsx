@@ -8,10 +8,10 @@
 
 import { useState } from 'react';
 import { crossAppUrl } from '@vectra/ui';
-import { Loader2, PackageCheck, ScanLine, Copy, Check, Camera, Clock } from 'lucide-react';
+import { Loader2, PackageCheck, ScanLine, Copy, Check, Camera, Clock, AlertTriangle } from 'lucide-react';
 import type { PodTrackerBlock as PodTrackerBlockType } from '@/lib/projectPage/blocks';
 import { usePodRequests, useCreatePodRequest, useSimulateArrival } from '@/lib/hooks/usePod';
-import { useClients } from '@/lib/hooks/useBilling';
+import { useClients } from '@/lib/hooks/useCrm';
 import type { PodRequest } from '@/lib/api/pod.api';
 
 const API_ORIGIN = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
@@ -32,6 +32,9 @@ export function PodTrackerView({ block }: { block: PodTrackerBlockType }) {
 
   const pending = (requests ?? []).filter((r) => r.status === 'pending');
   const delivered = (requests ?? []).filter((r) => r.status === 'delivered');
+
+  const selectedClient = (clients ?? []).find((c) => c.id === clientId);
+  const isOverLimit = !!selectedClient && selectedClient.outstanding_balance >= selectedClient.credit_limit;
 
   const submit = () => {
     if (!label.trim()) return;
@@ -79,8 +82,12 @@ export function PodTrackerView({ block }: { block: PodTrackerBlockType }) {
             <button onClick={submit} disabled={!label.trim() || create.isPending}
               className="px-3 py-1.5 rounded-lg bg-primary-600 text-white text-xs font-semibold hover:bg-primary-700 disabled:opacity-60">Create</button>
           </div>
+          {isOverLimit && selectedClient && <CreditWarningBanner clientName={selectedClient.name} />}
           {create.isError && (
-            <p className="text-[11px] text-red-600 dark:text-red-400">{(create.error as Error)?.message ?? 'Could not create the request.'}</p>
+            <div className="mt-1.5 rounded-lg border border-red-300/50 dark:border-red-500/30 bg-red-50/70 dark:bg-red-950/40 backdrop-blur-sm px-3 py-2 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
+              <p className="text-[11px] font-semibold text-red-700 dark:text-red-300">{(create.error as Error)?.message ?? 'Could not create the request.'}</p>
+            </div>
           )}
         </div>
       )}
@@ -102,6 +109,15 @@ export function PodTrackerView({ block }: { block: PodTrackerBlockType }) {
           </Column>
         </div>
       )}
+    </div>
+  );
+}
+
+function CreditWarningBanner({ clientName }: { clientName: string }) {
+  return (
+    <div className="mb-2 rounded-lg border border-red-300/50 dark:border-red-500/30 bg-red-50/70 dark:bg-red-950/40 backdrop-blur-sm px-3 py-2 flex items-center gap-2">
+      <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
+      <p className="text-xs font-semibold text-red-700 dark:text-red-300">{clientName} is over their credit limit — this load will be blocked.</p>
     </div>
   );
 }
