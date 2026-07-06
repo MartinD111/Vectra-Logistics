@@ -37,7 +37,17 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 
 ### Active
 
-*(v1.0 CRM Rework shipped — Active list resets for the v2.0 milestone; see Next Milestone Goals below. Fresh requirements are defined by `/gsd-new-milestone`.)*
+*(v2.0 — Workspace Engine, Engine Unification; full detail in REQUIREMENTS.md)*
+
+- [ ] A single generic block registry + `render(block)` engine, reusable across domains (ENG-01)
+- [ ] One `WorkspaceBlockPlugin` contract expressing both native (code) and manifest (sandboxed) plugins (ENG-02)
+- [ ] Page block registry is compile-time-exhaustive over all block kinds (ENG-03)
+- [ ] Project page read + edit rendering dispatch through the registry — no `switch(block.kind)` (RND-01, RND-02)
+- [ ] Persisted page/program JSON and autosave payloads unchanged (no data migration) (RND-03)
+- [ ] Slash menu + both builders' palettes derive from the registry (PAL-01, PAL-02)
+- [ ] Mini Program rendering runs on the same engine; manifest plugins + v2 round-trip intact (MPG-01, MPG-02)
+- [ ] A developer can add a native or manifest block via one plugin entry, no dispatch-file edits (EXT-01, EXT-02)
+- [ ] No `switch(block.kind)` remains in render/edit paths; ADR written; WorkflowBuilder documented as deferred (DOC-01, DOC-02)
 
 ### Out of Scope
 
@@ -80,11 +90,21 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 
 Deferred at close: 7 pending human-UAT scenarios (Phase 02/03) + 2 verification sign-offs — manual checks on shipped features, tracked in STATE.md → Deferred Items.
 
-## Next Milestone Goals
+## Current Milestone: v2.0 — Workspace Engine (Engine Unification)
 
-**v2.0 — Workspace Engine (Engine Unification).** The `workspaces` app has three parallel block/node systems: Project Pages (30 widgets rendered by hand-maintained `switch` statements), Mini Programs v2 (already a real plugin architecture — manifest + sandbox + schema-driven `DynamicBlockView`), and a demo-only automations WorkflowBuilder. Unify them into **one plugin-driven block engine** where rendering is `registry.render(block)`, so "add a block = write one plugin entry, change nothing else" becomes literally true.
+**Goal:** Unify the `workspaces` app's three parallel block/node systems — Project Pages (30 widgets rendered by hand-maintained `switch` statements), Mini Programs v2 (already a real plugin architecture: manifest + sandbox + schema-driven `DynamicBlockView`), and a demo-only automations WorkflowBuilder — into **one plugin-driven block engine** where rendering is `registry.render(block)`, so "add a block = write one plugin entry, change nothing else" becomes literally true.
 
-Scope is tight: engine unification only — no new user features, no document-schema change, no database/views engine, no realtime/CRDT (all recorded as North-Star / future milestones). Architecture and 7-phase plan drafted; `/gsd-new-milestone` will formalize requirements + roadmap.
+**Scope (tight):** engine unification only — no new user features, no document-schema change, no database/views engine, no realtime/CRDT (all recorded as North-Star / future milestones). Multiplayer explicitly deferred.
+
+**Approach:** generalize the existing Mini Program plugin model (don't reinvent); collapse Project Pages' two switch statements into registry dispatch **without** merging the two block unions or touching persisted JSON; a per-domain `keyOf(block)` resolver reconciles the two data models. Phases 7-13, each compiles and ships. Full architecture: `~/.claude/plans/i-think-this-should-expressive-volcano.md`.
+
+**Target features:**
+- One generic `WorkspaceBlockRegistry` + `WorkspaceBlockPlugin` contract (native + manifest flavors)
+- Project page read/edit rendering via registry dispatch (kill both switches), zero JSON drift
+- Registry-derived slash menu and builder palettes
+- Mini Program blocks folded onto the same engine
+- Proven extensibility: add a block via one plugin entry
+- ADR + cleanup; WorkflowBuilder parked as a future migration target
 
 ## Evolution
 

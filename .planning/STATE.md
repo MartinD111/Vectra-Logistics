@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Awaiting next milestone
-stopped_at: Phase 06 complete — v1.0 milestone complete, all 6 phases and 23 requirements shipped
-last_updated: "2026-07-06T16:04:55.430Z"
-last_activity: 2026-07-06 — Milestone v1.0 completed and archived
+milestone: v2.0
+milestone_name: Workspace Engine — Engine Unification
+status: planning
+last_updated: "2026-07-06T16:09:17.208Z"
+last_activity: 2026-07-06
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 15
-  completed_plans: 15
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 ## Current Position
 
-Phase: Milestone v1.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-06 — Milestone v1.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-07-06 — Milestone v2.0 started
 
 ## Performance Metrics
 
