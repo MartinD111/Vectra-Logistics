@@ -45,6 +45,35 @@ export interface LinkProjectInput {
   override_notes?: string | null;
 }
 
+export interface ClientPage {
+  id: string;
+  company_id: string;
+  client_id: string;
+  title: string;
+  icon: string | null;
+  config: Record<string, unknown>;
+  cover_image_url: string | null;
+  header_settings: Record<string, unknown>;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpdateClientPageInput {
+  title?: string;
+  icon?: string | null;
+  config?: Record<string, unknown>;
+  cover_image_url?: string | null;
+  header_settings?: Record<string, unknown>;
+}
+
+export interface ClientTimelineEntry {
+  type: 'email' | 'invoice' | 'kpi';
+  id: string;
+  occurred_at: string;
+  summary: string;
+}
+
 const BASE = '/api/v1/crm';
 
 export const crmApi = {
@@ -64,4 +93,11 @@ export const crmApi = {
     apiFetch<{ emails: unknown[] }>(`${BASE}/clients/${clientId}/emails`).then((r) => r.emails),
   getClientRisk: (clientId: string) =>
     apiFetch<{ risk: { status: string; utilization_pct: number | null } }>(`${BASE}/clients/${clientId}/risk`).then((r) => r.risk),
+
+  getClientPage: (clientId: string) =>
+    apiFetch<{ page: ClientPage }>(`${BASE}/clients/${clientId}/page`).then((r) => r.page),
+  updateClientPage: (pageId: string, data: UpdateClientPageInput) =>
+    apiFetch<{ page: ClientPage }>(`${BASE}/client-pages/${pageId}`, 'PATCH', data).then((r) => r.page),
+  getClientTimeline: (clientId: string) =>
+    apiFetch<{ timeline: ClientTimelineEntry[] }>(`${BASE}/clients/${clientId}/timeline`).then((r) => r.timeline),
 };

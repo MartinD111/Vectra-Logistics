@@ -29,8 +29,8 @@ const SPAN_CYCLE: Record<BlockSpan, BlockSpan> = { full: 'half', half: 'third', 
 const SPAN_LABEL: Record<BlockSpan, string> = { full: 'Full', half: '1/2', third: '1/3' };
 
 export default function LivePageCanvas({
-  config, projectId, onChange,
-}: { config: PageConfig; projectId: string; onChange: (c: PageConfig) => void }) {
+  config, projectId, clientId, onChange,
+}: { config: PageConfig; projectId?: string; clientId?: string; onChange: (c: PageConfig) => void }) {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [settingsId, setSettingsId] = useState<string | null>(null);
   const [insertMenu, setInsertMenu] = useState<{ anchor: { x: number; y: number }; index: number } | null>(null);
@@ -114,6 +114,7 @@ export default function LivePageCanvas({
               key={b.id}
               block={b}
               projectId={projectId}
+              clientId={clientId}
               shouldFocus={focusId === b.id}
               onFocused={() => setFocusId(null)}
               settingsOpen={settingsId === b.id}
@@ -126,6 +127,7 @@ export default function LivePageCanvas({
               <BlockEditor
                 block={b}
                 projectId={projectId}
+                clientId={clientId}
                 slashItems={slashItems}
                 onUpdate={updateBlock}
                 onSlashSelect={(item, ctx) => handleSlashSelect(i, item, ctx)}
@@ -147,7 +149,7 @@ export default function LivePageCanvas({
       <DragOverlay>
         {activeBlock && (
           <div className="opacity-90 rotate-1 shadow-2xl rounded-xl bg-white dark:bg-slate-900">
-            <PageBlockView block={activeBlock} projectId={projectId} />
+            <PageBlockView block={activeBlock} projectId={projectId} clientId={clientId} />
           </div>
         )}
       </DragOverlay>
@@ -165,11 +167,12 @@ export default function LivePageCanvas({
 // ── Block shell: sortable wrapper + hover controls ───────────────────────────
 
 function SortableBlockShell({
-  block, projectId, children, shouldFocus, onFocused, settingsOpen, onToggleSettings, onCloseSettings,
+  block, projectId, clientId, children, shouldFocus, onFocused, settingsOpen, onToggleSettings, onCloseSettings,
   onOpenInsert, onRemove, onUpdate,
 }: {
   block: PageBlock;
-  projectId: string;
+  projectId?: string;
+  clientId?: string;
   children: React.ReactNode;
   shouldFocus: boolean;
   onFocused: () => void;
@@ -265,7 +268,7 @@ function SortableBlockShell({
         {children}
 
         {settingsOpen && (
-          <SettingsPopover block={block} projectId={projectId} onUpdate={onUpdate} onClose={onCloseSettings} />
+          <SettingsPopover block={block} projectId={projectId} clientId={clientId} onUpdate={onUpdate} onClose={onCloseSettings} />
         )}
       </div>
     </div>
@@ -273,8 +276,8 @@ function SortableBlockShell({
 }
 
 function SettingsPopover({
-  block, projectId, onUpdate, onClose,
-}: { block: PageBlock; projectId: string; onUpdate: (b: PageBlock) => void; onClose: () => void }) {
+  block, projectId, clientId, onUpdate, onClose,
+}: { block: PageBlock; projectId?: string; clientId?: string; onUpdate: (b: PageBlock) => void; onClose: () => void }) {
   return (
     <>
       <div className="fixed inset-0 z-20" onClick={onClose} />
@@ -293,7 +296,7 @@ function SettingsPopover({
             ))}
           </div>
         </div>
-        <PageBlockSettings block={block} projectId={projectId} onChange={onUpdate} />
+        <PageBlockSettings block={block} projectId={projectId} clientId={clientId} onChange={onUpdate} />
       </div>
     </>
   );
@@ -302,10 +305,11 @@ function SettingsPopover({
 // ── Per-kind inline editors ──────────────────────────────────────────────────
 
 function BlockEditor({
-  block, projectId, slashItems, onUpdate, onSlashSelect,
+  block, projectId, clientId, slashItems, onUpdate, onSlashSelect,
 }: {
   block: PageBlock;
-  projectId: string;
+  projectId?: string;
+  clientId?: string;
   slashItems: SlashMenuItem[];
   onUpdate: (b: PageBlock) => void;
   onSlashSelect: (item: SlashMenuItem, ctx: SlashSelectContext) => void;
@@ -335,7 +339,7 @@ function BlockEditor({
     case 'kanban':
       return <PageBlockView block={block} projectId={projectId} onChange={onUpdate} />;
     default:
-      return <PageBlockView block={block} projectId={projectId} />;
+      return <PageBlockView block={block} projectId={projectId} clientId={clientId} />;
   }
 }
 

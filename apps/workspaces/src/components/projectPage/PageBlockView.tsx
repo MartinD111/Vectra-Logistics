@@ -17,6 +17,8 @@ import type {
   PageBlock, RichTextBlock, HeadingBlock, ListBlock, PeopleBlock, StatCardsBlock, KpiGridBlock,
   ChartBlock, ActivityTimelineBlock, ProgramLinkBlock, MiniProgramBlock,
 } from '@/lib/projectPage/blocks';
+import { ClientCurrentSituationBlockView } from './ClientCurrentSituationBlock';
+import { ClientTimelineBlockView } from './ClientTimelineBlock';
 import { isMiniProgramConfig } from '@/lib/miniProgram/blocks';
 import { useProjectStats, useProjectActivity, usePrograms, useProgram, useProjectCalendar } from '@/lib/hooks/useProjects';
 import { useProjectMembers } from '@/lib/hooks/useTeam';
@@ -55,10 +57,12 @@ function timeAgo(iso: string | null): string {
 }
 
 export function PageBlockView({
-  block, projectId, onChange,
+  block, projectId, clientId, onChange,
 }: {
   block: PageBlock;
-  projectId: string;
+  projectId?: string;
+  /** Set only on the client detail page (/records/[clientId]) canvas. */
+  clientId?: string;
   /** Present on the live canvas — lets interactive widgets (kanban) write back to the config. */
   onChange?: (block: PageBlock) => void;
 }) {
@@ -69,21 +73,21 @@ export function PageBlockView({
     case 'divider': return <hr className="border-gray-200 dark:border-slate-700" />;
     case 'mini-program': return <MiniProgramEmbedView block={block} />;
     case 'kanban': return <KanbanBoardView block={block} onChange={onChange} />;
-    case 'people': return <PeopleView block={block} projectId={projectId} />;
-    case 'stat-cards': return <StatCardsView block={block} projectId={projectId} />;
-    case 'kpi-grid': return <KpiGridView block={block} projectId={projectId} />;
-    case 'chart': return <ChartWidgetView block={block} projectId={projectId} />;
-    case 'activity-timeline': return <ActivityTimelineView block={block} projectId={projectId} />;
-    case 'program-link': return <ProgramLinkView block={block} projectId={projectId} />;
-    case 'calendar': return <CalendarView projectId={projectId} />;
-    case 'email-campaign': return <EmailCampaignView projectId={projectId} />;
+    case 'people': return <PeopleView block={block} projectId={projectId as string} />;
+    case 'stat-cards': return <StatCardsView block={block} projectId={projectId as string} />;
+    case 'kpi-grid': return <KpiGridView block={block} projectId={projectId as string} />;
+    case 'chart': return <ChartWidgetView block={block} projectId={projectId as string} />;
+    case 'activity-timeline': return <ActivityTimelineView block={block} projectId={projectId as string} />;
+    case 'program-link': return <ProgramLinkView block={block} projectId={projectId as string} />;
+    case 'calendar': return <CalendarView projectId={projectId as string} />;
+    case 'email-campaign': return <EmailCampaignView projectId={projectId as string} />;
     case 'fleet-telematics': return <FleetTelematicsView block={block} />;
     case 'spot-quote': return <SpotQuoteView block={block} />;
     case 'exception-radar': return <ExceptionRadarView block={block} />;
-    case 'omni-chat': return <OmniChatView block={block} projectId={projectId} />;
-    case 'smart-inbox': return <SmartInboxView block={block} projectId={projectId} />;
-    case 'drafts-kanban': return <DraftsKanbanView block={block} projectId={projectId} />;
-    case 'yard-map': return <YardMapView block={block} projectId={projectId} />;
+    case 'omni-chat': return <OmniChatView block={block} projectId={projectId as string} />;
+    case 'smart-inbox': return <SmartInboxView block={block} projectId={projectId as string} />;
+    case 'drafts-kanban': return <DraftsKanbanView block={block} projectId={projectId as string} />;
+    case 'yard-map': return <YardMapView block={block} projectId={projectId as string} />;
     case 'railway-terminal': return <RailwayTerminalView block={block} />;
     case 'pod-tracker': return <PodTrackerView block={block} />;
     case 'omni-docs': return <OmniDocsView block={block} />;
@@ -91,6 +95,8 @@ export function PageBlockView({
     case 'vat-matrix': return <VatMatrixView block={block} />;
     case 'invoices': return <InvoicesView block={block} />;
     case 'ltl-matches': return <LtlMatchesView block={block} />;
+    case 'client-current-situation': return <ClientCurrentSituationBlockView block={block} clientId={clientId as string} />;
+    case 'client-timeline': return <ClientTimelineBlockView block={block} clientId={clientId as string} />;
     default:
       return null;
   }

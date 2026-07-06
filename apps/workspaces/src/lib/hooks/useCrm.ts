@@ -6,12 +6,18 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
-import { crmApi, type CrmClient, type CreateClientInput, type ClientProjectLink, type LinkProjectInput } from '@/lib/api/crm.api';
+import {
+  crmApi, type CrmClient, type CreateClientInput, type ClientProjectLink, type LinkProjectInput,
+  type UpdateClientPageInput,
+} from '@/lib/api/crm.api';
 
 const qk = {
   clients: ['crm-clients'] as const,
   client: (id: string) => ['crm-clients', id] as const,
   projectLinks: (clientId: string) => ['crm-clients', clientId, 'projects'] as const,
+  clientPage: (clientId: string) => ['crm-clients', clientId, 'page'] as const,
+  clientTimeline: (clientId: string) => ['crm-clients', clientId, 'timeline'] as const,
+  clientEmails: (clientId: string) => ['crm-clients', clientId, 'emails'] as const,
 };
 
 export function useClients() {
@@ -62,5 +68,40 @@ export function useUpsertClientProjectLink(clientId: string) {
   return useMutation({
     mutationFn: (data: LinkProjectInput) => crmApi.upsertClientProjectLink(clientId, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.projectLinks(clientId) }),
+  });
+}
+
+export function useClientPage(clientId: string) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: qk.clientPage(clientId),
+    queryFn: () => crmApi.getClientPage(clientId),
+    enabled: !!user?.company_id && !!clientId,
+  });
+}
+
+export function useUpdateClientPage(pageId: string, clientId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: UpdateClientPageInput) => crmApi.updateClientPage(pageId, data),
+    onSuccess: (page) => qc.setQueryData(qk.clientPage(clientId), page),
+  });
+}
+
+export function useClientTimeline(clientId: string) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: qk.clientTimeline(clientId),
+    queryFn: () => crmApi.getClientTimeline(clientId),
+    enabled: !!user?.company_id && !!clientId,
+  });
+}
+
+export function useClientEmails(clientId: string) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: qk.clientEmails(clientId),
+    queryFn: () => crmApi.getClientEmails(clientId),
+    enabled: !!user?.company_id && !!clientId,
   });
 }
