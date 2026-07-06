@@ -11,8 +11,8 @@ import type {
 import { usePrograms } from '@/lib/hooks/useProjects';
 
 export function PageBlockSettings({
-  block, projectId, onChange,
-}: { block: PageBlock; projectId: string; onChange: (b: PageBlock) => void }) {
+  block, projectId, clientId, onChange,
+}: { block: PageBlock; projectId?: string; clientId?: string; onChange: (b: PageBlock) => void }) {
   switch (block.kind) {
     case 'heading':
       return (
@@ -70,10 +70,10 @@ export function PageBlockSettings({
         </div>
       );
     case 'program-link':
-      return <ProgramPicker programId={block.programId ?? null} projectId={projectId}
+      return <ProgramPicker programId={block.programId ?? null} projectId={projectId ?? ''}
         onChange={(programId) => onChange({ ...block, programId })} />;
     case 'mini-program':
-      return <ProgramPicker programId={block.programId} projectId={projectId} required
+      return <ProgramPicker programId={block.programId} projectId={projectId ?? ''} required
         onChange={(programId) => onChange({ ...block, programId })} />;
     case 'kanban':
       return (
@@ -101,6 +101,8 @@ export function PageBlockSettings({
     case 'vat-matrix':
     case 'invoices':
     case 'ltl-matches':
+    case 'client-current-situation':
+    case 'client-timeline':
       return (
         <input className="saas-input !py-2 text-sm" value={block.title ?? ''}
           onChange={(e) => onChange({ ...block, title: e.target.value } as PageBlock)} placeholder="Title (optional)" />
