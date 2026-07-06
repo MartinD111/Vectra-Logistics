@@ -31,6 +31,12 @@ class CrmRepository {
     return rows[0] ? numClient(rows[0]) : null;
   }
 
+  async findClientByVatId(vatId: string, companyId: string): Promise<ClientRecord | null> {
+    const { rows } = await db.query<ClientRecord>(
+      `SELECT * FROM clients WHERE vat_id = $1 AND company_id = $2`, [vatId, companyId]);
+    return rows[0] ? numClient(rows[0]) : null;
+  }
+
   async createClient(companyId: string, d: {
     name: string; country: string; vat_id: string | null; email: string | null;
     credit_limit: number; default_rate_eur: number | null; notes: string | null;
