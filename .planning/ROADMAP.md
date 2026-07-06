@@ -23,7 +23,7 @@ Full detail: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
 ### 🚧 v2.0 Workspace Engine — Engine Unification (Phases 7-13)
 
-- [ ] **Phase 7: Engine Foundation + Page Registry** - Generic registry + `WorkspaceBlockPlugin` contract; page registry populated (exhaustive), zero behavior change
+- [x] **Phase 7: Engine Foundation + Page Registry** - Generic registry + `WorkspaceBlockPlugin` contract; page registry populated (exhaustive), zero behavior change (completed 2026-07-06)
 - [ ] **Phase 8: Page Read-Rendering → Registry** - `PageBlockView` switch replaced by `registry.render`; every kind renders identically; no JSON drift
 - [ ] **Phase 9: Page Edit-Mode + Slash → Registry** - `LivePageCanvas` edit switch and slash-menu derivation move to the registry; contentEditable/slash behavior preserved
 - [ ] **Phase 10: Mini Program onto the Engine** - `BlockView` switch replaced by the same registry; manifest plugins + v2 round-trip intact
@@ -125,7 +125,7 @@ Full detail: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 4. Bulk Excel Import | v1.0 | 2/2 | Complete | 2026-07-06 |
 | 5. Email History Sync | v1.0 | 2/2 | Complete | 2026-07-06 |
 | 6. Credit-Risk KPI Evaluator & Semaphore | v1.0 | 2/2 | Complete | 2026-07-06 |
-| 7. Engine Foundation + Page Registry | v2.0 | 0/? | Not started | - |
+| 7. Engine Foundation + Page Registry | v2.0 | 1/1 | Complete | 2026-07-06 |
 | 8. Page Read-Rendering → Registry | v2.0 | 0/? | Not started | - |
 | 9. Page Edit-Mode + Slash → Registry | v2.0 | 0/? | Not started | - |
 | 10. Mini Program onto the Engine | v2.0 | 0/? | Not started | - |
