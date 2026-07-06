@@ -3,7 +3,10 @@ import { AppError } from '../../core/errors/AppError';
 import { recordEvent } from '../../core/events/activityLog';
 import { outlookRepository } from './outlook.repository';
 import { calendarRepository, type UpsertCalendarEventInput } from './calendar.repository';
+import { emailRepository, type UpsertEmailMessageInput } from './email.repository';
+import { matchClientsForRecipients } from './email.matcher';
 import { projectsRepository } from '../projects/projects.repository';
+import { crmRepository } from '../crm/crm.repository';
 import { OutlookStatus, OutlookCredentials } from './outlook.types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-for-dev';
@@ -211,6 +214,88 @@ class OutlookService {
       objectType: 'integration', payload: { provider: 'outlook', count: events.length },
     });
     return { synced: events.length };
+  }
+
+  /**
+   * Pull the connected mailbox's sent mail, match recipients to clients by
+   * domain (see email.matcher.ts), and upsert one email_messages row per
+   * matched client. Incremental via a per-company watermark (last_sync_at):
+   * first sync backfills 90 days, later syncs only fetch mail sent since the
+   * previous successful run. No-op in demo mode or once the access token
+   * can't be refreshed — never throws into a scheduled/best-effort caller's
+   * happy path.
+   */
+  async syncEmails(companyId: string, actorId: string | null): Promise<{ synced: number; skipped?: string }> {
+    const conn = await outlookRepository.find(companyId);
+    if (!conn || conn.status !== 'connected') return { synced: 0, skipped: 'not connected' };
+    if (conn.creds.demo) return { synced: 0, skipped: 'demo mode has no real mailbox to sync' };
+
+    const creds = await this.ensureFreshToken(companyId, conn.creds);
+    if (!creds.access_token) return { synced: 0, skipped: 'no access token' };
+
+    const since = conn.last_sync_at ?? new Date(Date.now() - 90 * 24 * 3600 * 1000);
+    const params = new URLSearchParams({
+      $filter: `sentDateTime ge ${since.toISOString()}`,
+      $orderby: 'sentDateTime',
+      $top: '50',
+      $select: 'id,subject,sentDateTime,from,toRecipients,ccRecipients,bodyPreview,isDraft',
+    });
+
+    let url = `https://graph.microsoft.com/v1.0/me/mailfolders/sentitems/messages?${params}`;
+    const messages: {
+      id: string; subject?: string; sentDateTime: string; isDraft?: boolean;
+      from?: { emailAddress?: { address?: string } };
+      toRecipients?: { emailAddress?: { address?: string } }[];
+      ccRecipients?: { emailAddress?: { address?: string } }[];
+      bodyPreview?: string;
+    }[] = [];
+
+    while (url) {
+      const res: Response = await fetch(url, {
+        headers: { Authorization: `Bearer ${creds.access_token}` },
+      });
+      if (!res.ok) return { synced: 0, skipped: `Graph sentitems failed (${res.status})` };
+      const body = (await res.json()) as {
+        value: typeof messages;
+        '@odata.nextLink'?: string;
+      };
+      messages.push(...(body.value ?? []));
+      url = body['@odata.nextLink'] ?? '';
+    }
+
+    const clients = await crmRepository.listClients(companyId);
+    const clientRefs = clients.map((c) => ({ id: c.id, email: c.email }));
+
+    const rows: UpsertEmailMessageInput[] = [];
+    for (const m of messages) {
+      const recipientEmails = [...(m.toRecipients ?? []), ...(m.ccRecipients ?? [])]
+        .map((r) => r.emailAddress?.address?.toLowerCase())
+        .filter((a): a is string => !!a);
+
+      const matchedClientIds = matchClientsForRecipients(recipientEmails, clientRefs);
+      const receivedAt = m.sentDateTime.endsWith('Z') ? m.sentDateTime : `${m.sentDateTime}Z`;
+
+      for (const clientId of matchedClientIds) {
+        rows.push({
+          client_id: clientId,
+          outlook_id: m.id,
+          sender_email: m.from?.emailAddress?.address?.toLowerCase() ?? '',
+          recipient_emails: recipientEmails,
+          subject: m.subject ?? '(no subject)',
+          body_preview: m.bodyPreview ?? null,
+          received_at: receivedAt,
+          is_draft: !!m.isDraft,
+        });
+      }
+    }
+
+    await emailRepository.upsertMessages(companyId, rows);
+    await outlookRepository.updateLastSyncAt(companyId, new Date());
+    await recordEvent({
+      tenantId: companyId, actorId, verb: 'integration.emails_synced',
+      objectType: 'integration', payload: { provider: 'outlook', count: rows.length },
+    });
+    return { synced: rows.length };
   }
 
   /** Refresh the access token via refresh_token if it's expired, persisting the new one. */
