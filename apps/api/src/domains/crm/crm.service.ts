@@ -2,6 +2,8 @@ import { AppError } from '../../core/errors/AppError';
 import { crmRepository } from './crm.repository';
 import { projectsRepository } from '../projects/projects.repository';
 import { teamRepository } from '../team/team.repository';
+import { kpiRepository } from '../kpi/kpi.repository';
+import { computeCreditRiskDetail } from '../kpi/evaluators/creditRisk.evaluator';
 import { ClientRecord, ResolvedClientProjectView, ClientPageRecord, ClientTimelineEntry, ImportClientsResult, ImportRowResult } from './crm.types';
 import { CreateClientSchema } from './dto/create-client.dto';
 import { UpdateClientSchema } from './dto/update-client.dto';
@@ -228,9 +230,21 @@ class CrmService {
     return [];
   }
 
-  async getClientRisk(clientId: string, companyId: string): Promise<{ status: 'unavailable'; utilization_pct: number | null }> {
-    await this.getClient(clientId, companyId);
-    return { status: 'unavailable', utilization_pct: null };
+  async getClientRisk(clientId: string, companyId: string): Promise<{
+    status: 'ok' | 'at_risk';
+    utilization_pct: number;
+    over_limit: boolean;
+    has_overdue_invoices: boolean;
+  }> {
+    const client = await this.getClient(clientId, companyId);
+    const overdueCount = await kpiRepository.countOverdueInvoices(companyId, clientId);
+    const detail = computeCreditRiskDetail(client, overdueCount);
+    return {
+      status: detail.at_risk ? 'at_risk' : 'ok',
+      utilization_pct: detail.utilization_pct,
+      over_limit: detail.over_limit,
+      has_overdue_invoices: detail.has_overdue_invoices,
+    };
   }
 }
 
