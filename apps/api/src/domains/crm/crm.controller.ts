@@ -45,3 +45,21 @@ export const getClientEmails = asyncHandler(async (req: AuthRequest, res: Respon
 export const getClientRisk = asyncHandler(async (req: AuthRequest, res: Response) => {
   res.status(200).json({ risk: await crmService.getClientRisk(req.params.id, requireCompany(req)) });
 });
+
+export const getClientPage = asyncHandler(async (req: AuthRequest, res: Response) => {
+  res.status(200).json({
+    page: await crmService.getOrCreateClientPage(req.params.id, requireCompany(req), req.user?.id ?? null),
+  });
+});
+
+export const updateClientPage = asyncHandler(async (req: AuthRequest, res: Response) => {
+  res.status(200).json({
+    page: await crmService.updateClientPage(req.params.pageId, requireCompany(req), req.body),
+  });
+});
+
+export const getClientTimeline = asyncHandler(async (req: AuthRequest, res: Response) => {
+  res.status(200).json({
+    timeline: await crmService.getClientTimeline(req.params.id, requireCompany(req)),
+  });
+});

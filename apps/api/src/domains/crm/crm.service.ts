@@ -1,9 +1,10 @@
 import { AppError } from '../../core/errors/AppError';
 import { crmRepository } from './crm.repository';
-import { ClientRecord, ResolvedClientProjectView } from './crm.types';
+import { ClientRecord, ResolvedClientProjectView, ClientPageRecord, ClientTimelineEntry } from './crm.types';
 import { CreateClientSchema } from './dto/create-client.dto';
 import { UpdateClientSchema } from './dto/update-client.dto';
 import { LinkProjectSchema } from './dto/link-project.dto';
+import { UpdateClientPageSchema } from './dto/update-client-page.dto';
 
 class CrmService {
   // ── Clients ──
@@ -84,6 +85,55 @@ class CrmService {
         notes: link.override_notes !== null,
       },
     };
+  }
+
+  // ── Client Pages (D-07/D-08: idempotent get-or-create, one page per client) ──
+  async getOrCreateClientPage(clientId: string, companyId: string, createdBy: string | null): Promise<ClientPageRecord> {
+    await this.getClient(clientId, companyId);
+    const existing = await crmRepository.findClientPage(clientId, companyId);
+    if (existing) return existing;
+    return crmRepository.createClientPage(companyId, clientId, createdBy, {});
+  }
+
+  async updateClientPage(pageId: string, companyId: string, body: unknown): Promise<ClientPageRecord> {
+    const parsed = UpdateClientPageSchema.safeParse(body);
+    if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
+    const updated = await crmRepository.updateClientPage(pageId, companyId, parsed.data);
+    if (!updated) throw new AppError(404, 'Client page not found');
+    return updated;
+  }
+
+  // ── Client Timeline (merged emails/invoices/kpi feed, date-sorted) ──
+  async getClientTimeline(clientId: string, companyId: string): Promise<ClientTimelineEntry[]> {
+    await this.getClient(clientId, companyId);
+    const [emails, invoices, kpiResults] = await Promise.all([
+      crmRepository.listClientEmails(clientId, companyId),
+      crmRepository.listClientInvoices(clientId, companyId),
+      crmRepository.listClientKpiResults(clientId, companyId),
+    ]);
+
+    const entries: ClientTimelineEntry[] = [
+      ...emails.map((e) => ({
+        type: 'email' as const,
+        id: e.id,
+        occurred_at: e.received_at,
+        summary: `Email: ${e.subject}`,
+      })),
+      ...invoices.map((i) => ({
+        type: 'invoice' as const,
+        id: i.id,
+        occurred_at: i.issued_at,
+        summary: `Invoice ${i.number} — €${i.amount_total}`,
+      })),
+      ...kpiResults.map((k) => ({
+        type: 'kpi' as const,
+        id: k.id,
+        occurred_at: k.period_start,
+        summary: `${k.rule_name}: ${k.status}`,
+      })),
+    ];
+
+    return entries.sort((a, b) => (a.occurred_at < b.occurred_at ? 1 : a.occurred_at > b.occurred_at ? -1 : 0));
   }
 
   // ── Stubs (later phases implement the real logic) ──
