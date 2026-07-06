@@ -20,6 +20,23 @@ export interface OutlookCredentials {
   scope?: string;
 }
 
+/** An email synced from Graph sent mail, matched to a client via email.matcher.ts. */
+export interface EmailMessage {
+  id: string;
+  company_id: string;
+  client_id: string | null;
+  outlook_id: string | null;
+  sender_email: string;
+  recipient_emails: string[];
+  subject: string;
+  body_preview: string | null;
+  full_body: string | null;
+  received_at: Date;
+  is_draft: boolean;
+  synced_at: Date;
+  created_at: Date;
+}
+
 /** A calendar event synced from Graph, categorized to a project via its `categories`. */
 export interface CalendarEvent {
   id: string;
