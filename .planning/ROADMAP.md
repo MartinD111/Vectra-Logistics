@@ -122,7 +122,16 @@ Plans:
   2. Synced emails are correctly matched to the client whose email address/domain appears as a recipient
   3. The client detail page's "last 10 emails sent" section renders instantly from stored metadata (sender, recipients, subject, date, preview) without a live Graph call
 
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — Migration relaxing email_messages uniqueness + domain-matching pure function (with denylist) + email.repository.ts upsert + outlook.repository.ts watermark methods
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 05-02-PLAN.md — syncEmails() Graph fetch/pagination/matching on OutlookService + BullMQ email-sync worker/scheduler + bootstrap wiring
 
 ### Phase 6: Credit-Risk KPI Evaluator & Semaphore
 
@@ -145,7 +154,7 @@ Plans:
 | 2. CRM Dashboard, Navigation & Client Detail | 4/4 | Complete   | 2026-07-06 |
 | 3. Per-Project Client Overrides | 2/2 | Complete   | 2026-07-06 |
 | 4. Bulk Excel Import | 2/2 | Complete   | 2026-07-06 |
-| 5. Email History Sync | 0/? | Not started | - |
+| 5. Email History Sync | 0/2 | Planned | - |
 | 6. Credit-Risk KPI Evaluator & Semaphore | 0/? | Not started | - |
 
 ## Requirement Coverage
