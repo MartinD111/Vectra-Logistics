@@ -11,7 +11,7 @@
 - [x] **Phase 3: Per-Project Client Overrides** - Clients attach to projects with field-level overrides layered over client-level defaults (completed 2026-07-06)
 - [x] **Phase 4: Bulk Excel Import** - Template download, bulk upload, per-row report, default fallbacks (completed 2026-07-06)
 - [x] **Phase 5: Email History Sync** - Real Microsoft Graph sent-mail sync matched to clients, rendered as "last 10 emails" on the detail page
-- [ ] **Phase 6: Credit-Risk KPI Evaluator & Semaphore** - Risk evaluated as a first-class KPI rule; dispatcher sees a hard-blocking red "frosted glass" warning at assignment time
+- [x] **Phase 6: Credit-Risk KPI Evaluator & Semaphore** - Risk evaluated as a first-class KPI rule; dispatcher sees a hard-blocking red "frosted glass" warning at assignment time
 
 ## Phase Details
 
@@ -149,19 +149,19 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 06-01-PLAN.md — Migration adding kpi_rules.target_client_id + kpi.types.ts nullability fix + credit_risk evaluator (utilization + overdue-invoice risk) + kpi.repository/service wiring + crmService.getClientRisk() real computation
-- [ ] 06-02-PLAN.md — PodTrackerBlock.tsx frosted-glass over-limit semaphore (pre-submit + restyled 403) + useBilling→useCrm stale-hook fix
+- [x] 06-01-PLAN.md — Migration adding kpi_rules.target_client_id + kpi.types.ts nullability fix + credit_risk evaluator (utilization + overdue-invoice risk) + kpi.repository/service wiring + crmService.getClientRisk() real computation
+- [x] 06-02-PLAN.md — PodTrackerBlock.tsx frosted-glass over-limit semaphore (pre-submit + restyled 403) + useBilling→useCrm stale-hook fix
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Schema & CRM Domain Foundation | 0/? | Not started | - |
+| 1. Schema & CRM Domain Foundation | 3/3 | Complete   | 2026-07-05 |
 | 2. CRM Dashboard, Navigation & Client Detail | 4/4 | Complete   | 2026-07-06 |
 | 3. Per-Project Client Overrides | 2/2 | Complete   | 2026-07-06 |
 | 4. Bulk Excel Import | 2/2 | Complete   | 2026-07-06 |
-| 5. Email History Sync | 0/2 | Planned | - |
-| 6. Credit-Risk KPI Evaluator & Semaphore | 0/? | Not started | - |
+| 5. Email History Sync | 2/2 | Complete | 2026-07-06 |
+| 6. Credit-Risk KPI Evaluator & Semaphore | 2/2 | Complete | 2026-07-06 |
 
 ## Requirement Coverage
 

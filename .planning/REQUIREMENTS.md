@@ -80,29 +80,29 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAV-01 | Phase 2 | Pending |
-| NAV-02 | Phase 2 | Pending |
-| API-01 | Phase 1 | Pending |
-| API-02 | Phase 1 | Pending |
-| CLI-01 | Phase 2 | Pending |
-| CLI-02 | Phase 2 | Pending |
-| CLI-03 | Phase 2 | Pending |
+| NAV-01 | Phase 2 | Complete |
+| NAV-02 | Phase 2 | Complete |
+| API-01 | Phase 1 | Complete |
+| API-02 | Phase 1 | Complete |
+| CLI-01 | Phase 2 | Complete |
+| CLI-02 | Phase 2 | Complete |
+| CLI-03 | Phase 2 | Complete |
 | CLI-04 | Phase 3 | Complete |
 | CLI-05 | Phase 3 | Complete |
-| DET-01 | Phase 2 | Pending |
-| DET-02 | Phase 2 | Pending |
-| DET-03 | Phase 2 | Pending |
-| DET-04 | Phase 2 | Pending |
-| IMP-01 | Phase 4 | Pending |
-| IMP-02 | Phase 4 | Pending |
-| IMP-03 | Phase 4 | Pending |
-| IMP-04 | Phase 4 | Pending |
-| EML-01 | Phase 5 | Pending |
-| EML-02 | Phase 5 | Pending |
-| EML-03 | Phase 5 | Pending |
-| RSK-01 | Phase 6 | Pending |
-| RSK-02 | Phase 6 | Pending |
-| RSK-03 | Phase 6 | Pending |
+| DET-01 | Phase 2 | Complete |
+| DET-02 | Phase 2 | Complete |
+| DET-03 | Phase 2 | Complete |
+| DET-04 | Phase 2 | Complete |
+| IMP-01 | Phase 4 | Complete |
+| IMP-02 | Phase 4 | Complete |
+| IMP-03 | Phase 4 | Complete |
+| IMP-04 | Phase 4 | Complete |
+| EML-01 | Phase 5 | Complete |
+| EML-02 | Phase 5 | Complete |
+| EML-03 | Phase 5 | Complete |
+| RSK-01 | Phase 6 | Complete |
+| RSK-02 | Phase 6 | Complete |
+| RSK-03 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 23 total
