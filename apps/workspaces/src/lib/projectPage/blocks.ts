@@ -48,7 +48,11 @@ export type PageBlockKind =
   // Reserved for later phases — registered now so pages built today keep
   // working once these ship (Phase 2 = calendar, Phase 3 = email-campaign).
   | 'calendar'
-  | 'email-campaign';
+  | 'email-campaign'
+  // Client detail page (Phase 2) — client-scoped widgets, rendered only on
+  // /records/[clientId] pages (keyed by clientId, not projectId).
+  | 'client-current-situation'
+  | 'client-timeline';
 
 /** Column span on the page's CSS grid (grid-cols-6: full=6, half=3, third=2). */
 export type BlockSpan = 'full' | 'half' | 'third';
@@ -241,6 +245,18 @@ export interface EmailCampaignBlock extends PageBlockBase {
   kind: 'email-campaign';
 }
 
+// ── Client detail page (Phase 2) ──────────────────────────────────────────────
+
+export interface ClientCurrentSituationBlock extends PageBlockBase {
+  kind: 'client-current-situation';
+  title?: string;
+}
+
+export interface ClientTimelineBlock extends PageBlockBase {
+  kind: 'client-timeline';
+  title?: string;
+}
+
 export type PageBlock =
   | RichTextBlock
   | HeadingBlock
@@ -269,7 +285,9 @@ export type PageBlock =
   | InvoicesBlock
   | LtlMatchesBlock
   | CalendarBlock
-  | EmailCampaignBlock;
+  | EmailCampaignBlock
+  | ClientCurrentSituationBlock
+  | ClientTimelineBlock;
 
 export interface PageConfig {
   version: 1;
@@ -455,6 +473,16 @@ export const PAGE_BLOCK_REGISTRY: PageBlockDef[] = [
     kind: 'email-campaign', group: 'widget', title: 'Email campaign', icon: 'Mail',
     description: 'Send a tracked email campaign via Outlook, with per-recipient open tracking.', available: true,
     create: () => ({ id: uid(), kind: 'email-campaign', span: 'full' }),
+  },
+  {
+    kind: 'client-current-situation', group: 'widget', title: 'Current situation', icon: 'Mail',
+    description: 'Last 10 emails sent to this client.', available: true,
+    create: () => ({ id: uid(), kind: 'client-current-situation', span: 'full', title: 'Current situation' }),
+  },
+  {
+    kind: 'client-timeline', group: 'widget', title: 'Timeline', icon: 'Clock',
+    description: 'Unified feed of emails, invoices, and KPI activity for this client.', available: true,
+    create: () => ({ id: uid(), kind: 'client-timeline', span: 'full', title: 'Timeline' }),
   },
 ];
 
