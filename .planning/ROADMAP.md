@@ -48,7 +48,7 @@ Plans:
   4. The detail page shows the client's last 10 sent emails under a "current situation" section and a full timeline combining emails, billing/invoice events, and available chart data (email data appears once Phase 5 lands; timeline/section render correctly with empty state until then)
   5. User can create a new client's detail page directly from the existing Notion-like project page creator, not only from the CRM dashboard
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -58,7 +58,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-03-PLAN.md — client detail page (sidebar inline-edit + block canvas: current situation, timeline)
+- [x] 02-03-PLAN.md — client detail page (sidebar inline-edit + block canvas: current situation, timeline)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -124,7 +124,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Schema & CRM Domain Foundation | 0/? | Not started | - |
-| 2. CRM Dashboard, Navigation & Client Detail | 2/4 | In Progress|  |
+| 2. CRM Dashboard, Navigation & Client Detail | 3/4 | In Progress|  |
 | 3. Per-Project Client Overrides | 0/? | Not started | - |
 | 4. Bulk Excel Import | 0/? | Not started | - |
 | 5. Email History Sync | 0/? | Not started | - |
