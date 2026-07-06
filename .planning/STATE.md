@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 ## Current Position
 
-Phase: 7 (complete)
-Plan: 07-01 (complete)
-Status: Phase 7 shipped — engine foundation + exhaustive page registry. Next: Phase 8 (page read-rendering → registry dispatch).
-Last activity: 2026-07-06 — Phase 07 executed: lib/workspaceEngine + pageBlockRegistry, tsc green, zero behavior change
+Phase: 8 (complete)
+Plan: 08-01 (complete)
+Status: Phase 8 shipped — PageBlockView switch replaced by registry dispatch (next build green). Next: Phase 9 (edit-mode + slash → registry).
+Last activity: 2026-07-06 — Phase 08 executed: pageBlockViews.tsx extracted, registry renderers repointed, PageBlockView is a thin wrapper
 
 ## Performance Metrics
 
