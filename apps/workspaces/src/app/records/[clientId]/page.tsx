@@ -9,14 +9,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronDown, Loader2 } from 'lucide-react';
+import { ChevronDown, Loader2, Search, Check, Unlink as UnlinkIcon } from 'lucide-react';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { useClient, useUpdateClient, useClientPage, useUpdateClientPage } from '@/lib/hooks/useCrm';
+import {
+  useClient, useUpdateClient, useClientPage, useUpdateClientPage,
+  useClientProjectLinks, useUpsertClientProjectLink, useUnlinkClientProjectLink,
+} from '@/lib/hooks/useCrm';
 import { useTeam } from '@/lib/hooks/useTeam';
+import { useProjects } from '@/lib/hooks/useProjects';
 import { isPageConfig, emptyPageConfig, uid, type PageConfig } from '@/lib/projectPage/blocks';
 import LivePageCanvas from '@/components/projectPage/LivePageCanvas';
-import type { CrmClient, CreateClientInput } from '@/lib/api/crm.api';
+import type { CrmClient, CreateClientInput, ClientProjectLink, LinkProjectInput } from '@/lib/api/crm.api';
 import type { TeamMember } from '@/lib/api/team.api';
+import type { Project } from '@/lib/api/projects.api';
 
 export default function ClientDetailPage() {
   const params = useParams<{ clientId: string }>();
@@ -127,6 +132,7 @@ export default function ClientDetailPage() {
       <div className="max-w-6xl mx-auto px-4 lg:px-8 py-8 flex gap-6 items-start">
         <ClientSidebar client={client} team={team ?? []} onUpdateClient={updateClient} />
         <div className="flex-1 min-w-0">
+          <LinkedProjectsSection clientId={clientId} team={team ?? []} />
           {canvasSaveError && (
             <p className="text-[11px] text-red-500 mb-2">Couldn&apos;t save your changes — try again.</p>
           )}
@@ -171,6 +177,227 @@ function ClientSidebar({
       />
     </div>
   );
+}
+
+// ── Linked Projects (CLI-04/CLI-05, D-01..D-05, 03-UI-SPEC) ─────────────────
+// Attach a client to one or more projects via a searchable picker, then set
+// per-project rate/employee/notes overrides without touching global defaults.
+// Trusts the server-computed merged values + is_overridden flags exclusively
+// (RESEARCH.md anti-pattern warning: never recompute override ?? global here).
+
+function LinkedProjectsSection({ clientId, team }: { clientId: string; team: TeamMember[] }) {
+  const { data: links } = useClientProjectLinks(clientId);
+  const { data: projects } = useProjects();
+  const upsertLink = useUpsertClientProjectLink(clientId);
+  const unlinkMutation = useUnlinkClientProjectLink(clientId);
+
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [attachError, setAttachError] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [unlinkTarget, setUnlinkTarget] = useState<string | null>(null);
+  const [unlinkError, setUnlinkError] = useState<string | null>(null);
+
+  const linkedList = links ?? [];
+  const projectList = projects ?? [];
+  const linkedIds = new Set(linkedList.map((l) => l.project_id));
+
+  const filteredProjects = projectList.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase()));
+
+  const projectName = (projectId: string) => projectList.find((p) => p.id === projectId)?.name ?? 'Unknown project';
+
+  const toggleExpanded = (projectId: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(projectId)) next.delete(projectId); else next.add(projectId);
+      return next;
+    });
+  };
+
+  const handleAttach = (project: Project) => {
+    setAttachError(false);
+    upsertLink.mutate({ project_id: project.id }, {
+      onError: () => setAttachError(true),
+    });
+    setPickerOpen(false);
+    setSearch('');
+  };
+
+  const handleUnlink = (projectId: string) => {
+    setUnlinkError(null);
+    unlinkMutation.mutate(projectId, {
+      onSuccess: () => setUnlinkTarget(null),
+      onError: () => setUnlinkError(projectId),
+    });
+  };
+
+  return (
+    <div className="saas-card !p-4 dark:bg-slate-800 mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Linked Projects</p>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setPickerOpen((o) => !o)}
+            className="text-sm font-semibold text-primary-600 hover:text-primary-700 min-h-[48px] px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+          >
+            Attach project
+          </button>
+          {pickerOpen && (
+            <>
+              <div className="fixed inset-0 z-20" onClick={() => setPickerOpen(false)} />
+              <div className="absolute right-0 top-full mt-1 z-30 w-80 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl p-2">
+                <div className="relative mb-2">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    autoFocus
+                    className="saas-input !py-2 text-sm w-full pl-8"
+                    placeholder="Search projects…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {filteredProjects.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic px-2 py-2">No matching projects</p>
+                  ) : (
+                    filteredProjects.map((p) => {
+                      const alreadyLinked = linkedIds.has(p.id);
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => handleAttach(p)}
+                          className={`w-full flex items-center justify-between gap-2 text-left px-2.5 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors ${
+                            alreadyLinked ? 'text-gray-400' : 'text-gray-700 dark:text-gray-200'
+                          }`}
+                        >
+                          <span className="truncate">{p.name}</span>
+                          {alreadyLinked && <Check className="w-4 h-4 flex-shrink-0" />}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+                {attachError && (
+                  <p className="text-[11px] text-red-500 px-2 pt-1">Couldn&apos;t attach this project — try again.</p>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {linkedList.length === 0 ? (
+        <div className="py-6 text-center">
+          <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">Not attached to any projects yet</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+            Attach this client to a project to set project-specific rate, responsible employee, or notes.
+          </p>
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            className="text-sm font-semibold text-primary-600 hover:text-primary-700 min-h-[48px] px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+          >
+            Attach project
+          </button>
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-100 dark:divide-slate-700/60">
+          {linkedList.map((link) => {
+            const isExpanded = expanded.has(link.project_id);
+            const overrideCount = Object.values(link.is_overridden).filter(Boolean).length;
+            return (
+              <div key={link.project_id}>
+                <div className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg transition-colors -mx-2 px-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleExpanded(link.project_id)}
+                    className="flex-1 min-w-0 flex items-center gap-2 text-left min-h-[48px] py-2"
+                  >
+                    <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">{projectName(link.project_id)}</span>
+                    {overrideCount > 0 && (
+                      <span className="text-[11px] font-semibold text-primary-600 flex-shrink-0">{overrideCount} override{overrideCount > 1 ? 's' : ''}</span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUnlinkTarget(link.project_id)}
+                    className="flex items-center gap-1 text-red-500 hover:text-red-600 min-h-[48px] px-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors flex-shrink-0"
+                  >
+                    <UnlinkIcon className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Unlink</span>
+                  </button>
+                </div>
+                {unlinkError === link.project_id && (
+                  <p className="text-[11px] text-red-500 pb-2">Couldn&apos;t unlink — try again.</p>
+                )}
+                {isExpanded && (
+                  <LinkedProjectOverrideEditor clientId={clientId} link={link} team={team} upsertLink={upsertLink} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {unlinkTarget && (
+        <UnlinkConfirmDialog
+          projectName={projectName(unlinkTarget)}
+          onCancel={() => setUnlinkTarget(null)}
+          onConfirm={() => handleUnlink(unlinkTarget)}
+        />
+      )}
+    </div>
+  );
+}
+
+function UnlinkConfirmDialog({
+  projectName, onCancel, onConfirm,
+}: { projectName: string; onCancel: () => void; onConfirm: () => void }) {
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4" onClick={onCancel}>
+      <div
+        className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 shadow-xl p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">Unlink this project?</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          This removes all rate, employee, and notes overrides for this project ({projectName}). The client&apos;s global defaults are not affected. This can&apos;t be undone — you&apos;ll need to re-enter any overrides if you reattach.
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="min-h-[48px] px-4 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="min-h-[48px] px-4 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors"
+          >
+            Unlink
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Placeholder — Task 2 replaces this with the real per-field override editor.
+function LinkedProjectOverrideEditor({
+  clientId, link, team, upsertLink,
+}: {
+  clientId: string;
+  link: ClientProjectLink;
+  team: TeamMember[];
+  upsertLink: UseMutationResult<ClientProjectLink, unknown, LinkProjectInput>;
+}) {
+  return null;
 }
 
 // ── Inline click-to-edit field (address / notes) ────────────────────────────
