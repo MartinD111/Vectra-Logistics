@@ -33,6 +33,7 @@ export default function ClientDetailPage() {
   const [config, setConfig] = useState<PageConfig>(emptyPageConfig());
   const [seeded, setSeeded] = useState(false);
   const [defaultsSeeded, setDefaultsSeeded] = useState(false);
+  const [canvasSaveError, setCanvasSaveError] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyRef = useRef(false);
   const configRef = useRef(config);
@@ -73,8 +74,18 @@ export default function ClientDetailPage() {
     dirtyRef.current = true;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      dirtyRef.current = false;
-      updatePageRef.current.mutate({ config: config as unknown as Record<string, unknown> });
+      const pending = config;
+      updatePageRef.current.mutate(
+        { config: pending as unknown as Record<string, unknown> },
+        {
+          onSuccess: () => {
+            // Only clear dirty if no newer edit has occurred since this save started.
+            if (configRef.current === pending) dirtyRef.current = false;
+            setCanvasSaveError(false);
+          },
+          onError: () => setCanvasSaveError(true),
+        },
+      );
     }, 1500);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,7 +95,6 @@ export default function ClientDetailPage() {
   useEffect(() => {
     return () => {
       if (dirtyRef.current) {
-        dirtyRef.current = false;
         updatePageRef.current.mutate({ config: configRef.current as unknown as Record<string, unknown> });
       }
     };
@@ -117,6 +127,9 @@ export default function ClientDetailPage() {
       <div className="max-w-6xl mx-auto px-4 lg:px-8 py-8 flex gap-6 items-start">
         <ClientSidebar client={client} team={team ?? []} onUpdateClient={updateClient} />
         <div className="flex-1 min-w-0">
+          {canvasSaveError && (
+            <p className="text-[11px] text-red-500 mb-2">Couldn&apos;t save your changes — try again.</p>
+          )}
           <LivePageCanvas config={config} clientId={clientId} onChange={setConfig} />
         </div>
       </div>
@@ -140,7 +153,7 @@ function ClientSidebar({
         value={client.address ?? ''}
         placeholder="Add an address…"
         multiline={false}
-        onSave={(value) => onUpdateClient.mutate({ id: client.id, data: { address: value } })}
+        onSave={(value, callbacks) => onUpdateClient.mutate({ id: client.id, data: { address: value } }, callbacks)}
       />
 
       <InlineTextField
@@ -148,7 +161,7 @@ function ClientSidebar({
         value={client.notes ?? ''}
         placeholder="Add notes…"
         multiline
-        onSave={(value) => onUpdateClient.mutate({ id: client.id, data: { notes: value } })}
+        onSave={(value, callbacks) => onUpdateClient.mutate({ id: client.id, data: { notes: value } }, callbacks)}
       />
 
       <ResponsibleEmployeeField
@@ -172,7 +185,7 @@ function InlineTextField({
   value: string;
   placeholder: string;
   multiline: boolean;
-  onSave: (value: string) => void;
+  onSave: (value: string, callbacks: { onSuccess: () => void; onError: () => void }) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -191,14 +204,17 @@ function InlineTextField({
   const flush = (next: string) => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     if (next === lastSavedRef.current) return;
+    const previous = lastSavedRef.current;
     lastSavedRef.current = next;
     setSaveState('saving');
-    try {
-      onSave(next);
-      setSaveState('idle');
-    } catch {
-      setSaveState('error');
-    }
+    onSave(next, {
+      onSuccess: () => setSaveState('idle'),
+      onError: () => {
+        // Revert so a retry (re-edit) doesn't get skipped as a no-op change.
+        lastSavedRef.current = previous;
+        setSaveState('error');
+      },
+    });
   };
 
   const handleChange = (next: string) => {
