@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: complete
-stopped_at: Phase 06 complete — v1.0 milestone done
-last_updated: "2026-07-06T16:30:00.000Z"
-last_activity: 2026-07-06 -- Phase 06 (credit-risk KPI evaluator & semaphore) executed and verified
+status: Awaiting next milestone
+stopped_at: Phase 06 complete — v1.0 milestone complete, all 6 phases and 23 requirements shipped
+last_updated: "2026-07-06T16:04:55.430Z"
+last_activity: 2026-07-06 — Milestone v1.0 completed and archived
 progress:
   total_phases: 6
   completed_phases: 6
-  total_plans: 17
-  completed_plans: 17
+  total_plans: 15
+  completed_plans: 15
   percent: 100
 ---
 
@@ -21,16 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-05)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** v1.0 milestone complete — all 6 phases shipped. Consider `/gsd-complete-milestone` to archive and start the next milestone.
+**Current focus:** v1.0 CRM Rework archived. Next milestone: **Workspace Engine v2.0 — Engine Unification** (unify the three block/node systems into one plugin-driven registry). Start via `/gsd-new-milestone`.
 
 ## Current Position
 
-Phase: 6
-Plan: 06-02 (complete)
-Status: Phase 6 complete — v1.0 milestone complete (all 23 requirements shipped)
-Last activity: 2026-07-06 -- Phase 06 executed: credit_risk KPI evaluator + frosted-glass semaphore
-
-Progress: [██████████] 100%
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-06 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -74,6 +72,19 @@ Recent decisions affecting current work:
 
 None yet.
 
+## Deferred Items
+
+Items acknowledged and deferred at v1.0 milestone close on 2026-07-06:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat | Phase 02 human-UAT (02-HUMAN-UAT.md) — 5 pending scenarios | partial |
+| uat | Phase 03 human-UAT (03-HUMAN-UAT.md) — 2 pending scenarios | partial |
+| verification | Phase 02 verification (02-VERIFICATION.md) | human_needed |
+| verification | Phase 03 verification (03-VERIFICATION.md) | human_needed |
+
+These are manual sign-offs on already-shipped CRM features (incl. the credit-risk semaphore). Run before/during production rollout; not blocking the v2.0 engine work.
+
 ### Blockers/Concerns
 
 - [Phase 1] `kpi_results.user_id` is NOT NULL today — needs schema resolution (nullable + `client_id` column, or equivalent) before Phase 6's client-subject risk evaluator can write results (already resolved via migration 021 — nullable + client_id column added; Phase 6 unblocked)
@@ -87,3 +98,7 @@ None yet.
 Last session: 2026-07-06T16:30:00.000Z
 Stopped at: Phase 06 complete — v1.0 milestone complete, all 6 phases and 23 requirements shipped
 Resume file: .planning/phases/06-credit-risk-kpi-evaluator-semaphore/06-02-SUMMARY.md
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
