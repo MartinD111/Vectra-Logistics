@@ -144,7 +144,13 @@ Plans:
   2. Dispatcher sees a red "frosted glass" visual warning at load-assignment time when the target client is over their credit limit
   3. Attempting to assign a load to an over-limit client is still hard-blocked (403), and the semaphore is confirmed to be reflecting — not replacing or duplicating — that existing enforcement
 
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — Migration adding kpi_rules.target_client_id + kpi.types.ts nullability fix + credit_risk evaluator (utilization + overdue-invoice risk) + kpi.repository/service wiring + crmService.getClientRisk() real computation
+- [ ] 06-02-PLAN.md — PodTrackerBlock.tsx frosted-glass over-limit semaphore (pre-submit + restyled 403) + useBilling→useCrm stale-hook fix
 
 ## Progress
 
