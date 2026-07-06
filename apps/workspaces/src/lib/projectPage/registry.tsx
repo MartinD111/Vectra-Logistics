@@ -21,10 +21,11 @@ import type {
 } from './blocks';
 import { pageBlockDef } from './blocks';
 import {
-  WorkspaceBlockRegistry, type WorkspaceBlockPlugin, type BlockRenderProps,
+  WorkspaceBlockRegistry, type WorkspaceBlockPlugin, type BlockRenderProps, type BlockEditProps,
 } from '@/lib/workspaceEngine';
 import type { SlashMenuItem } from './slashMenu';
-import type { SlashSelectContext } from '@/components/projectPage/EditableRichText';
+import { EditableRichText, type SlashSelectContext } from '@/components/projectPage/EditableRichText';
+import { EditableHeading } from '@/components/projectPage/EditableHeading';
 import {
   HeadingView, RichTextView, ListView, DividerView, MiniProgramEmbedView,
   PeopleView, StatCardsView, KpiGridView, ChartWidgetView, ActivityTimelineView,
@@ -62,9 +63,10 @@ export interface PageCtx {
 }
 
 type Renderer = ComponentType<BlockRenderProps<PageBlock, PageCtx>>;
+type Editor = ComponentType<BlockEditProps<PageBlock, PageCtx>>;
 
 /** Build a native page plugin from existing PAGE_BLOCK_REGISTRY metadata + factory. */
-function entry(kind: PageBlockKind, renderer: Renderer): WorkspaceBlockPlugin<PageBlock, PageCtx> {
+function entry(kind: PageBlockKind, renderer: Renderer, editor?: Editor): WorkspaceBlockPlugin<PageBlock, PageCtx> {
   const def = pageBlockDef(kind)!;
   return {
     key: kind,
@@ -76,31 +78,64 @@ function entry(kind: PageBlockKind, renderer: Renderer): WorkspaceBlockPlugin<Pa
     available: def.available,
     create: def.create,
     renderer,
+    editor,
   };
 }
 
 // Explicit Record over the union — the compile-time exhaustiveness proof (ENG-03).
 // Adapter arrows mirror the old PageBlockView switch exactly (including the
 // projectId/clientId non-null assertions the switch made via `as string`).
+// Entry order mirrors PAGE_BLOCK_REGISTRY so pageBlockRegistry.list() (which
+// feeds the slash/insert palette) preserves the original palette order.
 const entries: Record<PageBlockKind, WorkspaceBlockPlugin<PageBlock, PageCtx>> = {
-  'heading': entry('heading', ({ block }) => <HeadingView block={block as HeadingBlock} />),
-  'rich-text': entry('rich-text', ({ block }) => <RichTextView block={block as RichTextBlock} />),
-  'list': entry('list', ({ block }) => <ListView block={block as ListBlock} />),
+  'heading': entry('heading',
+    ({ block }) => <HeadingView block={block as HeadingBlock} />,
+    ({ block, onUpdate }) => (
+      <EditableHeading
+        level={(block as HeadingBlock).level}
+        text={(block as HeadingBlock).text}
+        onChange={(text) => onUpdate({ ...(block as HeadingBlock), text })}
+      />
+    ),
+  ),
+  'rich-text': entry('rich-text',
+    ({ block }) => <RichTextView block={block as RichTextBlock} />,
+    ({ block, ctx, onUpdate }) => (
+      <EditableRichText
+        html={(block as RichTextBlock).html}
+        onChange={(html) => onUpdate({ ...(block as RichTextBlock), html })}
+        placeholder="Type '/' for commands…"
+        slashItems={ctx.slashItems!}
+        onSlashSelect={ctx.onSlashSelect!}
+      />
+    ),
+  ),
+  'list': entry('list',
+    ({ block }) => <ListView block={block as ListBlock} />,
+    ({ block, ctx, onUpdate }) => (
+      <EditableRichText
+        html={(block as ListBlock).html}
+        onChange={(html) => onUpdate({ ...(block as ListBlock), html })}
+        slashItems={ctx.slashItems!}
+        onSlashSelect={ctx.onSlashSelect!}
+      />
+    ),
+  ),
   'divider': entry('divider', () => <DividerView />),
-  'mini-program': entry('mini-program', ({ block }) => <MiniProgramEmbedView block={block as MiniProgramBlock} />),
-  'kanban': entry('kanban', ({ block, ctx }) => <KanbanBoardView block={block as KanbanBlock} onChange={ctx.onChange} />),
   'people': entry('people', ({ block, ctx }) => <PeopleView block={block as PeopleBlock} projectId={ctx.projectId as string} />),
   'stat-cards': entry('stat-cards', ({ block, ctx }) => <StatCardsView block={block as StatCardsBlock} projectId={ctx.projectId as string} />),
   'kpi-grid': entry('kpi-grid', ({ block, ctx }) => <KpiGridView block={block as KpiGridBlock} projectId={ctx.projectId as string} />),
   'chart': entry('chart', ({ block, ctx }) => <ChartWidgetView block={block as ChartBlock} projectId={ctx.projectId as string} />),
   'activity-timeline': entry('activity-timeline', ({ block, ctx }) => <ActivityTimelineView block={block as ActivityTimelineBlock} projectId={ctx.projectId as string} />),
   'program-link': entry('program-link', ({ block, ctx }) => <ProgramLinkView block={block as ProgramLinkBlock} projectId={ctx.projectId as string} />),
-  'calendar': entry('calendar', ({ ctx }) => <CalendarView projectId={ctx.projectId as string} />),
-  'email-campaign': entry('email-campaign', ({ ctx }) => <EmailCampaignView projectId={ctx.projectId as string} />),
+  'mini-program': entry('mini-program', ({ block }) => <MiniProgramEmbedView block={block as MiniProgramBlock} />),
+  'kanban': entry('kanban',
+    ({ block, ctx }) => <KanbanBoardView block={block as KanbanBlock} onChange={ctx.onChange} />,
+    ({ block, onUpdate }) => <KanbanBoardView block={block as KanbanBlock} onChange={onUpdate} />,
+  ),
   'fleet-telematics': entry('fleet-telematics', ({ block }) => <FleetTelematicsView block={block as FleetTelematicsBlock} />),
   'spot-quote': entry('spot-quote', ({ block }) => <SpotQuoteView block={block as SpotQuoteBlock} />),
   'exception-radar': entry('exception-radar', ({ block }) => <ExceptionRadarView block={block as ExceptionRadarBlock} />),
-  'omni-chat': entry('omni-chat', ({ block, ctx }) => <OmniChatView block={block as OmniChatBlock} projectId={ctx.projectId as string} />),
   'smart-inbox': entry('smart-inbox', ({ block, ctx }) => <SmartInboxView block={block as SmartInboxBlock} projectId={ctx.projectId as string} />),
   'drafts-kanban': entry('drafts-kanban', ({ block, ctx }) => <DraftsKanbanView block={block as DraftsKanbanBlock} projectId={ctx.projectId as string} />),
   'yard-map': entry('yard-map', ({ block, ctx }) => <YardMapView block={block as YardMapBlock} projectId={ctx.projectId as string} />),
@@ -111,6 +146,9 @@ const entries: Record<PageBlockKind, WorkspaceBlockPlugin<PageBlock, PageCtx>> =
   'vat-matrix': entry('vat-matrix', ({ block }) => <VatMatrixView block={block as VatMatrixBlock} />),
   'invoices': entry('invoices', ({ block }) => <InvoicesView block={block as InvoicesBlock} />),
   'ltl-matches': entry('ltl-matches', ({ block }) => <LtlMatchesView block={block as LtlMatchesBlock} />),
+  'omni-chat': entry('omni-chat', ({ block, ctx }) => <OmniChatView block={block as OmniChatBlock} projectId={ctx.projectId as string} />),
+  'calendar': entry('calendar', ({ ctx }) => <CalendarView projectId={ctx.projectId as string} />),
+  'email-campaign': entry('email-campaign', ({ ctx }) => <EmailCampaignView projectId={ctx.projectId as string} />),
   'client-current-situation': entry('client-current-situation', ({ block, ctx }) => <ClientCurrentSituationBlockView block={block as ClientCurrentSituationBlock} clientId={ctx.clientId as string} />),
   'client-timeline': entry('client-timeline', ({ block, ctx }) => <ClientTimelineBlockView block={block as ClientTimelineBlock} clientId={ctx.clientId as string} />),
 };

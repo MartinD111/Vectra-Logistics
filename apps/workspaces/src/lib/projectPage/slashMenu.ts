@@ -5,9 +5,10 @@
 // substring over title + keywords).
 
 import {
-  PAGE_BLOCK_REGISTRY, uid,
+  uid,
   type PageBlock, type PageBlockGroup, type PageBlockKind,
 } from './blocks';
+import { pageBlockRegistry } from './registry';
 
 export interface SlashMenuItem {
   id: string;
@@ -81,13 +82,16 @@ export function buildSlashMenuItems(): SlashMenuItem[] {
     create: () => ({ id: uid(), kind: 'list', span: 'full', style: 'numbered', html: '<ol><li></li></ol>' }),
   });
 
-  for (const def of PAGE_BLOCK_REGISTRY) {
-    if (!def.available || def.kind === 'heading' || def.kind === 'list') continue;
+  // Derived from the page block registry (one entry per kind). Heading and list
+  // are hand-expanded into variants above, so skip their single registry entries.
+  for (const plugin of pageBlockRegistry.list()) {
+    const kind = plugin.key as PageBlockKind;
+    if (plugin.available === false || kind === 'heading' || kind === 'list') continue;
     items.push({
-      id: def.kind, kind: def.kind, title: def.title, description: def.description,
-      keywords: [def.title.toLowerCase(), ...(EXTRA_KEYWORDS[def.kind] ?? [])],
-      icon: def.icon, group: def.group,
-      create: def.create,
+      id: kind, kind, title: plugin.title, description: plugin.description,
+      keywords: [plugin.title.toLowerCase(), ...(EXTRA_KEYWORDS[kind] ?? [])],
+      icon: plugin.icon, group: plugin.group as PageBlockGroup,
+      create: plugin.create,
     });
   }
   return items;

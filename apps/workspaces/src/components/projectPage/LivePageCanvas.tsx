@@ -20,6 +20,7 @@ import {
   type BlockSpan, type PageBlock, type PageConfig,
 } from '@/lib/projectPage/blocks';
 import { buildSlashMenuItems, isContentItem, type SlashMenuItem } from '@/lib/projectPage/slashMenu';
+import { pageBlockRegistry } from '@/lib/projectPage/registry';
 import { PageBlockView } from './PageBlockView';
 import { PageBlockSettings } from './PageBlockSettings';
 import { EditableRichText, type SlashSelectContext } from './EditableRichText';
@@ -314,68 +315,10 @@ function BlockEditor({
   onUpdate: (b: PageBlock) => void;
   onSlashSelect: (item: SlashMenuItem, ctx: SlashSelectContext) => void;
 }) {
-  switch (block.kind) {
-    case 'rich-text':
-      return (
-        <EditableRichText
-          html={block.html}
-          onChange={(html) => onUpdate({ ...block, html })}
-          placeholder="Type '/' for commands…"
-          slashItems={slashItems}
-          onSlashSelect={onSlashSelect}
-        />
-      );
-    case 'list':
-      return (
-        <EditableRichText
-          html={block.html}
-          onChange={(html) => onUpdate({ ...block, html })}
-          slashItems={slashItems}
-          onSlashSelect={onSlashSelect}
-        />
-      );
-    case 'heading':
-      return <EditableHeading level={block.level} text={block.text} onChange={(text) => onUpdate({ ...block, text })} />;
-    case 'kanban':
-      return <PageBlockView block={block} projectId={projectId} onChange={onUpdate} />;
-    default:
-      return <PageBlockView block={block} projectId={projectId} clientId={clientId} />;
-  }
-}
-
-function EditableHeading({
-  level, text, onChange,
-}: { level: 1 | 2 | 3; text: string; onChange: (text: string) => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const cls = level === 1 ? 'text-2xl font-black' : level === 2 ? 'text-lg font-bold' : 'text-base font-semibold';
-  // Uncontrolled contentEditable — React must not manage its children (any
-  // re-render would reset the DOM mid-typing). Sync only while unfocused.
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || document.activeElement === el) return;
-    if ((el.textContent ?? '') !== text) el.textContent = text;
-  }, [text]);
-  return (
-    <div className="relative">
-      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
-      <div
-        ref={ref}
-        contentEditable
-        suppressContentEditableWarning
-        className={`${cls} text-gray-900 dark:text-white min-h-[1.5em] rounded-lg px-2 py-0.5 -mx-2 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900`}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLElement).blur(); } }}
-        onBlur={() => {
-          const next = (ref.current?.textContent ?? '').trim();
-          if (next !== text) onChange(next);
-        }}
-      />
-      {!text && (
-        <span className={`${cls} pointer-events-none absolute left-0 top-0.5 px-2 -mx-2 text-gray-300 dark:text-gray-600 select-none`}>
-          Heading {level}
-        </span>
-      )}
-    </div>
-  );
+  // Edit-mode dispatch via the registry: kinds with an `editor` (rich-text,
+  // list, heading, kanban) render it; everything else falls back to the read
+  // renderer — exactly the old `default: <PageBlockView/>` behaviour.
+  return <>{pageBlockRegistry.renderEditor(block, { projectId, clientId, slashItems, onSlashSelect }, onUpdate)}</>;
 }
 
 // ── Empty page ───────────────────────────────────────────────────────────────
