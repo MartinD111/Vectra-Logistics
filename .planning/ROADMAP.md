@@ -8,7 +8,7 @@
 
 - [ ] **Phase 1: Schema & CRM Domain Foundation** - Migrations for all new tables/columns and a dedicated `crm` API domain replace the fragmented `billing`-based CRM logic
 - [x] **Phase 2: CRM Dashboard, Navigation & Client Detail** - Sidebar renamed to CRM, dashboard lists clients, full client detail page with address/notes/employee/timeline, creatable from the project page canvas (completed 2026-07-06)
-- [ ] **Phase 3: Per-Project Client Overrides** - Clients attach to projects with field-level overrides layered over client-level defaults
+- [x] **Phase 3: Per-Project Client Overrides** - Clients attach to projects with field-level overrides layered over client-level defaults (completed 2026-07-06)
 - [ ] **Phase 4: Bulk Excel Import** - Template download, bulk upload, per-row report, default fallbacks
 - [ ] **Phase 5: Email History Sync** - Real Microsoft Graph sent-mail sync matched to clients, rendered as "last 10 emails" on the detail page
 - [ ] **Phase 6: Credit-Risk KPI Evaluator & Semaphore** - Risk evaluated as a first-class KPI rule; dispatcher sees a hard-blocking red "frosted glass" warning at assignment time
@@ -77,7 +77,7 @@ Plans:
   2. User can override rate, responsible employee, and notes for a client on a specific project
   3. Changing a project-level override does not change the client's global (default) values, and other projects the client is attached to remain unaffected
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 **Wave 1**
@@ -86,7 +86,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02-PLAN.md — Linked Projects UI on client detail page (attach picker, per-field override toggle, unlink confirm dialog)
+- [x] 03-02-PLAN.md — Linked Projects UI on client detail page (attach picker, per-field override toggle, unlink confirm dialog)
 
 ### Phase 4: Bulk Excel Import
 
@@ -134,7 +134,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Schema & CRM Domain Foundation | 0/? | Not started | - |
 | 2. CRM Dashboard, Navigation & Client Detail | 4/4 | Complete   | 2026-07-06 |
-| 3. Per-Project Client Overrides | 1/2 | In Progress|  |
+| 3. Per-Project Client Overrides | 2/2 | Complete   | 2026-07-06 |
 | 4. Bulk Excel Import | 0/? | Not started | - |
 | 5. Email History Sync | 0/? | Not started | - |
 | 6. Credit-Risk KPI Evaluator & Semaphore | 0/? | Not started | - |

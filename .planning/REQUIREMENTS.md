@@ -20,8 +20,8 @@
 - [ ] **CLI-01**: User can view and edit a client's address
 - [ ] **CLI-02**: User can view and edit free-text notes on a client
 - [ ] **CLI-03**: User can assign a responsible employee to a client
-- [ ] **CLI-04**: User can attach a client to one or more projects
-- [ ] **CLI-05**: User can override rate, responsible employee, and notes for a client on a specific project, without changing the client's global defaults
+- [x] **CLI-04**: User can attach a client to one or more projects
+- [x] **CLI-05**: User can override rate, responsible employee, and notes for a client on a specific project, without changing the client's global defaults
 
 ### Client Detail Page
 
@@ -87,8 +87,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLI-01 | Phase 2 | Pending |
 | CLI-02 | Phase 2 | Pending |
 | CLI-03 | Phase 2 | Pending |
-| CLI-04 | Phase 3 | Pending |
-| CLI-05 | Phase 3 | Pending |
+| CLI-04 | Phase 3 | Complete |
+| CLI-05 | Phase 3 | Complete |
 | DET-01 | Phase 2 | Pending |
 | DET-02 | Phase 2 | Pending |
 | DET-03 | Phase 2 | Pending |
