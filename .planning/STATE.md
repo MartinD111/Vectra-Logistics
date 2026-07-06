@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 ## Current Position
 
-Phase: 9 (complete)
-Plan: 09-01 (complete)
-Status: Phase 9 shipped — both page switches gone; edit + slash registry-driven (next build green, 29/29 static pages). Next: Phase 10 (Mini Program onto the engine).
-Last activity: 2026-07-06 — Phase 09 executed: EditableHeading extracted, registry editor entries, BlockEditor + buildSlashMenuItems registry-driven
+Phase: 10 (complete)
+Plan: 10-01 (complete)
+Status: Phase 10 shipped — BlockView switch replaced by miniProgramBlockRegistry (same engine class as pages). Next: Phase 11 (shared palette derivation).
+Last activity: 2026-07-06 — Phase 10 executed: miniProgramBlockViews extracted, lib/miniProgram/registry.tsx, BlockView is a thin wrapper
 
 ## Performance Metrics
 
