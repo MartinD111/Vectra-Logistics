@@ -24,8 +24,8 @@ result: [pending]
 expected: Click a client row on `/records`; confirm a new browser tab opens at `/records/{clientId}` and renders the sidebar + canvas without crashing. New tab opens; sidebar shows address/notes/responsible-employee; canvas auto-seeds current-situation + timeline blocks with their empty-state copy on first visit.
 result: [pending]
 
-### 4. Reproduce and decide on the autosave failure defect
-expected: Edit the address field on the detail page sidebar, wait ~800ms, confirm the value persists on page reload. Then simulate a failed PATCH (e.g. stop the API mid-edit) and confirm the UI does not silently mark the edit as saved. Successful edits persist. Failed edits show "Couldn't save — try again" and do NOT lose the user's input. **Known defect (02-REVIEW.md CR-01 / 02-VERIFICATION.md):** the autosave's error-handling path is dead code (`.mutate()` doesn't throw synchronously, so the catch block never fires) and the page-level canvas autosave has no `onError` handler at all — decide whether this blocks phase acceptance or is deferred as a fast-follow fix.
+### 4. Reproduce and confirm the autosave fix
+expected: Edit the address field on the detail page sidebar, wait ~800ms, confirm the value persists on page reload. Then simulate a failed PATCH (e.g. stop the API mid-edit) and confirm the UI does not silently mark the edit as saved. Successful edits persist. Failed edits show "Couldn't save — try again" and do NOT lose the user's input. **Fixed in commit e68b28e:** `InlineTextField` and the canvas autosave now use `mutate()`'s `onSuccess`/`onError` callbacks instead of a dead-code try/catch; failed inline-field saves revert to last-known-good and show an error; failed canvas saves keep the dirty flag set and show an inline error banner. Still needs a live-DB/browser pass to confirm the fix behaves as intended under a real failed request.
 result: [pending]
 
 ### 5. Confirm get-or-create dedupe guarantee against a live DB
