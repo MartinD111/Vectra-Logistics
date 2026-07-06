@@ -9,7 +9,7 @@
 - [ ] **Phase 1: Schema & CRM Domain Foundation** - Migrations for all new tables/columns and a dedicated `crm` API domain replace the fragmented `billing`-based CRM logic
 - [x] **Phase 2: CRM Dashboard, Navigation & Client Detail** - Sidebar renamed to CRM, dashboard lists clients, full client detail page with address/notes/employee/timeline, creatable from the project page canvas (completed 2026-07-06)
 - [x] **Phase 3: Per-Project Client Overrides** - Clients attach to projects with field-level overrides layered over client-level defaults (completed 2026-07-06)
-- [ ] **Phase 4: Bulk Excel Import** - Template download, bulk upload, per-row report, default fallbacks
+- [x] **Phase 4: Bulk Excel Import** - Template download, bulk upload, per-row report, default fallbacks (completed 2026-07-06)
 - [ ] **Phase 5: Email History Sync** - Real Microsoft Graph sent-mail sync matched to clients, rendered as "last 10 emails" on the detail page
 - [ ] **Phase 6: Credit-Risk KPI Evaluator & Semaphore** - Risk evaluated as a first-class KPI rule; dispatcher sees a hard-blocking red "frosted glass" warning at assignment time
 
@@ -100,7 +100,7 @@ Plans:
   3. After import, user sees a per-row report showing which rows were created vs. failed, with a reason for each failure
   4. Rows with blank credit limit or default rate are created successfully using system defaults (€10,000 limit) rather than failing
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 **Wave 1**
@@ -109,7 +109,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 04-02-PLAN.md — Frontend Import from Excel modal (template download, upload/parse/preview/report) wired into CRM dashboard
+- [x] 04-02-PLAN.md — Frontend Import from Excel modal (template download, upload/parse/preview/report) wired into CRM dashboard
 
 ### Phase 5: Email History Sync
 
@@ -144,7 +144,7 @@ Plans:
 | 1. Schema & CRM Domain Foundation | 0/? | Not started | - |
 | 2. CRM Dashboard, Navigation & Client Detail | 4/4 | Complete   | 2026-07-06 |
 | 3. Per-Project Client Overrides | 2/2 | Complete   | 2026-07-06 |
-| 4. Bulk Excel Import | 1/2 | In Progress|  |
+| 4. Bulk Excel Import | 2/2 | Complete   | 2026-07-06 |
 | 5. Email History Sync | 0/? | Not started | - |
 | 6. Credit-Risk KPI Evaluator & Semaphore | 0/? | Not started | - |
 
