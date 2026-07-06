@@ -41,6 +41,14 @@ class TeamRepository {
     return rows[0] ?? null;
   }
 
+  async findMemberByEmail(email: string, companyId: string): Promise<TeamMember | null> {
+    const { rows } = await db.query<TeamMember>(
+      `SELECT ${MEMBER_COLS} FROM users WHERE email = $1 AND company_id = $2`,
+      [email, companyId],
+    );
+    return rows[0] ?? null;
+  }
+
   async emailExists(email: string): Promise<boolean> {
     const { rows } = await db.query(`SELECT 1 FROM users WHERE email = $1`, [email]);
     return rows.length > 0;
