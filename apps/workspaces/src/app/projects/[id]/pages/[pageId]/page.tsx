@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, CheckCircle2, Plus } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle2, Plus, Building2 } from 'lucide-react';
 import {
   useProjectPage, useUpdateProjectPage, useProjectPages, useCreateProjectPage, useDeleteProjectPage,
 } from '@/lib/hooks/useProjectPages';
@@ -15,6 +15,7 @@ import { isPageConfig, emptyPageConfig, parseHeaderSettings, type PageConfig } f
 import LivePageCanvas from '@/components/projectPage/LivePageCanvas';
 import { PageHeader } from '@/components/projectPage/PageHeader';
 import { PageTree } from '@/components/projectPage/PageTree';
+import { NewClientPageModal } from '@/components/projectPage/NewClientPageModal';
 
 export default function ProjectPagePage() {
   const params = useParams<{ id: string; pageId: string }>();
@@ -28,6 +29,7 @@ export default function ProjectPagePage() {
   const createSubPage = useCreateProjectPage(projectId);
   const deletePage = useDeleteProjectPage(projectId);
   const [addingUnder, setAddingUnder] = useState<string | null>(null);
+  const [newClientPageOpen, setNewClientPageOpen] = useState(false);
 
   const parent = page?.parent_page_id ? (allPages ?? []).find((p) => p.id === page.parent_page_id) : null;
 
@@ -120,6 +122,10 @@ export default function ProjectPagePage() {
           <div className="flex items-center gap-2">
             {saved && <span className="text-sm text-primary-600 inline-flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Saved</span>}
             {update.isPending && !saved && <Loader2 className="w-4 h-4 animate-spin text-gray-400" />}
+            <button onClick={() => setNewClientPageOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border text-gray-900 dark:text-white text-sm font-semibold hover:bg-gray-50 disabled:opacity-60">
+              <Building2 className="w-4 h-4" /> New client page
+            </button>
             <button onClick={() => addSubPageUnder(pageId)} disabled={addingUnder === pageId}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border text-gray-900 dark:text-white text-sm font-semibold hover:bg-gray-50 disabled:opacity-60">
               {addingUnder === pageId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Sub-page
@@ -142,6 +148,8 @@ export default function ProjectPagePage() {
           </div>
         )}
       </div>
+
+      <NewClientPageModal open={newClientPageOpen} onClose={() => setNewClientPageOpen(false)} />
     </div>
   );
 }
