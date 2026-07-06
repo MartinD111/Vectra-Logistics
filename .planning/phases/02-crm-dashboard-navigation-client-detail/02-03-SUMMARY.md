@@ -120,6 +120,10 @@ None beyond what Plan 01 already flagged: `database/migrations/022_client_pages.
 - Ready for Plan 02-04 (page-creator entry point: "New client page" menu item, D-07/D-08) to link into this route
 - Blocker carried over from Plan 01: `022_client_pages.sql` must run against the dev database before any browser-level QA of this plan's route is possible
 
+## Self-Check: PASSED
+
+All declared files verified present on disk; all 4 commit hashes (cd1b69e, 51f1205, de261b6, 6e4bfee) verified in `git log`.
+
 ---
 *Phase: 02-crm-dashboard-navigation-client-detail*
 *Completed: 2026-07-06*
