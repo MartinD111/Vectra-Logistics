@@ -77,7 +77,16 @@ Plans:
   2. User can override rate, responsible employee, and notes for a client on a specific project
   3. Changing a project-level override does not change the client's global (default) values, and other projects the client is attached to remain unaffected
 
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — Unlink vertical slice (repo/service/controller/route/api/hook) + project-ownership access-control fix on attach and unlink
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 03-02-PLAN.md — Linked Projects UI on client detail page (attach picker, per-field override toggle, unlink confirm dialog)
 
 ### Phase 4: Bulk Excel Import
 
@@ -125,7 +134,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Schema & CRM Domain Foundation | 0/? | Not started | - |
 | 2. CRM Dashboard, Navigation & Client Detail | 4/4 | Complete   | 2026-07-06 |
-| 3. Per-Project Client Overrides | 0/? | Not started | - |
+| 3. Per-Project Client Overrides | 0/2 | Not started | - |
 | 4. Bulk Excel Import | 0/? | Not started | - |
 | 5. Email History Sync | 0/? | Not started | - |
 | 6. Credit-Risk KPI Evaluator & Semaphore | 0/? | Not started | - |
