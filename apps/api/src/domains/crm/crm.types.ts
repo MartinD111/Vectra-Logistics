@@ -63,3 +63,18 @@ export interface ClientTimelineEntry {
   occurred_at: string;
   summary: string;
 }
+
+/** Per-row outcome of a bulk Excel import batch (Phase 4, IMP-02/IMP-03). */
+export interface ImportRowResult {
+  row: number;
+  status: 'created' | 'failed';
+  client?: ClientRecord;
+  reason?: string;
+}
+
+/** Aggregate result of a bulk Excel import batch. */
+export interface ImportClientsResult {
+  created: number;
+  failed: number;
+  results: ImportRowResult[];
+}

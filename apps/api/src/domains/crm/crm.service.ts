@@ -1,7 +1,8 @@
 import { AppError } from '../../core/errors/AppError';
 import { crmRepository } from './crm.repository';
 import { projectsRepository } from '../projects/projects.repository';
-import { ClientRecord, ResolvedClientProjectView, ClientPageRecord, ClientTimelineEntry } from './crm.types';
+import { teamRepository } from '../team/team.repository';
+import { ClientRecord, ResolvedClientProjectView, ClientPageRecord, ClientTimelineEntry, ImportClientsResult, ImportRowResult } from './crm.types';
 import { CreateClientSchema } from './dto/create-client.dto';
 import { UpdateClientSchema } from './dto/update-client.dto';
 import { LinkProjectSchema } from './dto/link-project.dto';
@@ -154,9 +155,72 @@ class CrmService {
     return entries.sort((a, b) => (a.occurred_at < b.occurred_at ? 1 : a.occurred_at > b.occurred_at ? -1 : 0));
   }
 
-  // ── Stubs (later phases implement the real logic) ──
-  async importClients(_companyId: string, _body: unknown): Promise<{ created: number; failed: number; errors: string[] }> {
-    throw new AppError(501, 'Bulk import not yet implemented — lands in Phase 4');
+  // ── Bulk Excel Import (IMP-02/IMP-03/IMP-04, D-03: per-row commit, no batch-wide rollback) ──
+  async importClients(companyId: string, body: unknown): Promise<ImportClientsResult> {
+    if (!Array.isArray(body)) throw new AppError(400, 'Import payload must be an array of rows');
+
+    const results: ImportRowResult[] = [];
+
+    for (let i = 0; i < body.length; i++) {
+      const row = i + 1;
+      const raw = body[i] as Record<string, unknown>;
+
+      let responsibleEmployeeId: string | null = null;
+      const rawEmail = raw.responsible_employee_email;
+      if (typeof rawEmail === 'string' && rawEmail.trim() !== '') {
+        try {
+          responsibleEmployeeId = await this.resolveResponsibleEmployee(rawEmail, companyId);
+        } catch (err) {
+          const reason = err instanceof AppError ? err.message : 'No team member found with this email';
+          results.push({ row, status: 'failed', reason });
+          continue;
+        }
+      }
+
+      const rawVatId = raw.vat_id;
+      if (typeof rawVatId === 'string' && rawVatId.trim() !== '') {
+        const existing = await crmRepository.findClientByVatId(rawVatId, companyId);
+        if (existing) {
+          results.push({ row, status: 'failed', reason: 'Client with this VAT ID already exists' });
+          continue;
+        }
+      }
+
+      const { responsible_employee_email: _ignored, ...rest } = raw;
+      const candidate = { ...rest, responsible_employee_id: responsibleEmployeeId };
+
+      const parsed = CreateClientSchema.safeParse(candidate);
+      if (!parsed.success) {
+        results.push({ row, status: 'failed', reason: parsed.error.issues[0].message });
+        continue;
+      }
+
+      const d = parsed.data;
+      const client = await crmRepository.createClient(companyId, {
+        name: d.name,
+        country: d.country.toUpperCase(),
+        vat_id: d.vat_id ?? null,
+        email: d.email ?? null,
+        credit_limit: d.credit_limit ?? 10000,
+        default_rate_eur: d.default_rate_eur ?? null,
+        notes: d.notes ?? null,
+        address: d.address ?? null,
+        responsible_employee_id: d.responsible_employee_id ?? null,
+      });
+      results.push({ row, status: 'created', client });
+    }
+
+    return {
+      created: results.filter((r) => r.status === 'created').length,
+      failed: results.filter((r) => r.status === 'failed').length,
+      results,
+    };
+  }
+
+  private async resolveResponsibleEmployee(email: string, companyId: string): Promise<string> {
+    const member = await teamRepository.findMemberByEmail(email, companyId);
+    if (!member) throw new AppError(404, 'No team member found with this email');
+    return member.id;
   }
 
   async getClientEmails(clientId: string, companyId: string): Promise<{ id: string; sender_email: string; subject: string; received_at: string }[]> {
