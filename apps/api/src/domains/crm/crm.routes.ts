@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authenticateToken } from '../../core/auth/middleware';
 import {
   listClients, getClient, createClient, updateClient,
-  listClientProjectLinks, upsertClientProjectLink,
+  listClientProjectLinks, upsertClientProjectLink, unlinkClientProjectLink,
   importClients, getClientEmails, getClientRisk,
   getClientPage, updateClientPage, getClientTimeline,
 } from './crm.controller';
@@ -17,6 +17,7 @@ router.patch('/clients/:id', updateClient);
 
 router.get('/clients/:id/projects', listClientProjectLinks);
 router.post('/clients/:id/projects', upsertClientProjectLink);
+router.delete('/clients/:id/projects/:projectId', unlinkClientProjectLink);
 
 router.post('/clients/import', importClients);
 router.get('/clients/:id/emails', getClientEmails);

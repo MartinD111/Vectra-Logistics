@@ -71,6 +71,14 @@ export function useUpsertClientProjectLink(clientId: string) {
   });
 }
 
+export function useUnlinkClientProjectLink(clientId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (projectId: string) => crmApi.unlinkClientProjectLink(clientId, projectId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.projectLinks(clientId) }),
+  });
+}
+
 export function useClientPage(clientId: string) {
   const { user } = useAuth();
   return useQuery({
