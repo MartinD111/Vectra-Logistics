@@ -6,10 +6,11 @@
 // Plan 03). Search + "over limit only" filter compose client-side (A2).
 
 import { useMemo, useState } from 'react';
-import { Loader2, Building2, Plus } from 'lucide-react';
+import { Loader2, Building2, Plus, Upload } from 'lucide-react';
 import { useClients } from '@/lib/hooks/useCrm';
 import { useTeam } from '@/lib/hooks/useTeam';
 import { AddClientModal } from '@/components/projectPage/AddClientModal';
+import { ImportClientsModal } from '@/components/projectPage/ImportClientsModal';
 import type { CrmClient } from '@/lib/api/crm.api';
 
 function creditStatus(client: CrmClient) {
@@ -27,6 +28,7 @@ export default function RecordsPage() {
   const [search, setSearch] = useState('');
   const [overLimitOnly, setOverLimitOnly] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const teamNameById = useMemo(() => {
     const map = new Map<string, string>();
@@ -67,8 +69,14 @@ export default function RecordsPage() {
           Over limit only
         </label>
         <button
+          onClick={() => setImportOpen(true)}
+          className="ml-auto inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 dark:border-dark-border text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 text-sm font-semibold"
+        >
+          <Upload className="w-4 h-4" /> Import from Excel
+        </button>
+        <button
           onClick={() => setAddOpen(true)}
-          className="ml-auto inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold"
         >
           <Plus className="w-4 h-4" /> Add client
         </button>
@@ -139,6 +147,7 @@ export default function RecordsPage() {
       )}
 
       <AddClientModal open={addOpen} onClose={() => setAddOpen(false)} />
+      <ImportClientsModal open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   );
 }

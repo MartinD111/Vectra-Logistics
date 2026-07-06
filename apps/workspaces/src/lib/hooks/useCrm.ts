@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
 import {
   crmApi, type CrmClient, type CreateClientInput, type ClientProjectLink, type LinkProjectInput,
-  type UpdateClientPageInput,
+  type UpdateClientPageInput, type ImportClientsResult,
 } from '@/lib/api/crm.api';
 
 const qk = {
@@ -42,6 +42,14 @@ export function useCreateClient() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateClientInput) => crmApi.createClient(data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.clients }),
+  });
+}
+
+export function useImportClients() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (rows: Record<string, unknown>[]) => crmApi.importClients(rows),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.clients }),
   });
 }
