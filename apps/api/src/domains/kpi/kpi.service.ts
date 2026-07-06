@@ -21,6 +21,7 @@ class KpiService {
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
     if (parsed.data.target_project_id) await this.assertOwnedProject(parsed.data.target_project_id, companyId);
     if (parsed.data.target_user_id) await this.assertOwnedUser(parsed.data.target_user_id, companyId);
+    if (parsed.data.target_client_id) await this.assertOwnedClient(parsed.data.target_client_id, companyId);
 
     const rule = await kpiRepository.createRule(companyId, actorId, parsed.data);
     await recordEvent({
@@ -37,6 +38,7 @@ class KpiService {
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
     if (parsed.data.target_project_id) await this.assertOwnedProject(parsed.data.target_project_id, companyId);
     if (parsed.data.target_user_id) await this.assertOwnedUser(parsed.data.target_user_id, companyId);
+    if (parsed.data.target_client_id) await this.assertOwnedClient(parsed.data.target_client_id, companyId);
 
     const updated = await kpiRepository.updateRule(id, parsed.data);
     if (!updated) throw new AppError(404, 'KPI rule not found');
@@ -66,7 +68,8 @@ class KpiService {
       const outputs = await evaluator.evaluate(rule, periodStart, periodEnd, companyId);
       for (const output of outputs) {
         const result = await kpiRepository.upsertResult(companyId, rule.id, {
-          user_id: output.user_id,
+          user_id: output.user_id ?? null,
+          client_id: output.client_id ?? null,
           period_start: periodStart.toISOString(),
           period_end: periodEnd.toISOString(),
           actual_value: output.actual_value,
@@ -82,13 +85,13 @@ class KpiService {
   }
 
   listResults(
-    companyId: string, filters: { ruleId?: string; userId?: string; projectId?: string },
+    companyId: string, filters: { ruleId?: string; userId?: string; projectId?: string; clientId?: string },
   ): Promise<KpiResult[]> {
     return kpiRepository.listResults(companyId, filters);
   }
 
   getSummary(
-    companyId: string, filters: { userId?: string; projectId?: string },
+    companyId: string, filters: { userId?: string; projectId?: string; clientId?: string },
   ): Promise<KpiResultWithRule[]> {
     return kpiRepository.listResultsWithRuleInfo(companyId, filters);
   }
@@ -112,6 +115,12 @@ class KpiService {
     const userCompanyId = await kpiRepository.findUserCompany(userId);
     if (!userCompanyId) throw new AppError(404, 'User not found');
     if (userCompanyId !== companyId) throw new AppError(403, 'Forbidden');
+  }
+
+  private async assertOwnedClient(clientId: string, companyId: string): Promise<void> {
+    const clientCompanyId = await kpiRepository.findClientCompany(clientId);
+    if (!clientCompanyId) throw new AppError(404, 'Client not found');
+    if (clientCompanyId !== companyId) throw new AppError(403, 'Forbidden');
   }
 }
 

@@ -86,7 +86,7 @@ class KpiRepository {
 
   async listResults(
     companyId: string,
-    filters: { ruleId?: string; userId?: string; projectId?: string },
+    filters: { ruleId?: string; userId?: string; projectId?: string; clientId?: string },
   ): Promise<KpiResult[]> {
     const clauses = ['r.company_id = $1'];
     const params: unknown[] = [companyId];
@@ -103,6 +103,10 @@ class KpiRepository {
       params.push(filters.projectId);
       clauses.push(`k.target_project_id = $${params.length}`);
     }
+    if (filters.clientId) {
+      params.push(filters.clientId);
+      clauses.push(`r.client_id = $${params.length}`);
+    }
 
     const { rows } = await db.query<KpiResult>(
       `SELECT r.* FROM kpi_results r
@@ -117,7 +121,7 @@ class KpiRepository {
   /** Same filters as listResults, joined with rule name/source_type for summary views. */
   async listResultsWithRuleInfo(
     companyId: string,
-    filters: { ruleId?: string; userId?: string; projectId?: string },
+    filters: { ruleId?: string; userId?: string; projectId?: string; clientId?: string },
   ): Promise<KpiResultWithRule[]> {
     const clauses = ['r.company_id = $1'];
     const params: unknown[] = [companyId];
@@ -134,6 +138,10 @@ class KpiRepository {
       params.push(filters.projectId);
       clauses.push(`k.target_project_id = $${params.length}`);
     }
+    if (filters.clientId) {
+      params.push(filters.clientId);
+      clauses.push(`r.client_id = $${params.length}`);
+    }
 
     const { rows } = await db.query<KpiResultWithRule>(
       `SELECT r.*, k.name AS rule_name, k.source_type FROM kpi_results r
@@ -148,17 +156,17 @@ class KpiRepository {
   async upsertResult(
     companyId: string, ruleId: string,
     data: {
-      user_id: string; period_start: string; period_end: string;
+      user_id: string | null; client_id: string | null; period_start: string; period_end: string;
       actual_value: number | null; target_value: number | null; status: string; detail: Record<string, unknown>;
     },
   ): Promise<KpiResult> {
     const { rows } = await db.query<KpiResult>(
       `INSERT INTO kpi_results
-         (company_id, rule_id, user_id, period_start, period_end, actual_value, target_value, status, detail, computed_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+         (company_id, rule_id, user_id, client_id, period_start, period_end, actual_value, target_value, status, detail, computed_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
        RETURNING *`,
       [
-        companyId, ruleId, data.user_id, data.period_start, data.period_end,
+        companyId, ruleId, data.user_id, data.client_id, data.period_start, data.period_end,
         data.actual_value, data.target_value, data.status, JSON.stringify(data.detail),
       ],
     );
@@ -179,6 +187,52 @@ class KpiRepository {
       `SELECT company_id FROM users WHERE id = $1`, [userId],
     );
     return rows[0]?.company_id ?? null;
+  }
+
+  async findClientCompany(clientId: string): Promise<string | null> {
+    const { rows } = await db.query<{ company_id: string }>(
+      `SELECT company_id FROM clients WHERE id = $1`, [clientId],
+    );
+    return rows[0]?.company_id ?? null;
+  }
+
+  async findClientForRisk(
+    clientId: string, companyId: string,
+  ): Promise<{ id: string; credit_limit: number; outstanding_balance: number } | null> {
+    const { rows } = await db.query<{ id: string; credit_limit: string; outstanding_balance: string }>(
+      `SELECT id, credit_limit, outstanding_balance FROM clients WHERE id = $1 AND company_id = $2`,
+      [clientId, companyId],
+    );
+    if (rows.length === 0) return null;
+    return {
+      id: rows[0].id,
+      credit_limit: Number(rows[0].credit_limit),
+      outstanding_balance: Number(rows[0].outstanding_balance),
+    };
+  }
+
+  async listClientsForCompany(
+    companyId: string,
+  ): Promise<{ id: string; credit_limit: number; outstanding_balance: number }[]> {
+    const { rows } = await db.query<{ id: string; credit_limit: string; outstanding_balance: string }>(
+      `SELECT id, credit_limit, outstanding_balance FROM clients WHERE company_id = $1`,
+      [companyId],
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      credit_limit: Number(r.credit_limit),
+      outstanding_balance: Number(r.outstanding_balance),
+    }));
+  }
+
+  async countOverdueInvoices(companyId: string, clientId: string): Promise<number> {
+    const { rows } = await db.query<{ count: string }>(
+      `SELECT COUNT(*) FROM invoices
+       WHERE company_id = $1 AND client_id = $2 AND status = 'approved'
+         AND due_at IS NOT NULL AND due_at < NOW()`,
+      [companyId, clientId],
+    );
+    return parseInt(rows[0]?.count ?? '0', 10);
   }
 
   async listProjectAssignmentUsers(projectId: string): Promise<{ user_id: string; planned_pct: number }[]> {

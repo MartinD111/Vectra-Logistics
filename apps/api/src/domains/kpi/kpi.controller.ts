@@ -46,20 +46,22 @@ export const runEvaluation = asyncHandler(async (req: AuthRequest, res: Response
 });
 
 export const listResults = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { rule_id, user_id, project_id } = req.query;
+  const { rule_id, user_id, project_id, client_id } = req.query;
   const results = await kpiService.listResults(companyOf(req), {
     ruleId: typeof rule_id === 'string' ? rule_id : undefined,
     userId: typeof user_id === 'string' ? user_id : undefined,
     projectId: typeof project_id === 'string' ? project_id : undefined,
+    clientId: typeof client_id === 'string' ? client_id : undefined,
   });
   res.json({ results });
 });
 
 export const getSummary = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { user_id, project_id } = req.query;
+  const { user_id, project_id, client_id } = req.query;
   const summary = await kpiService.getSummary(companyOf(req), {
     userId: typeof user_id === 'string' ? user_id : undefined,
     projectId: typeof project_id === 'string' ? project_id : undefined,
+    clientId: typeof client_id === 'string' ? client_id : undefined,
   });
   res.json({ summary });
 });

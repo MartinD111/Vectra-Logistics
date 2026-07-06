@@ -6,6 +6,7 @@ import { z } from 'zod';
 export const SOURCE_TYPES = [
   'outlook_calendar',
   'activity_volume',
+  'credit_risk',
   'task_completion',
   'on_time_delivery',
   'response_time',
@@ -18,6 +19,7 @@ export const CreateKpiRuleSchema = z.object({
   source_type: z.enum(SOURCE_TYPES),
   target_project_id: z.string().uuid().nullable().optional(),
   target_user_id: z.string().uuid().nullable().optional(),
+  target_client_id: z.string().uuid().nullable().optional(),
   condition: z.record(z.string(), z.unknown()).optional(),
   weight: z.number().min(0).max(100).optional(),
   threshold: z.number().min(0).max(100).nullable().optional(),
