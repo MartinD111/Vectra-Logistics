@@ -74,6 +74,19 @@ export interface ClientTimelineEntry {
   summary: string;
 }
 
+export interface ImportRowResult {
+  row: number;
+  status: 'created' | 'failed';
+  client?: CrmClient;
+  reason?: string;
+}
+
+export interface ImportClientsResult {
+  created: number;
+  failed: number;
+  results: ImportRowResult[];
+}
+
 const BASE = '/api/v1/crm';
 
 export const crmApi = {
@@ -83,6 +96,8 @@ export const crmApi = {
     apiFetch<{ client: CrmClient }>(`${BASE}/clients`, 'POST', data).then((r) => r.client),
   updateClient: (id: string, data: Partial<CreateClientInput>) =>
     apiFetch<{ client: CrmClient }>(`${BASE}/clients/${id}`, 'PATCH', data).then((r) => r.client),
+  importClients: (rows: Record<string, unknown>[]) =>
+    apiFetch<ImportClientsResult>(`${BASE}/clients/import`, 'POST', rows),
 
   listClientProjectLinks: (clientId: string) =>
     apiFetch<{ links: ClientProjectLink[] }>(`${BASE}/clients/${clientId}/projects`).then((r) => r.links),
