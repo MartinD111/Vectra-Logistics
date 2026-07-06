@@ -95,6 +95,12 @@ class CrmRepository {
     return numProjectLink(rows[0]);
   }
 
+  async deleteProjectLink(clientId: string, projectId: string, companyId: string): Promise<void> {
+    await db.query(
+      `DELETE FROM client_project_links WHERE client_id = $1 AND project_id = $2 AND company_id = $3`,
+      [clientId, projectId, companyId]);
+  }
+
   // ── Client Pages ──
   async findClientPage(clientId: string, companyId: string): Promise<ClientPageRecord | null> {
     const { rows } = await db.query<ClientPageRecord>(
