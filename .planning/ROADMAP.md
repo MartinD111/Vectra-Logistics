@@ -25,7 +25,7 @@ Full detail: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
 - [x] **Phase 7: Engine Foundation + Page Registry** - Generic registry + `WorkspaceBlockPlugin` contract; page registry populated (exhaustive), zero behavior change (completed 2026-07-06)
 - [x] **Phase 8: Page Read-Rendering → Registry** - `PageBlockView` switch replaced by `registry.render`; every kind renders identically; no JSON drift (completed 2026-07-06)
-- [ ] **Phase 9: Page Edit-Mode + Slash → Registry** - `LivePageCanvas` edit switch and slash-menu derivation move to the registry; contentEditable/slash behavior preserved
+- [x] **Phase 9: Page Edit-Mode + Slash → Registry** - `LivePageCanvas` edit switch and slash-menu derivation move to the registry; contentEditable/slash behavior preserved (completed 2026-07-06)
 - [ ] **Phase 10: Mini Program onto the Engine** - `BlockView` switch replaced by the same registry; manifest plugins + v2 round-trip intact
 - [ ] **Phase 11: Palette Derivation Unification** - Shared `buildPaletteItems`; both builders' block lists derive from the registry
 - [ ] **Phase 12: Extensibility Proof** - Add one native + one manifest block via a single plugin entry, no dispatch-file edits
@@ -127,7 +127,7 @@ Full detail: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 6. Credit-Risk KPI Evaluator & Semaphore | v1.0 | 2/2 | Complete | 2026-07-06 |
 | 7. Engine Foundation + Page Registry | v2.0 | 1/1 | Complete | 2026-07-06 |
 | 8. Page Read-Rendering → Registry | v2.0 | 1/1 | Complete | 2026-07-06 |
-| 9. Page Edit-Mode + Slash → Registry | v2.0 | 0/? | Not started | - |
+| 9. Page Edit-Mode + Slash → Registry | v2.0 | 1/1 | Complete | 2026-07-06 |
 | 10. Mini Program onto the Engine | v2.0 | 0/? | Not started | - |
 | 11. Palette Derivation Unification | v2.0 | 0/? | Not started | - |
 | 12. Extensibility Proof | v2.0 | 0/? | Not started | - |

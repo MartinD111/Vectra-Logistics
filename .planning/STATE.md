@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 ## Current Position
 
-Phase: 8 (complete)
-Plan: 08-01 (complete)
-Status: Phase 8 shipped — PageBlockView switch replaced by registry dispatch (next build green). Next: Phase 9 (edit-mode + slash → registry).
-Last activity: 2026-07-06 — Phase 08 executed: pageBlockViews.tsx extracted, registry renderers repointed, PageBlockView is a thin wrapper
+Phase: 9 (complete)
+Plan: 09-01 (complete)
+Status: Phase 9 shipped — both page switches gone; edit + slash registry-driven (next build green, 29/29 static pages). Next: Phase 10 (Mini Program onto the engine).
+Last activity: 2026-07-06 — Phase 09 executed: EditableHeading extracted, registry editor entries, BlockEditor + buildSlashMenuItems registry-driven
 
 ## Performance Metrics
 
