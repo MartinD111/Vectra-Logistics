@@ -335,7 +335,7 @@ function LinkedProjectsSection({ clientId, team }: { clientId: string; team: Tea
                   <p className="text-[11px] text-red-500 pb-2">Couldn&apos;t unlink — try again.</p>
                 )}
                 {isExpanded && (
-                  <LinkedProjectOverrideEditor clientId={clientId} link={link} team={team} upsertLink={upsertLink} />
+                  <LinkedProjectOverrideEditor link={link} team={team} upsertLink={upsertLink} />
                 )}
               </div>
             );
@@ -388,16 +388,280 @@ function UnlinkConfirmDialog({
   );
 }
 
-// Placeholder — Task 2 replaces this with the real per-field override editor.
+// Per-field override editor (D-04 contract): each of rate/employee/notes
+// independently shows inherited (greyed/italic) or overridden (full-strength +
+// primary-600 left accent) state, driven exclusively by the server-provided
+// merged value + is_overridden flag — never recomputed client-side.
+//
+// Pitfall 2 (RESEARCH.md): every save must submit the full override triple,
+// otherwise the ON CONFLICT DO UPDATE upsert silently nulls out the other two
+// fields. We track "current override intent" for all three fields locally and
+// always send all three on any single-field change.
 function LinkedProjectOverrideEditor({
-  clientId, link, team, upsertLink,
+  link, team, upsertLink,
 }: {
-  clientId: string;
   link: ClientProjectLink;
   team: TeamMember[];
   upsertLink: UseMutationResult<ClientProjectLink, unknown, LinkProjectInput>;
 }) {
-  return null;
+  // Current override intent per field: undefined = not overridden (inherited),
+  // otherwise the override value (which may itself be null, e.g. "Unassigned").
+  const currentOverrides = (): { rate: number | null | undefined; employee: string | null | undefined; notes: string | null | undefined } => ({
+    rate: link.is_overridden.rate ? link.rate_eur : undefined,
+    employee: link.is_overridden.responsible_employee ? link.responsible_employee_id : undefined,
+    notes: link.is_overridden.notes ? link.notes : undefined,
+  });
+
+  const saveRate = (value: number | null | undefined, onError: () => void) => {
+    const overrides = currentOverrides();
+    upsertLink.mutate({
+      project_id: link.project_id,
+      override_rate_eur: value,
+      override_responsible_employee_id: overrides.employee,
+      override_notes: overrides.notes,
+    }, { onError });
+  };
+
+  const saveEmployee = (value: string | null | undefined, onError: () => void) => {
+    const overrides = currentOverrides();
+    upsertLink.mutate({
+      project_id: link.project_id,
+      override_rate_eur: overrides.rate,
+      override_responsible_employee_id: value,
+      override_notes: overrides.notes,
+    }, { onError });
+  };
+
+  const saveNotes = (value: string | null | undefined, onError: () => void) => {
+    const overrides = currentOverrides();
+    upsertLink.mutate({
+      project_id: link.project_id,
+      override_rate_eur: overrides.rate,
+      override_responsible_employee_id: overrides.employee,
+      override_notes: value,
+    }, { onError });
+  };
+
+  return (
+    <div className="pb-3 pl-6 pr-2 space-y-3">
+      <RateOverrideField link={link} onSave={saveRate} />
+      <EmployeeOverrideField link={link} team={team} onSave={saveEmployee} />
+      <NotesOverrideField link={link} onSave={saveNotes} />
+    </div>
+  );
+}
+
+function OverrideFieldShell({
+  label, isOverridden, children, action,
+}: { label: string; isOverridden: boolean; children: React.ReactNode; action: React.ReactNode }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">{label}</p>
+        {action}
+      </div>
+      <div
+        className={`rounded-lg px-3 py-2 ${
+          isOverridden
+            ? 'bg-white dark:bg-slate-800 border-l-2 border-primary-600'
+            : 'bg-gray-50 dark:bg-slate-700/50'
+        }`}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function RateOverrideField({
+  link, onSave,
+}: { link: ClientProjectLink; onSave: (value: number | null, onError: () => void) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(link.rate_eur != null ? String(link.rate_eur) : '');
+  const [error, setError] = useState(false);
+  const isOverridden = link.is_overridden.rate;
+
+  const commit = () => {
+    setError(false);
+    const parsed = draft.trim() === '' ? null : Number(draft);
+    onSave(Number.isNaN(parsed) ? null : parsed, () => setError(true));
+    setEditing(false);
+  };
+
+  return (
+    <OverrideFieldShell
+      label="Rate"
+      isOverridden={isOverridden}
+      action={
+        isOverridden ? (
+          <button
+            type="button"
+            onClick={() => onSave(null, () => setError(true))}
+            className="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 min-h-[32px]"
+          >
+            Reset to default
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => { setDraft(link.rate_eur != null ? String(link.rate_eur) : ''); setEditing(true); }}
+            className="text-xs font-semibold text-primary-600 hover:text-primary-700 min-h-[32px]"
+          >
+            Override
+          </button>
+        )
+      }
+    >
+      {editing ? (
+        <div className="flex items-center gap-2">
+          <input
+            autoFocus
+            type="number"
+            className="saas-input !py-1.5 text-sm w-full"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLElement).blur(); }}
+          />
+          <span className="text-xs text-gray-400 flex-shrink-0">EUR</span>
+        </div>
+      ) : (
+        <span className={`text-sm ${isOverridden ? 'text-gray-900 dark:text-white' : 'text-gray-400 italic'}`}>
+          {link.rate_eur != null ? `€${link.rate_eur}` : 'No rate set'}
+        </span>
+      )}
+      {error && <p className="text-[11px] text-red-500 mt-1">Couldn&apos;t save — try again</p>}
+    </OverrideFieldShell>
+  );
+}
+
+function EmployeeOverrideField({
+  link, team, onSave,
+}: { link: ClientProjectLink; team: TeamMember[]; onSave: (value: string | null, onError: () => void) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [error, setError] = useState(false);
+  const isOverridden = link.is_overridden.responsible_employee;
+  const selected = link.responsible_employee_id
+    ? team.find((m) => m.id === link.responsible_employee_id)
+    : null;
+  const label = selected ? `${selected.first_name} ${selected.last_name}`.trim() : 'Unassigned';
+
+  const pick = (id: string | null) => {
+    setError(false);
+    onSave(id, () => setError(true));
+    setEditing(false);
+  };
+
+  return (
+    <OverrideFieldShell
+      label="Responsible employee"
+      isOverridden={isOverridden}
+      action={
+        isOverridden ? (
+          <button
+            type="button"
+            onClick={() => onSave(null, () => setError(true))}
+            className="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 min-h-[32px]"
+          >
+            Reset to default
+          </button>
+        ) : null
+      }
+    >
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setEditing((o) => !o)}
+          className="w-full flex items-center justify-between gap-2 text-left min-h-[32px]"
+        >
+          <span className={`text-sm truncate ${isOverridden ? 'text-gray-900 dark:text-white' : 'text-gray-400 italic'}`}>{label}</span>
+          <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+        </button>
+        {editing && (
+          <>
+            <div className="fixed inset-0 z-20" onClick={() => setEditing(false)} />
+            <div className="absolute left-0 right-0 top-full mt-1 z-30 max-h-64 overflow-y-auto rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl p-1.5">
+              <button
+                type="button"
+                onClick={() => pick(null)}
+                className="w-full text-left px-2.5 py-1.5 rounded-lg text-sm text-gray-400 italic hover:bg-gray-100 dark:hover:bg-slate-800"
+              >
+                Unassigned
+              </button>
+              {team.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => pick(m.id)}
+                  className="w-full text-left px-2.5 py-1.5 rounded-lg text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800"
+                >
+                  {m.first_name} {m.last_name}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+      {error && <p className="text-[11px] text-red-500 mt-1">Couldn&apos;t save — try again</p>}
+    </OverrideFieldShell>
+  );
+}
+
+function NotesOverrideField({
+  link, onSave,
+}: { link: ClientProjectLink; onSave: (value: string | null, onError: () => void) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(link.notes ?? '');
+  const [error, setError] = useState(false);
+  const isOverridden = link.is_overridden.notes;
+
+  const commit = () => {
+    setError(false);
+    onSave(draft.trim() === '' ? null : draft, () => setError(true));
+    setEditing(false);
+  };
+
+  return (
+    <OverrideFieldShell
+      label="Notes"
+      isOverridden={isOverridden}
+      action={
+        isOverridden ? (
+          <button
+            type="button"
+            onClick={() => onSave(null, () => setError(true))}
+            className="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 min-h-[32px]"
+          >
+            Reset to default
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => { setDraft(link.notes ?? ''); setEditing(true); }}
+            className="text-xs font-semibold text-primary-600 hover:text-primary-700 min-h-[32px]"
+          >
+            Override
+          </button>
+        )
+      }
+    >
+      {editing ? (
+        <textarea
+          autoFocus
+          className="saas-input !py-1.5 text-sm w-full min-h-[48px] resize-none"
+          rows={3}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+        />
+      ) : (
+        <span className={`text-sm whitespace-pre-wrap ${isOverridden ? 'text-gray-900 dark:text-white' : 'text-gray-400 italic'}`}>
+          {link.notes || 'No notes'}
+        </span>
+      )}
+      {error && <p className="text-[11px] text-red-500 mt-1">Couldn&apos;t save — try again</p>}
+    </OverrideFieldShell>
+  );
 }
 
 // ── Inline click-to-edit field (address / notes) ────────────────────────────
