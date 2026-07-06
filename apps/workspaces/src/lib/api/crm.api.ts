@@ -88,6 +88,8 @@ export const crmApi = {
     apiFetch<{ links: ClientProjectLink[] }>(`${BASE}/clients/${clientId}/projects`).then((r) => r.links),
   upsertClientProjectLink: (clientId: string, data: LinkProjectInput) =>
     apiFetch<{ link: ClientProjectLink }>(`${BASE}/clients/${clientId}/projects`, 'POST', data).then((r) => r.link),
+  unlinkClientProjectLink: (clientId: string, projectId: string) =>
+    apiFetch<void>(`${BASE}/clients/${clientId}/projects/${projectId}`, 'DELETE'),
 
   getClientEmails: (clientId: string) =>
     apiFetch<{ emails: unknown[] }>(`${BASE}/clients/${clientId}/emails`).then((r) => r.emails),

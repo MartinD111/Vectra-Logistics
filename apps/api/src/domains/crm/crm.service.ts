@@ -1,5 +1,6 @@
 import { AppError } from '../../core/errors/AppError';
 import { crmRepository } from './crm.repository';
+import { projectsRepository } from '../projects/projects.repository';
 import { ClientRecord, ResolvedClientProjectView, ClientPageRecord, ClientTimelineEntry } from './crm.types';
 import { CreateClientSchema } from './dto/create-client.dto';
 import { UpdateClientSchema } from './dto/update-client.dto';
@@ -66,6 +67,7 @@ class CrmService {
     const parsed = LinkProjectSchema.safeParse(body);
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
     const client = await this.getClient(clientId, companyId);
+    await this.assertOwnedProject(parsed.data.project_id, companyId);
     const link = await crmRepository.upsertProjectLink(companyId, {
       client_id: clientId,
       project_id: parsed.data.project_id,
@@ -85,6 +87,22 @@ class CrmService {
         notes: link.override_notes !== null,
       },
     };
+  }
+
+  async unlinkClientProject(clientId: string, projectId: string, companyId: string): Promise<void> {
+    await this.getClient(clientId, companyId);
+    await this.assertOwnedProject(projectId, companyId);
+    await crmRepository.deleteProjectLink(clientId, projectId, companyId);
+  }
+
+  // Cross-domain ownership check (V4 Access Control, T-03-01/T-03-02): mirrors
+  // projects.service.ts's private assertOwnedProject, but implemented locally
+  // since that method is private to ProjectsService. Reuses the public
+  // projectsRepository.findProject export rather than adding a new one.
+  private async assertOwnedProject(projectId: string, companyId: string): Promise<void> {
+    const p = await projectsRepository.findProject(projectId);
+    if (!p) throw new AppError(404, 'Project not found');
+    if (p.company_id !== companyId) throw new AppError(403, 'Forbidden');
   }
 
   // ── Client Pages (D-07/D-08: idempotent get-or-create, one page per client) ──

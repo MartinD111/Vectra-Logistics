@@ -34,6 +34,11 @@ export const upsertClientProjectLink = asyncHandler(async (req: AuthRequest, res
   res.status(200).json({ link: await crmService.upsertClientProjectLink(req.params.id, requireCompany(req), req.body) });
 });
 
+export const unlinkClientProjectLink = asyncHandler(async (req: AuthRequest, res: Response) => {
+  await crmService.unlinkClientProject(req.params.id, req.params.projectId, requireCompany(req));
+  res.status(204).send();
+});
+
 export const importClients = asyncHandler(async (req: AuthRequest, res: Response) => {
   res.status(200).json(await crmService.importClients(requireCompany(req), req.body));
 });
