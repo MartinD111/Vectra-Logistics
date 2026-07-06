@@ -25,7 +25,7 @@ interface SidebarItem {
 // from the workspace's selected type(s). Dashboard + Settings are always on.
 const ITEMS: SidebarItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Records', href: '/records', icon: Boxes, module: 'records' },
+  { name: 'CRM', href: '/records', icon: Boxes, module: 'records' },
   { name: 'Programs', href: '/automations', icon: Zap, module: 'programs' },
   { name: 'Automations', href: '/automations', icon: Zap, module: 'automations' },
   { name: 'My Fleet', href: '/fleet', icon: Truck, module: 'fleet' },
