@@ -40,3 +40,26 @@ export interface ResolvedClientProjectView {
     notes: boolean;
   };
 }
+
+/** Notion-like block-canvas page for a client's detail view — one row per client (D-05/D-06). */
+export interface ClientPageRecord {
+  id: string;
+  company_id: string;
+  client_id: string;
+  title: string;
+  icon: string | null;
+  config: Record<string, unknown>;
+  cover_image_url: string | null;
+  header_settings: Record<string, unknown>;
+  created_by: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+/** A single entry in a client's merged emails/invoices/kpi timeline feed. */
+export interface ClientTimelineEntry {
+  type: 'email' | 'invoice' | 'kpi';
+  id: string;
+  occurred_at: string;
+  summary: string;
+}

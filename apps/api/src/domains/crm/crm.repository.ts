@@ -1,5 +1,5 @@
 import { db } from '../../core/db';
-import { ClientRecord, ClientProjectLinkRecord } from './crm.types';
+import { ClientRecord, ClientProjectLinkRecord, ClientPageRecord } from './crm.types';
 
 // NUMERIC comes back as strings from pg — coerce the money fields.
 function numClient(r: ClientRecord): ClientRecord {
@@ -93,6 +93,94 @@ class CrmRepository {
        RETURNING *`,
       [companyId, d.client_id, d.project_id, d.override_rate_eur, d.override_responsible_employee_id, d.override_notes]);
     return numProjectLink(rows[0]);
+  }
+
+  // ── Client Pages ──
+  async findClientPage(clientId: string, companyId: string): Promise<ClientPageRecord | null> {
+    const { rows } = await db.query<ClientPageRecord>(
+      `SELECT * FROM client_pages WHERE client_id = $1 AND company_id = $2`, [clientId, companyId]);
+    return rows[0] ?? null;
+  }
+
+  async createClientPage(
+    companyId: string, clientId: string, createdBy: string | null,
+    data: { title?: string; icon?: string | null; config?: Record<string, unknown> },
+  ): Promise<ClientPageRecord> {
+    // ON CONFLICT (client_id) guarantees exactly one row per client even under
+    // concurrent get-or-create calls (D-08) — no separate advisory lock needed.
+    const { rows } = await db.query<ClientPageRecord>(
+      `INSERT INTO client_pages (company_id, client_id, title, icon, config, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (client_id) DO UPDATE SET updated_at = NOW()
+       RETURNING *`,
+      [
+        companyId, clientId, data.title ?? 'Untitled', data.icon ?? null,
+        JSON.stringify(data.config ?? { version: 1, blocks: [] }), createdBy,
+      ]);
+    return rows[0];
+  }
+
+  async updateClientPage(
+    pageId: string, companyId: string,
+    data: {
+      title?: string; icon?: string | null; config?: Record<string, unknown>;
+      cover_image_url?: string | null; header_settings?: Record<string, unknown>;
+    },
+  ): Promise<ClientPageRecord | null> {
+    // Nullable fields use a provided-flag + CASE so an explicit null clears the
+    // value; COALESCE alone could never reset them (mirrors projects.repository.ts updatePage).
+    const { rows } = await db.query<ClientPageRecord>(
+      `UPDATE client_pages SET
+         title           = COALESCE($3, title),
+         icon            = CASE WHEN $4::boolean THEN $5 ELSE icon END,
+         config          = COALESCE($6, config),
+         cover_image_url = CASE WHEN $7::boolean THEN $8 ELSE cover_image_url END,
+         header_settings = COALESCE($9, header_settings),
+         updated_at      = NOW()
+       WHERE id = $1 AND company_id = $2 RETURNING *`,
+      [
+        pageId, companyId, data.title ?? null,
+        data.icon !== undefined, data.icon ?? null,
+        data.config ? JSON.stringify(data.config) : null,
+        data.cover_image_url !== undefined, data.cover_image_url ?? null,
+        data.header_settings ? JSON.stringify(data.header_settings) : null,
+      ]);
+    return rows[0] ?? null;
+  }
+
+  // ── Client Timeline data sources (T-02-01: always scoped by company_id) ──
+  async listClientEmails(
+    clientId: string, companyId: string,
+  ): Promise<{ id: string; subject: string; received_at: string }[]> {
+    const { rows } = await db.query<{ id: string; subject: string; received_at: string }>(
+      `SELECT id, subject, received_at FROM email_messages
+       WHERE client_id = $1 AND company_id = $2
+       ORDER BY received_at DESC LIMIT 50`,
+      [clientId, companyId]);
+    return rows;
+  }
+
+  async listClientInvoices(
+    clientId: string, companyId: string,
+  ): Promise<{ id: string; number: string; amount_total: string; issued_at: string }[]> {
+    const { rows } = await db.query<{ id: string; number: string; amount_total: string; issued_at: string }>(
+      `SELECT id, number, amount_total, issued_at FROM invoices
+       WHERE client_id = $1 AND company_id = $2
+       ORDER BY issued_at DESC LIMIT 50`,
+      [clientId, companyId]);
+    return rows;
+  }
+
+  async listClientKpiResults(
+    clientId: string, companyId: string,
+  ): Promise<{ id: string; rule_name: string; status: string; period_start: string }[]> {
+    const { rows } = await db.query<{ id: string; rule_name: string; status: string; period_start: string }>(
+      `SELECT r.id, k.name AS rule_name, r.status, r.period_start FROM kpi_results r
+       JOIN kpi_rules k ON k.id = r.rule_id
+       WHERE r.client_id = $1 AND r.company_id = $2
+       ORDER BY r.period_start DESC LIMIT 50`,
+      [clientId, companyId]);
+    return rows;
   }
 }
 
