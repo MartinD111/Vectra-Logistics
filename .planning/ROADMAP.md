@@ -10,7 +10,7 @@
 - [x] **Phase 2: CRM Dashboard, Navigation & Client Detail** - Sidebar renamed to CRM, dashboard lists clients, full client detail page with address/notes/employee/timeline, creatable from the project page canvas (completed 2026-07-06)
 - [x] **Phase 3: Per-Project Client Overrides** - Clients attach to projects with field-level overrides layered over client-level defaults (completed 2026-07-06)
 - [x] **Phase 4: Bulk Excel Import** - Template download, bulk upload, per-row report, default fallbacks (completed 2026-07-06)
-- [ ] **Phase 5: Email History Sync** - Real Microsoft Graph sent-mail sync matched to clients, rendered as "last 10 emails" on the detail page
+- [x] **Phase 5: Email History Sync** - Real Microsoft Graph sent-mail sync matched to clients, rendered as "last 10 emails" on the detail page
 - [ ] **Phase 6: Credit-Risk KPI Evaluator & Semaphore** - Risk evaluated as a first-class KPI rule; dispatcher sees a hard-blocking red "frosted glass" warning at assignment time
 
 ## Phase Details
@@ -127,11 +127,11 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 05-01-PLAN.md — Migration relaxing email_messages uniqueness + domain-matching pure function (with denylist) + email.repository.ts upsert + outlook.repository.ts watermark methods
+- [x] 05-01-PLAN.md — Migration relaxing email_messages uniqueness + domain-matching pure function (with denylist) + email.repository.ts upsert + outlook.repository.ts watermark methods
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 05-02-PLAN.md — syncEmails() Graph fetch/pagination/matching on OutlookService + BullMQ email-sync worker/scheduler + bootstrap wiring
+- [x] 05-02-PLAN.md — syncEmails() Graph fetch/pagination/matching on OutlookService + BullMQ email-sync worker/scheduler + bootstrap wiring
 
 ### Phase 6: Credit-Risk KPI Evaluator & Semaphore
 
