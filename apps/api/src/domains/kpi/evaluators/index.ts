@@ -3,6 +3,7 @@ import { KpiEvaluatorOutput, KpiRule } from '../kpi.types';
 import { KpiEvaluator } from './types';
 import { outlookCalendarEvaluator } from './outlookCalendar.evaluator';
 import { activityVolumeEvaluator } from './activityVolume.evaluator';
+import { creditRiskEvaluator } from './creditRisk.evaluator';
 
 // Fallback for rule types with no evaluator implementation yet
 // (task_completion, on_time_delivery, response_time, project_value — each
@@ -18,6 +19,7 @@ class UnimplementedEvaluator implements KpiEvaluator {
         : [];
     return userIds.map((userId) => ({
       user_id: userId,
+      client_id: null,
       actual_value: null,
       target_value: rule.threshold,
       status: 'unavailable' as const,
@@ -29,6 +31,7 @@ class UnimplementedEvaluator implements KpiEvaluator {
 const REGISTRY: Record<string, KpiEvaluator> = {
   [outlookCalendarEvaluator.sourceType]: outlookCalendarEvaluator,
   [activityVolumeEvaluator.sourceType]: activityVolumeEvaluator,
+  [creditRiskEvaluator.sourceType]: creditRiskEvaluator,
 };
 
 export function getEvaluator(sourceType: string): KpiEvaluator {

@@ -16,6 +16,7 @@ class ActivityVolumeEvaluator implements KpiEvaluator {
       );
       return {
         user_id: userId,
+        client_id: null,
         actual_value: count,
         target_value: rule.threshold,
         status: 'computed' as const,

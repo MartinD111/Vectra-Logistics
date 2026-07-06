@@ -38,7 +38,7 @@ class OutlookCalendarEvaluator implements KpiEvaluator {
           const email = await kpiRepository.findUserEmail(a.user_id);
           if (!email || workdays === 0) {
             return {
-              user_id: a.user_id, actual_value: null, target_value: Number(a.planned_pct),
+              user_id: a.user_id, client_id: null, actual_value: null, target_value: Number(a.planned_pct),
               status: 'unavailable', detail: { reason: 'No user email or empty period' },
             };
           }
@@ -47,13 +47,13 @@ class OutlookCalendarEvaluator implements KpiEvaluator {
           );
           if (hours === 0) {
             return {
-              user_id: a.user_id, actual_value: null, target_value: Number(a.planned_pct),
+              user_id: a.user_id, client_id: null, actual_value: null, target_value: Number(a.planned_pct),
               status: 'unavailable', detail: { reason: 'No synced calendar events for this project/period' },
             };
           }
           const actualPct = Math.round((hours / (workdays * WORKDAY_HOURS)) * 100 * 100) / 100;
           return {
-            user_id: a.user_id, actual_value: actualPct, target_value: Number(a.planned_pct),
+            user_id: a.user_id, client_id: null, actual_value: actualPct, target_value: Number(a.planned_pct),
             status: 'computed', detail: { hours, workdays },
           };
         }),

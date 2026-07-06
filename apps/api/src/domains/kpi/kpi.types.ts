@@ -9,6 +9,7 @@ export interface KpiRule {
   source_type: string;
   target_project_id: string | null;
   target_user_id: string | null;
+  target_client_id: string | null;
   condition: Record<string, unknown>;
   weight: number;
   threshold: number | null;
@@ -24,7 +25,8 @@ export interface KpiResult {
   id: string;
   company_id: string;
   rule_id: string;
-  user_id: string;
+  user_id: string | null;
+  client_id: string | null;
   period_start: Date;
   period_end: Date;
   actual_value: number | null;
@@ -41,9 +43,10 @@ export interface KpiResultWithRule extends KpiResult {
   source_type: string;
 }
 
-/** What an evaluator produces for one user, before persistence fields are added. */
+/** What an evaluator produces for one user or client, before persistence fields are added. */
 export interface KpiEvaluatorOutput {
-  user_id: string;
+  user_id: string | null;
+  client_id: string | null;
   actual_value: number | null;
   target_value: number | null;
   status: KpiResultStatus;
