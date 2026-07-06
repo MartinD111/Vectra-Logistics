@@ -13,6 +13,7 @@ import domainRouter from "./domains/index";
 import { errorHandler } from "./core/errors/errorHandler";
 import documentsRoutes from "./routes/documentsRoutes";
 import { startMatchingWorker } from "./workers/matchingJob";
+import { startEmailWorker, scheduleEmailSync } from "./workers/email.worker";
 import integrationsRoutes from "./routes/integrationsRoutes";
 import webhookRoutes from "./routes/webhookRoutes";
 import podPublicRoutes from "./domains/pod/pod.public.routes";
@@ -79,6 +80,8 @@ async function bootstrap() {
 
     // Start background worker
     startMatchingWorker();
+    startEmailWorker();
+    await scheduleEmailSync();
 
     server.listen(PORT, () => {
       console.log(`Backend server running on port ${PORT}`);
