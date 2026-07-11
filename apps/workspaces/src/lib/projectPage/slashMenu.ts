@@ -9,6 +9,7 @@ import {
   type PageBlock, type PageBlockGroup, type PageBlockKind,
 } from './blocks';
 import { pageBlockRegistry } from './registry';
+import { buildPaletteItems } from '@/lib/workspaceEngine';
 
 export interface SlashMenuItem {
   id: string;
@@ -84,14 +85,14 @@ export function buildSlashMenuItems(): SlashMenuItem[] {
 
   // Derived from the page block registry (one entry per kind). Heading and list
   // are hand-expanded into variants above, so skip their single registry entries.
-  for (const plugin of pageBlockRegistry.list()) {
-    const kind = plugin.key as PageBlockKind;
-    if (plugin.available === false || kind === 'heading' || kind === 'list') continue;
+  for (const item of buildPaletteItems(pageBlockRegistry)) {
+    const kind = item.key as PageBlockKind;
+    if (kind === 'heading' || kind === 'list') continue;
     items.push({
-      id: kind, kind, title: plugin.title, description: plugin.description,
-      keywords: [plugin.title.toLowerCase(), ...(EXTRA_KEYWORDS[kind] ?? [])],
-      icon: plugin.icon, group: plugin.group as PageBlockGroup,
-      create: plugin.create,
+      id: kind, kind, title: item.title, description: item.description,
+      keywords: [item.title.toLowerCase(), ...(EXTRA_KEYWORDS[kind] ?? [])],
+      icon: item.icon, group: item.group as PageBlockGroup,
+      create: item.create,
     });
   }
   return items;
