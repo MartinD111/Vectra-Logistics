@@ -29,7 +29,7 @@ Full detail: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 - [x] **Phase 9: Page Edit-Mode + Slash → Registry** - `LivePageCanvas` edit switch and slash-menu derivation move to the registry; contentEditable/slash behavior preserved (completed 2026-07-06)
 - [x] **Phase 10: Mini Program onto the Engine** - `BlockView` switch replaced by the same registry; manifest plugins + v2 round-trip intact (completed 2026-07-06)
 - [x] **Phase 11: Palette Derivation Unification** - Shared `buildPaletteItems`; both builders' block lists derive from the registry (completed 2026-07-11)
-- [ ] **Phase 12: Extensibility Proof** - Add one native + one manifest block via a single plugin entry, no dispatch-file edits
+- [x] **Phase 12: Extensibility Proof** - Add one native + one manifest block via a single plugin entry, no dispatch-file edits (completed 2026-07-11)
 - [ ] **Phase 13: Cleanup, ADR & Park WorkflowBuilder** - Remove dead switches; write engine ADR; document automations WorkflowBuilder as deferred
 
 ## Phase Details
@@ -131,7 +131,7 @@ Full detail: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 9. Page Edit-Mode + Slash → Registry | v2.0 | 1/1 | Complete | 2026-07-06 |
 | 10. Mini Program onto the Engine | v2.0 | 1/1 | Complete | 2026-07-06 |
 | 11. Palette Derivation Unification | v2.0 | 1/1 | Complete   | 2026-07-11 |
-| 12. Extensibility Proof | v2.0 | 0/2 | Planned | - |
+| 12. Extensibility Proof | v2.0 | 2/2 | Complete   | 2026-07-11 |
 | 13. Cleanup, ADR & Park WorkflowBuilder | v2.0 | 0/? | Not started | - |
 
 ## Requirement Coverage (v2.0)
