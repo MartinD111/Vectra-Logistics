@@ -8,10 +8,12 @@
 import { useState } from 'react';
 import { GripVertical, Trash2, Plus, Settings2, Eye, ArrowUp, ArrowDown } from 'lucide-react';
 import {
-  BLOCK_REGISTRY, blockDef, getDataSource, uid, type Block, type BlockGroup, type MiniProgramConfig,
+  blockDef, getDataSource, uid, type Block, type BlockGroup, type MiniProgramConfig,
 } from '@/lib/miniProgram/blocks';
 import { RuntimeProvider } from '@/lib/miniProgram/runtime';
 import { usePlugins, getPlugin } from '@/lib/miniProgram/plugins/registry';
+import { miniProgramBlockRegistry } from '@/lib/miniProgram/registry';
+import { buildPaletteItems } from '@/lib/workspaceEngine';
 import type { PluginBlockManifest } from '@/lib/miniProgram/plugins/manifest';
 import { BlockView } from './BlockView';
 import { BlockSettings } from './BlockSettings';
@@ -39,6 +41,7 @@ const GROUP_LABEL: Record<BlockGroup, string> = { input: 'Inputs', process: 'Pro
 
 export default function MiniProgramBuilder({ config, onChange }: { config: MiniProgramConfig; onChange: (c: MiniProgramConfig) => void }) {
   const plugins = usePlugins();
+  const paletteItems = buildPaletteItems(miniProgramBlockRegistry);
   const [selectedId, setSelectedId] = useState<string | null>(config.blocks[0]?.id ?? null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -131,8 +134,8 @@ export default function MiniProgramBuilder({ config, onChange }: { config: MiniP
                   <div key={g}>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-1">{GROUP_LABEL[g]}</p>
                     <div className="grid gap-1 mt-1">
-                      {BLOCK_REGISTRY.filter((d) => d.group === g).map((d) => (
-                        <button key={d.kind} onClick={() => addBlock(d.create())} title={d.description}
+                      {paletteItems.filter((d) => d.group === g).map((d) => (
+                        <button key={d.key} onClick={() => addBlock(d.create())} title={d.description}
                           className="flex items-center gap-2 text-left text-xs px-2 py-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800">
                           <BlockIcon name={d.icon} className="w-3.5 h-3.5 text-gray-400" /> {d.title}
                         </button>
