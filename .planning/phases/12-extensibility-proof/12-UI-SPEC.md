@@ -43,7 +43,7 @@ Declared values (must be multiples of 4) — unchanged, inherited from the exist
 | 2xl | 48px | n/a for this block |
 | 3xl | 64px | n/a for this block |
 
-Callout-specific spacing (matches existing block padding conventions, e.g. `AiGeneratePanel.tsx`'s info box): `px-3 py-2.5` (12px horizontal / 10px vertical — the established padding for compact inline info boxes in this codebase; not a new value, copied verbatim from existing usage).
+Callout-specific spacing (grid-aligned; adapted from `AiGeneratePanel.tsx`'s info box padding): `px-3 py-3` (12px horizontal / 12px vertical — a symmetric, grid-aligned container padding; deviates slightly from the reference component's `py-2.5` to satisfy the 4px spacing grid).
 
 Exceptions: none.
 
@@ -99,7 +99,7 @@ Slash-palette copy (must match exactly, per research Pattern 1):
 Since this phase's entire scope is one block, the component-level contract is the design deliverable:
 
 **Read view (`CalloutView`):**
-- Container: `flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm` + fixed info-blue tone classes above
+- Container: `flex items-start gap-2 rounded-xl border px-3 py-3 text-sm` + fixed info-blue tone classes above
 - Icon: `MessagesSquare` from `lucide-react`, `w-4 h-4 mt-0.5 shrink-0` — **must** use an icon name already present in `components/projectPage/icon.tsx`'s `MAP` (verified present). Do not add a new icon or edit `icon.tsx` (would break EXT-01 criterion 3's file-touch scope).
 - Text: plain string, no HTML rendering (`{block.text || 'Empty callout'}`) — no `dangerouslySetInnerHTML`, no DOMPurify needed (V5 input validation: plain text only, zero XSS surface, per research).
 
