@@ -35,7 +35,7 @@ Verification performed:
 - `npx tsc --noEmit -p apps/workspaces/tsconfig.json` passes with zero errors.
 - `git diff --stat` for this commit shows exactly 1 file touched: `apps/workspaces/src/lib/miniProgram/plugins/examples.ts`. No edits to `registry.ts`, `manifest.ts`, `BlockView.tsx`, `DynamicBlockView.tsx`, or `MiniProgramBuilder.tsx`.
 
-**Task 2 (checkpoint, not yet resolved):** The plan's second task is `type="checkpoint:human-verify" gate="blocking"` — a manual browser round-trip (Add-block list → add to program → save → reload → run in player, confirm badge shows correct row count). This requires a running dev instance of the Workspaces app and human interaction; it has NOT been performed by this agent. `auto_advance`/`_auto_chain_active` are both `false` in `.planning/config.json`, so per standard checkpoint protocol this plan pauses here for the orchestrator/user to run the manual verification steps documented in `12-02-PLAN.md`.
+**Task 2 (checkpoint, APPROVED):** The plan's second task is `type="checkpoint:human-verify" gate="blocking"` — a manual browser round-trip (Add-block list → add to program → save → reload → run in player, confirm badge shows correct row count). The user manually verified all 7 steps in a running dev instance of the Workspaces app: "Row count callout" appears in the Add-block palette (group: output) with correct title/description/icon; the block was added downstream of an input block, saved, and persisted correctly across a reload; running the program in the player rendered a badge reading "{N} rows" matching the actual dataset row count; and `git diff --stat` confirmed only `examples.ts` (plus `.planning/` files) changed. Checkpoint APPROVED.
 
 ## Deviations from Plan
 
@@ -56,4 +56,9 @@ None — this plan's only threat-register entries (T-12-03, T-12-04, T-12-SC) ar
 
 ## Plan Status
 
-**Incomplete — paused at checkpoint.** Task 1 of 2 complete and committed. Task 2 is a blocking human-verify checkpoint requiring a running dev instance and manual browser steps; not resolvable by an autonomous worktree agent. Orchestrator/user must run the manual verification in `12-02-PLAN.md`'s checkpoint task before this plan can be marked fully complete.
+**Complete.** Both tasks done: Task 1 (manifest plugin added, committed `b4b97dc`) and Task 2 (human-verify checkpoint, APPROVED by user). All must-haves satisfied:
+- "Row count callout" appears in the Mini Program Builder's Add-block list with no code change to `MiniProgramBuilder.tsx`, `BlockView.tsx`, or `DynamicBlockView.tsx` — confirmed.
+- Adding the plugin, saving, reloading, and running it in the player shows a badge with the current row count — confirmed.
+- The plugin's logic is a trivial pass-through (no dataset mutation) — confirmed (`return { rows: rows };`).
+
+EXT-02 proven: the declarative manifest/uiSchema vocabulary needs no extension to add a new mini-program plugin block.
