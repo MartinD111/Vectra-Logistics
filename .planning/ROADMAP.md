@@ -4,6 +4,7 @@
 
 - ✅ **v1.0 CRM Rework** — Phases 1-6 (shipped 2026-07-06) — [archive](milestones/v1.0-ROADMAP.md)
 - 🚧 **v2.0 Workspace Engine — Engine Unification** — Phases 7-13 (in progress)
+- 📋 **v3.0 On-Premise GA** — 7 phases (queued) — [plan](milestones/v3.0-on-premise-ga.md) · derived from `docs/specs/deployment/*`
 
 ## Phases
 
@@ -129,7 +130,7 @@ Full detail: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 8. Page Read-Rendering → Registry | v2.0 | 1/1 | Complete | 2026-07-06 |
 | 9. Page Edit-Mode + Slash → Registry | v2.0 | 1/1 | Complete | 2026-07-06 |
 | 10. Mini Program onto the Engine | v2.0 | 1/1 | Complete | 2026-07-06 |
-| 11. Palette Derivation Unification | v2.0 | 0/? | Not started | - |
+| 11. Palette Derivation Unification | v2.0 | 0/1 | Planned | - |
 | 12. Extensibility Proof | v2.0 | 0/? | Not started | - |
 | 13. Cleanup, ADR & Park WorkflowBuilder | v2.0 | 0/? | Not started | - |
 
