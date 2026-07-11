@@ -15,6 +15,7 @@ export type PageBlockKind =
   | 'rich-text'
   | 'heading'
   | 'divider'
+  | 'callout'
   | 'list'
   // Data widgets
   | 'people'
@@ -77,6 +78,11 @@ export interface HeadingBlock extends PageBlockBase {
 
 export interface DividerBlock extends PageBlockBase {
   kind: 'divider';
+}
+
+export interface CalloutBlock extends PageBlockBase {
+  kind: 'callout';
+  text: string;
 }
 
 export interface ListBlock extends PageBlockBase {
@@ -261,6 +267,7 @@ export type PageBlock =
   | RichTextBlock
   | HeadingBlock
   | DividerBlock
+  | CalloutBlock
   | ListBlock
   | PeopleBlock
   | StatCardsBlock
@@ -346,6 +353,11 @@ export const PAGE_BLOCK_REGISTRY: PageBlockDef[] = [
     kind: 'divider', group: 'content', title: 'Divider', icon: 'Minus',
     description: 'A horizontal rule to separate sections.', available: true,
     create: () => ({ id: uid(), kind: 'divider', span: 'full' }),
+  },
+  {
+    kind: 'callout', group: 'content', title: 'Callout', icon: 'MessagesSquare',
+    description: 'A highlighted note or tip.', available: true,
+    create: () => ({ id: uid(), kind: 'callout', span: 'full', text: '' }),
   },
   {
     kind: 'people', group: 'widget', title: 'People', icon: 'Users',
