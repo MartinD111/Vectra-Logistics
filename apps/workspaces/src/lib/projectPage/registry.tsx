@@ -12,7 +12,7 @@
 import type { ComponentType } from 'react';
 import type {
   PageBlock, PageBlockKind,
-  RichTextBlock, HeadingBlock, ListBlock, PeopleBlock, StatCardsBlock, KpiGridBlock,
+  RichTextBlock, HeadingBlock, CalloutBlock, ListBlock, PeopleBlock, StatCardsBlock, KpiGridBlock,
   ChartBlock, ActivityTimelineBlock, ProgramLinkBlock, MiniProgramBlock, KanbanBlock,
   FleetTelematicsBlock, SpotQuoteBlock, ExceptionRadarBlock, OmniChatBlock, SmartInboxBlock,
   DraftsKanbanBlock, YardMapBlock, RailwayTerminalBlock, PodTrackerBlock, OmniDocsBlock,
@@ -26,6 +26,7 @@ import {
 import type { SlashMenuItem } from './slashMenu';
 import { EditableRichText, type SlashSelectContext } from '@/components/projectPage/EditableRichText';
 import { EditableHeading } from '@/components/projectPage/EditableHeading';
+import { CalloutView, CalloutEditor } from '@/components/projectPage/CalloutBlock';
 import {
   HeadingView, RichTextView, ListView, DividerView, MiniProgramEmbedView,
   PeopleView, StatCardsView, KpiGridView, ChartWidgetView, ActivityTimelineView,
@@ -122,6 +123,10 @@ const entries: Record<PageBlockKind, WorkspaceBlockPlugin<PageBlock, PageCtx>> =
     ),
   ),
   'divider': entry('divider', () => <DividerView />),
+  'callout': entry('callout',
+    ({ block }) => <CalloutView block={block as CalloutBlock} />,
+    ({ block, onUpdate }) => <CalloutEditor block={block as CalloutBlock} onUpdate={(b) => onUpdate(b)} />,
+  ),
   'people': entry('people', ({ block, ctx }) => <PeopleView block={block as PeopleBlock} projectId={ctx.projectId as string} />),
   'stat-cards': entry('stat-cards', ({ block, ctx }) => <StatCardsView block={block as StatCardsBlock} projectId={ctx.projectId as string} />),
   'kpi-grid': entry('kpi-grid', ({ block, ctx }) => <KpiGridView block={block as KpiGridBlock} projectId={ctx.projectId as string} />),
