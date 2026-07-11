@@ -19,7 +19,7 @@
 ### Palette & Slash (PAL)
 
 - [ ] **PAL-01**: The page slash menu derives its items from the registry while preserving heading→H1/H2/H3 and list→bulleted/numbered variant expansion and keyword search; the bespoke `/` contentEditable trigger is unchanged
-- [ ] **PAL-02**: Both the page slash/insert menu and the mini-program add-menu derive their available-block lists from one shared `buildPaletteItems` helper
+- [x] **PAL-02**: Both the page slash/insert menu and the mini-program add-menu derive their available-block lists from one shared `buildPaletteItems` helper
 
 ### Mini Program (MPG)
 

@@ -28,7 +28,7 @@ Full detail: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 - [x] **Phase 8: Page Read-Rendering → Registry** - `PageBlockView` switch replaced by `registry.render`; every kind renders identically; no JSON drift (completed 2026-07-06)
 - [x] **Phase 9: Page Edit-Mode + Slash → Registry** - `LivePageCanvas` edit switch and slash-menu derivation move to the registry; contentEditable/slash behavior preserved (completed 2026-07-06)
 - [x] **Phase 10: Mini Program onto the Engine** - `BlockView` switch replaced by the same registry; manifest plugins + v2 round-trip intact (completed 2026-07-06)
-- [ ] **Phase 11: Palette Derivation Unification** - Shared `buildPaletteItems`; both builders' block lists derive from the registry
+- [x] **Phase 11: Palette Derivation Unification** - Shared `buildPaletteItems`; both builders' block lists derive from the registry (completed 2026-07-11)
 - [ ] **Phase 12: Extensibility Proof** - Add one native + one manifest block via a single plugin entry, no dispatch-file edits
 - [ ] **Phase 13: Cleanup, ADR & Park WorkflowBuilder** - Remove dead switches; write engine ADR; document automations WorkflowBuilder as deferred
 
@@ -130,7 +130,7 @@ Full detail: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 8. Page Read-Rendering → Registry | v2.0 | 1/1 | Complete | 2026-07-06 |
 | 9. Page Edit-Mode + Slash → Registry | v2.0 | 1/1 | Complete | 2026-07-06 |
 | 10. Mini Program onto the Engine | v2.0 | 1/1 | Complete | 2026-07-06 |
-| 11. Palette Derivation Unification | v2.0 | 0/1 | Planned | - |
+| 11. Palette Derivation Unification | v2.0 | 1/1 | Complete   | 2026-07-11 |
 | 12. Extensibility Proof | v2.0 | 0/? | Not started | - |
 | 13. Cleanup, ADR & Park WorkflowBuilder | v2.0 | 0/? | Not started | - |
 
