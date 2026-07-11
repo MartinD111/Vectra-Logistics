@@ -68,4 +68,20 @@ const wordCount: PluginBlockManifest = {
   },
 };
 
-export const EXAMPLE_PLUGINS: PluginBlockManifest[] = [dedupe, wordCount];
+const rowCountCallout: PluginBlockManifest = {
+  id: 'vectra.rowcountcallout',
+  version: '1.0.0',
+  title: 'Row count callout',
+  description: 'Shows a highlighted badge with the current row count of the incoming dataset.',
+  icon: 'MessagesSquare',
+  group: 'output',
+  origin: 'builtin',
+  settingsSchema: [],
+  uiSchema: [
+    { node: 'text', text: 'Current dataset:', variant: 'muted' },
+    { node: 'badge', text: '{{count}} rows', tone: 'neutral' },
+  ],
+  logic: { kind: 'transform', source: 'return { rows: rows };' },
+};
+
+export const EXAMPLE_PLUGINS: PluginBlockManifest[] = [dedupe, wordCount, rowCountCallout];
