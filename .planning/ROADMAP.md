@@ -131,7 +131,7 @@ Full detail: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 9. Page Edit-Mode + Slash → Registry | v2.0 | 1/1 | Complete | 2026-07-06 |
 | 10. Mini Program onto the Engine | v2.0 | 1/1 | Complete | 2026-07-06 |
 | 11. Palette Derivation Unification | v2.0 | 1/1 | Complete   | 2026-07-11 |
-| 12. Extensibility Proof | v2.0 | 0/? | Not started | - |
+| 12. Extensibility Proof | v2.0 | 0/2 | Planned | - |
 | 13. Cleanup, ADR & Park WorkflowBuilder | v2.0 | 0/? | Not started | - |
 
 ## Requirement Coverage (v2.0)
