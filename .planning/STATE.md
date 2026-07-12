@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: On-Premise GA
-status: executing
-stopped_at: Phase 18 context gathered
-last_updated: "2026-07-12T19:22:05.685Z"
-last_activity: 2026-07-12 -- Phase 17 execution started
+status: completed
+stopped_at: Phase 18 plan 01 executed (complete)
+last_updated: "2026-07-12T19:59:01.898Z"
+last_activity: 2026-07-12 -- Phase 18 plan 01 executed (ai.service.ts + inbox.parser.ts local-provider dispatch)
 progress:
   total_phases: 7
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
-  percent: 57
+  completed_phases: 5
+  total_plans: 9
+  completed_plans: 9
+  percent: 71
 ---
 
 # Project State
@@ -21,20 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Phase 17 — installer-first-run-flow
+**Current focus:** Phase 18 — backend-side-local-ai-provider
 
 ## Current Position
 
-Phase: 17 (installer-first-run-flow) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 17
-Last activity: 2026-07-12 -- Phase 17 execution started
+Phase: 18 (backend-side-local-ai-provider) — COMPLETE
+Plan: 1 of 1
+Status: Phase 18 complete, ready for Phase 19
+Last activity: 2026-07-12 -- Phase 18 plan 01 executed (ai.service.ts + inbox.parser.ts local-provider dispatch)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: N/A
 - Total execution time: 0 hours
 
@@ -50,6 +50,7 @@ Last activity: 2026-07-12 -- Phase 17 execution started
 | 13 | 1 | - | - |
 | 14 | 2 | - | - |
 | 16 | 2 | - | - |
+| 18 | 1 | 20min | 20min |
 
 **Recent Trend:**
 
@@ -69,6 +70,7 @@ Recent decisions affecting current work:
 - Roadmap (v3.0): Phase 14 (Security Hardening) precedes Phase 15 (Migration Runner) so the default-admin seed is already excluded from customer-facing installs before the migration runner formalizes execution order.
 - Roadmap (v3.0): Phase 18 (Backend-side Local AI) depends on Phase 16 (`DEPLOYMENT_MODE`) so the new server-side local-AI dispatch path can be scoped to on-prem without touching Cloud's existing hard-throw behavior.
 - Roadmap (v3.0): Phase 20 (Deploy Hardening + Connectivity Doc) has no hard dependency on the installer/release track and is sequenced last only to keep every earlier phase independently shippable.
+- Phase 18: D-01/D-02 from 18-CONTEXT.md applied as specified — hasUsableProvider trusts stored config (no live ping), completeLocal uses a 180s timeout (vs 60s for cloud providers) for slower on-prem CPU inference.
 
 ### Pending Todos
 
@@ -105,13 +107,14 @@ No functional gaps — all 14/14 v2.0 requirements independently re-confirmed sa
 - [Phase 6] Migration 024's idempotency also verified by manual SQL inspection only, same reason (no live DB in this environment) — worth a real dry-run before/during deployment, same as migration 023.
 - [Phase 6] `crmService.getClientEmails()` (separate from the timeline's real email read path) still returns a hardcoded empty array — a pre-existing stub noticed but out of this phase's RSK-01/02/03 scope; worth fixing in a future cleanup pass since Phase 5 already made real email data available via `crmRepository.listClientEmails()`.
 - [Phase 13] Decision Coverage Gate (`check.decision-coverage-plan`) reported 0/4 CONTEXT.md decisions (D-01–D-04) covered by 13-01-PLAN.md — overridden and proceeded. Manual `grep` confirms all 4 IDs appear 8 times total in the plan body (`read_first`, task actions, ADR section), and the independent gsd-plan-checker agent pass explicitly confirmed all 4 decisions are correctly handled. Looks like a gate tool false-negative (phase-dir/glob resolution issue), not a real coverage gap — worth a closer look if the gate misfires again on a future phase.
+- [Phase 18] The `worktree-agent-adc9aa1890f503c5c` worktree branch this plan executed in was checked out 246 commits behind `main` with zero unique commits (exactly at the merge-base) — `.planning/` didn't exist in the worktree at session start. Resolved with a safe `git merge main --ff-only` before execution began (no destructive operations, no conflicts). Also, `gsd-sdk query state.advance-plan` incorrectly advanced Phase 17's stale "Plan 1 of 3" tracking instead of recognizing Phase 18 as the active phase — STATE.md's "Current Position" section was stale (still said "Phase 17 EXECUTING" even though all 3 Phase 17 plans and Phase 18 context-gathering were already committed on `main`). Reverted the incorrect auto-advance and updated STATE.md's Current Position manually to reflect Phase 18 complete. Worth investigating why `state.advance-plan` didn't detect the correct current phase from disk state (SUMMARY.md files / ROADMAP.md checkboxes) before advancing.
 
 ## Session Continuity
 
-Last session: 2026-07-12T19:22:05.672Z
-Stopped at: Phase 18 context gathered
-Resume file: .planning/phases/18-backend-side-local-ai-provider/18-CONTEXT.md
+Last session: 2026-07-12T19:59:01.884Z
+Stopped at: Phase 18 plan 01 executed (complete)
+Resume file: None
 
 ## Operator Next Steps
 
-- Review .planning/ROADMAP.md Phase 14-20 detail; if approved, run `/gsd-plan-phase 14`
+- Phase 18 complete (AIL-01 satisfied). Run `/gsd-plan-phase 19` to plan Release Versioning & Upgrade Docs.

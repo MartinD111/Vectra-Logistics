@@ -32,7 +32,7 @@ Requirements for the v3.0 On-Premise GA milestone. Each maps to a roadmap phase.
 
 ### AI Integration
 
-- [ ] **AIL-01**: Backend can call a server-reachable `local` AI provider (not only the browser path), so an on-prem install gets full local-Gemma coverage of every AI feature
+- [x] **AIL-01**: Backend can call a server-reachable `local` AI provider (not only the browser path), so an on-prem install gets full local-Gemma coverage of every AI feature
 
 ### Release & Upgrade
 
@@ -93,7 +93,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEP-02 | Phase 16 | Complete |
 | INS-01 | Phase 17 | Pending |
 | INS-02 | Phase 17 | Pending |
-| AIL-01 | Phase 18 | Pending |
+| AIL-01 | Phase 18 | Complete |
 | REL-01 | Phase 19 | Pending |
 | REL-02 | Phase 19 | Pending |
 | REL-03 | Phase 19 | Pending |
