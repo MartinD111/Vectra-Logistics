@@ -5,8 +5,8 @@ import { db } from '../config/db';
 import { v4 as uuidv4 } from 'uuid';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { recordEvent } from '../core/events/activityLog';
+import { getJwtSecret } from '../core/config/secrets';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-for-dev';
 const JWT_EXPIRES_IN = '24h';
 
 // Signup
@@ -162,7 +162,7 @@ export const login = async (req: Request, res: Response) => {
         company_id: user.company_id,
         is_verified: user.is_verified 
       },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: JWT_EXPIRES_IN }
     );
 
