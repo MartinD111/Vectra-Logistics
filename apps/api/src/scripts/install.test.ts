@@ -9,6 +9,9 @@ import {
   validateAdminPassword,
   validateCompanyName,
   upsertEnvVars,
+  buildTagsUrl,
+  probeOllamaEndpoint,
+  describeProbeError,
 } from './install';
 
 // ── generateSecrets() ─────────────────────────────────────────────────────
@@ -103,4 +106,44 @@ test('upsertEnvVars() appends a new key without disturbing an existing unrelated
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
+});
+
+// ── buildTagsUrl() ─────────────────────────────────────────────────────────
+
+test('buildTagsUrl() strips a trailing slash before appending /api/tags', () => {
+  assert.equal(buildTagsUrl('http://host:11434/'), 'http://host:11434/api/tags');
+});
+
+test('buildTagsUrl() appends /api/tags when there is no trailing slash', () => {
+  assert.equal(buildTagsUrl('http://host:11434'), 'http://host:11434/api/tags');
+});
+
+// ── probeOllamaEndpoint() ────────────────────────────────────────────────────
+
+test('probeOllamaEndpoint() resolves to false (not throw) against an unreachable port', async () => {
+  const result = await probeOllamaEndpoint('http://127.0.0.1:1');
+  assert.equal(result, false);
+});
+
+// ── describeProbeError() ─────────────────────────────────────────────────────
+
+test('describeProbeError() describes ECONNREFUSED as connection refused with an Ollama hint', () => {
+  const message = describeProbeError({ code: 'ECONNREFUSED' });
+  assert.match(message.toLowerCase(), /connection refused/);
+  assert.match(message.toLowerCase(), /is ollama running/);
+});
+
+test('describeProbeError() describes ETIMEDOUT as timed out', () => {
+  const message = describeProbeError({ code: 'ETIMEDOUT' });
+  assert.match(message.toLowerCase(), /timed out/);
+});
+
+test('describeProbeError() describes ENOTFOUND as a DNS resolution failure', () => {
+  const message = describeProbeError({ code: 'ENOTFOUND' });
+  assert.match(message.toLowerCase(), /not found|resolve/);
+});
+
+test('describeProbeError() includes the HTTP status for an axios-shaped error', () => {
+  const message = describeProbeError({ isAxiosError: true, response: { status: 404 } });
+  assert.match(message, /404/);
 });
