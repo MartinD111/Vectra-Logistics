@@ -105,3 +105,7 @@ None - no external service configuration required. Manual live-DB dry-run of the
 ---
 *Phase: 17-installer-first-run-flow*
 *Completed: 2026-07-12*
+
+## Self-Check: PASSED
+
+All created files verified present on disk; all 4 task/summary commit hashes (`a77d109`, `27ac30d`, `456da30`, `6959ce9`) verified present in git log.
