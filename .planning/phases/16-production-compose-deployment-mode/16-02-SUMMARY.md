@@ -124,3 +124,12 @@ None for this plan directly — however, before running this compose file in any
 ---
 *Phase: 16-production-compose-deployment-mode*
 *Completed: 2026-07-12*
+
+## Self-Check: PASSED
+
+- FOUND: docker-compose.prod.yml
+- FOUND: DEPLOYMENT_MODE in .env.example
+- FOUND: 16-02-SUMMARY.md
+- FOUND commit: ea421c7
+- FOUND commit: 1a595d6
+- FOUND commit: af879af
