@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { db } from '../db';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-for-dev';
+import { getJwtSecret } from '../config/secrets';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -19,7 +18,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
 
   if (!token) return res.status(401).json({ error: 'Access token required' });
 
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+  jwt.verify(token, getJwtSecret(), (err: any, user: any) => {
     if (err) return res.status(403).json({ error: 'Invalid or expired token' });
     req.user = user;
     next();

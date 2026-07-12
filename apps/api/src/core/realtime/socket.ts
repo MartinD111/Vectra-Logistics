@@ -1,8 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { bindIo } from './bus';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-for-dev';
+import { getJwtSecret } from '../config/secrets';
 
 interface JwtUser { id: string; role: string; company_id: string | null }
 
@@ -27,7 +26,7 @@ export function configureSocket(io: Server): void {
       return next();
     }
     try {
-      const payload = jwt.verify(token, JWT_SECRET) as JwtUser;
+      const payload = jwt.verify(token, getJwtSecret()) as JwtUser;
       socket.data.user = payload;
       next();
     } catch {

@@ -8,8 +8,8 @@ import { matchClientsForRecipients } from './email.matcher';
 import { projectsRepository } from '../projects/projects.repository';
 import { crmRepository } from '../crm/crm.repository';
 import { OutlookStatus, OutlookCredentials } from './outlook.types';
+import { getJwtSecret } from '../../core/config/secrets';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-for-dev';
 const SCOPES = 'openid profile email offline_access Mail.Read Mail.Send Calendars.Read';
 
 // Microsoft credentials come from env. When any are missing we run in "demo
@@ -63,7 +63,7 @@ class OutlookService {
       return { mode: 'demo', status: await this.getStatus(companyId) };
     }
 
-    const state = jwt.sign({ companyId, userId } as OAuthState, JWT_SECRET, { expiresIn: '10m' });
+    const state = jwt.sign({ companyId, userId } as OAuthState, getJwtSecret(), { expiresIn: '10m' });
     const params = new URLSearchParams({
       client_id: cfg.clientId!,
       response_type: 'code',
@@ -83,7 +83,7 @@ class OutlookService {
 
     let parsed: OAuthState;
     try {
-      parsed = jwt.verify(state, JWT_SECRET) as OAuthState;
+      parsed = jwt.verify(state, getJwtSecret()) as OAuthState;
     } catch {
       throw new AppError(400, 'Invalid or expired OAuth state');
     }
