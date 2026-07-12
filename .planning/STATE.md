@@ -18,10 +18,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-05)
+See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Milestone complete
+**Current focus:** Planning next milestone (v3.0 On-Premise GA — draft plan at .planning/milestones/v3.0-on-premise-ga.md, not yet formally scoped)
 
 ## Current Position
 
@@ -91,6 +91,16 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-06:
 | verification | Phase 03 verification (03-VERIFICATION.md) | human_needed |
 
 These are manual sign-offs on already-shipped CRM features (incl. the credit-risk semaphore). Run before/during production rollout; not blocking the v2.0 engine work.
+
+Items acknowledged and deferred at v2.0 milestone close on 2026-07-12 (see `.planning/milestones/v2.0-MILESTONE-AUDIT.md` for full detail):
+
+| Category | Item | Status |
+|----------|------|--------|
+| verification | Phases 07-11 missing VERIFICATION.md (never run after execution) | tech_debt — backfill via `/gsd:validate-phase 07`..`11` if desired |
+| verification | RND-03 (byte-identical persisted JSON) verified only via static code trace | tech_debt — recommend a live pre/post diff smoke test |
+| verification | MPG-02 (full mini-program round-trip) verified only via static code trace | tech_debt — recommend a live load→run→export smoke test |
+
+No functional gaps — all 14/14 v2.0 requirements independently re-confirmed satisfied by the milestone audit's integration check. Not blocking v3.0 work.
 
 ### Blockers/Concerns
 
