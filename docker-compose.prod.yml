@@ -1,0 +1,141 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: vectra_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: vectra_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend API (shared by all three frontends) ─────────────────────────────
+  # Before first "up" (and before every upgrade), run migrations once:
+  #   docker compose -f docker-compose.prod.yml run --rm api npm run migrate
+  # then:
+  #   docker compose -f docker-compose.prod.yml up -d
+  # Requires Phase 15's migration runner (apps/api/src/scripts/migrate.ts, the
+  # `npm run migrate` script) — not present in this repo as of Phase 16.
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: vectra_api
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379
+      - MATCHING_ENGINE_URL=http://matching-engine:8000
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:?ENCRYPTION_KEY is required}
+      - DEPLOYMENT_MODE=${DEPLOYMENT_MODE:?DEPLOYMENT_MODE is required (cloud or on-prem)}
+      - MS_CLIENT_ID=${MS_CLIENT_ID:-}
+      - MS_CLIENT_SECRET=${MS_CLIENT_SECRET:-}
+      - MS_REDIRECT_URI=${MS_REDIRECT_URI:-}
+      - MS_TENANT=${MS_TENANT:-common}
+      - WORKSPACES_APP_URL=${WORKSPACES_APP_URL:?WORKSPACES_APP_URL is required}
+      - API_PUBLIC_URL=${API_PUBLIC_URL:?API_PUBLIC_URL is required}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      matching-engine:
+        condition: service_started
+
+  matching-engine:
+    build:
+      context: ./services/matching-engine
+      dockerfile: Dockerfile
+    container_name: vectra_matching_engine
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ── Frontends: one image (monorepo), three services ─────────────────────────
+  # Build context is the repo root so the workspace packages are available.
+  # Each service runs its own production Dockerfile's built-in entrypoint
+  # (Next standalone server) — no dev bind-mounts, no command overrides.
+
+  marketplace:
+    build:
+      context: .
+      dockerfile: apps/marketplace/Dockerfile
+    container_name: vectra_marketplace
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
+      - NEXT_PUBLIC_MARKETPLACE_URL=${NEXT_PUBLIC_MARKETPLACE_URL:?NEXT_PUBLIC_MARKETPLACE_URL is required}
+      - NEXT_PUBLIC_WORKSPACES_URL=${NEXT_PUBLIC_WORKSPACES_URL:?NEXT_PUBLIC_WORKSPACES_URL is required}
+      - NEXT_PUBLIC_CMR_URL=${NEXT_PUBLIC_CMR_URL:?NEXT_PUBLIC_CMR_URL is required}
+      - NEXT_PUBLIC_COOKIE_DOMAIN=${NEXT_PUBLIC_COOKIE_DOMAIN:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  workspaces:
+    build:
+      context: .
+      dockerfile: apps/workspaces/Dockerfile
+    container_name: vectra_workspaces
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
+      - NEXT_PUBLIC_MARKETPLACE_URL=${NEXT_PUBLIC_MARKETPLACE_URL:?NEXT_PUBLIC_MARKETPLACE_URL is required}
+      - NEXT_PUBLIC_WORKSPACES_URL=${NEXT_PUBLIC_WORKSPACES_URL:?NEXT_PUBLIC_WORKSPACES_URL is required}
+      - NEXT_PUBLIC_CMR_URL=${NEXT_PUBLIC_CMR_URL:?NEXT_PUBLIC_CMR_URL is required}
+      - NEXT_PUBLIC_COOKIE_DOMAIN=${NEXT_PUBLIC_COOKIE_DOMAIN:-}
+    ports:
+      - "3001:3001"
+    depends_on:
+      - api
+
+  cmr:
+    build:
+      context: .
+      dockerfile: apps/cmr/Dockerfile
+    container_name: vectra_cmr
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
+      - NEXT_PUBLIC_MARKETPLACE_URL=${NEXT_PUBLIC_MARKETPLACE_URL:?NEXT_PUBLIC_MARKETPLACE_URL is required}
+      - NEXT_PUBLIC_WORKSPACES_URL=${NEXT_PUBLIC_WORKSPACES_URL:?NEXT_PUBLIC_WORKSPACES_URL is required}
+      - NEXT_PUBLIC_CMR_URL=${NEXT_PUBLIC_CMR_URL:?NEXT_PUBLIC_CMR_URL is required}
+      - NEXT_PUBLIC_COOKIE_DOMAIN=${NEXT_PUBLIC_COOKIE_DOMAIN:-}
+    ports:
+      - "3002:3002"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  redis_data:
