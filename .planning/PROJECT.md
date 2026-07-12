@@ -2,7 +2,9 @@
 
 ## What This Is
 
-A dedicated CRM module inside the Vectra workspaces app, replacing the never-built "Records" sidebar slot. Today the CRM exists only as a `crm-clients` block embedded inside project pages — a client list with a credit-limit bar and an inline add-client form, nothing more. This rework gives clients a proper home: a CRM dashboard, full client detail pages (opened in a new tab), bulk Excel import, per-project overrides, real email history synced from Outlook, and a credit-risk semaphore wired into the KPI engine that hard-blocks dispatchers from assigning loads to over-limit clients.
+A dedicated CRM module inside the Vectra workspaces app, replacing the never-built "Records" sidebar slot. Today the CRM exists as a full dashboard, client detail pages (opened in a new tab), bulk Excel import, per-project overrides, real email history synced from Outlook, and a credit-risk semaphore wired into the KPI engine that hard-blocks dispatchers from assigning loads to over-limit clients — shipped as v1.0.
+
+Underneath the workspaces app, the Notion-like Project Pages and Mini Programs block systems now share one generic, plugin-driven `WorkspaceBlockRegistry` engine (shipped as v2.0) — "add a block = write one plugin entry, change nothing else." A third, demo-only automations WorkflowBuilder remains a separate, explicitly parked system for a future migration.
 
 ## Core Value
 
@@ -34,21 +36,19 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 - ✓ Credit-limit/payment-history risk evaluated as a first-class KPI evaluator — v1.0 (Phase 6)
 - ✓ Red "frosted glass" risk semaphore at load-assignment time for over-limit clients — v1.0 (Phase 6)
 - ✓ Over-limit assignment remains a hard 403 block; semaphore only visualizes it — v1.0 (Phase 6)
-- ✓ No `switch(block.kind)` remains in any page or mini-program render/edit path; an ADR documents the engine, native-vs-manifest split, `keyOf` seam, and package-promotion path; `WorkflowBuilder.tsx` compiles unchanged and is documented as an explicitly deferred future migration target — Validated in Phase 13 (`docs/ARCHITECTURE-WORKSPACE-ENGINE.md`)
+- ✓ A single generic `WorkspaceBlockRegistry` + `render(block, ctx)` engine, parameterized by block type/context, instantiable by more than one domain — v2.0 (Phase 7)
+- ✓ One `WorkspaceBlockPlugin` contract expressing both native (code) and manifest (sandboxed) plugins, dispatching to the correct flavor — v2.0 (Phase 7)
+- ✓ Page block registry is compile-time-exhaustive over all `PageBlockKind`s (a missing kind fails `tsc`, not production) — v2.0 (Phase 7)
+- ✓ Project page read + edit rendering dispatch through the registry — no `switch(block.kind)` in `PageBlockView` or `LivePageCanvas` — v2.0 (Phases 8-9)
+- ✓ Persisted page/program JSON and autosave payloads unchanged (no data migration) — v2.0 (Phase 8, statically verified; live pre/post diff still recommended as a follow-up, see STATE.md → Deferred Items)
+- ✓ Slash menu + both builders' palettes derive from the registry via a shared `buildPaletteItems` helper — v2.0 (Phases 9, 11)
+- ✓ Mini Program rendering runs on the same engine (`miniProgramBlockRegistry`, same `WorkspaceBlockRegistry` class); manifest plugins render via `DynamicBlockView` — v2.0 (Phase 10, round-trip statically verified; live smoke test still recommended, see STATE.md → Deferred Items)
+- ✓ A developer can add a native or manifest block via one plugin entry, no dispatch-file edits — v2.0 (Phase 12, proven via the `callout` native block + `rowCountCallout` manifest plugin)
+- ✓ No `switch(block.kind)` remains in any page or mini-program render/edit path; an ADR documents the engine, native-vs-manifest split, `keyOf` seam, and package-promotion path; `WorkflowBuilder.tsx` compiles unchanged and is documented as an explicitly deferred future migration target — v2.0 (Phase 13, `docs/ARCHITECTURE-WORKSPACE-ENGINE.md`)
 
 ### Active
 
-*(v2.0 — Workspace Engine, Engine Unification; full detail in REQUIREMENTS.md)*
-
-- [ ] A single generic block registry + `render(block)` engine, reusable across domains (ENG-01)
-- [ ] One `WorkspaceBlockPlugin` contract expressing both native (code) and manifest (sandboxed) plugins (ENG-02)
-- [ ] Page block registry is compile-time-exhaustive over all block kinds (ENG-03)
-- [ ] Project page read + edit rendering dispatch through the registry — no `switch(block.kind)` (RND-01, RND-02)
-- [ ] Persisted page/program JSON and autosave payloads unchanged (no data migration) (RND-03)
-- [ ] Slash menu + both builders' palettes derive from the registry (PAL-01, PAL-02)
-- [ ] Mini Program rendering runs on the same engine; manifest plugins + v2 round-trip intact (MPG-01, MPG-02)
-- [ ] A developer can add a native or manifest block via one plugin entry, no dispatch-file edits (EXT-01, EXT-02)
-- [x] ~~No `switch(block.kind)` remains in render/edit paths; ADR written; WorkflowBuilder documented as deferred (DOC-01, DOC-02)~~ — Validated in Phase 13
+*(v3.0 — On-Premise GA; queued, not yet formally scoped via `/gsd:new-milestone`. See [milestones/v3.0-on-premise-ga.md](milestones/v3.0-on-premise-ga.md) for the 7-phase/17-requirement plan derived from `docs/specs/deployment/*` + `ai-integration.md` §6.1.)*
 
 ### Out of Scope
 
@@ -71,6 +71,7 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 - **Existing 403 behavior**: The backend already blocks over-limit assignments at the API level — the new semaphore must visually reflect this, not introduce a second enforcement path — Why: avoid duplicate/conflicting business logic between old and new code.
 - **No ORM**: All schema changes go through new idempotent SQL migration files following the existing `NNN_description.sql` convention — Why: matches established project convention, no Prisma/ORM in use.
 - **Reuse over rebuild**: Excel import should reuse the existing `xlsx` package/pattern from `ExcelAutomationTool.tsx`; new-tab navigation should reuse `crossAppUrl`/existing link patterns — Why: consistency, less new surface area.
+- **No global block-union merge**: `PageBlock` and `Block` (Mini Program) stay two typed registries sharing one generic `WorkspaceBlockRegistry` class, reconciled per-domain via `keyOf(block)` — Why: merging would churn persisted JSON discriminants for no gain (v2.0, Phase 7).
 
 ## Key Decisions
 
@@ -84,28 +85,26 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 | Per-project client settings are field-level overrides over client-level defaults | Clients can serve multiple projects with different terms (e.g. different rate per project) | ✓ Good (v1.0) |
 | Email matching is by recipient address/domain across any team member's mailbox | No per-user mailbox scoping model exists today; broadest match is simplest and most useful | ✓ Good (v1.0) |
 | Excel import template includes credit limit & default rate as optional columns | Avoids a manual follow-up pass for every imported client; blank falls back to system default | ✓ Good (v1.0) |
+| Generalize the existing Mini Program plugin model rather than invent a new engine | Mini Programs already had a real manifest/sandbox/`DynamicBlockView` architecture; reusing it avoided a second design | ✓ Good (v2.0) |
+| Keep `PageBlock` and `Block` as two typed registries over one generic `WorkspaceBlockRegistry` class, not one merged union | Merging would churn persisted discriminants for no gain; a per-domain `keyOf(block)` resolver reconciles the two data models instead | ✓ Good (v2.0) |
+| Page registry entries are an explicit `Record<PageBlockKind, …>` literal | Compile-time exhaustiveness (ENG-03) — a missing kind fails `tsc`, not production | ✓ Good (v2.0) |
+| WorkflowBuilder explicitly parked/deferred rather than migrated onto the engine now | Demo-only, no persistence, out of tight v2.0 scope; documented in the ADR as a named future migration target instead of silently ignored | ✓ Good (v2.0) |
+
+**Note on v2.0 verification debt:** the `verify_phase_goal` step appears to have been skipped during execution of Phases 7-11 (no VERIFICATION.md written, REQUIREMENTS.md checkboxes left unchecked). The v2.0 milestone audit independently re-confirmed all affected requirements via direct code/git inspection before shipping, but the pattern is worth watching for in future milestones — an executor completing tasks and writing SUMMARY.md is not the same as a verifier confirming the phase goal.
 
 ## Current State
 
 **Shipped:** v1.0 CRM Rework (2026-07-06) — 6 phases, 15 plans, 33 tasks, all 23 requirements. A dedicated CRM module: dashboard, client detail pages, per-project overrides, bulk Excel import, real Outlook email sync, and a KPI-driven credit-risk semaphore hard-blocking over-limit load assignment. Archived at `.planning/milestones/v1.0-{ROADMAP,REQUIREMENTS}.md`.
 
-Deferred at close: 7 pending human-UAT scenarios (Phase 02/03) + 2 verification sign-offs — manual checks on shipped features, tracked in STATE.md → Deferred Items.
+**Shipped:** v2.0 Workspace Engine — Engine Unification (2026-07-12) — 7 phases, 8 plans, 10 tasks, all 14 requirements. Project Pages and Mini Programs now render through one shared, plugin-driven `WorkspaceBlockRegistry`; both hand-maintained `switch(block.kind)` dispatch paths are gone; extensibility proven end-to-end (native + manifest block added via one plugin entry each); `docs/ARCHITECTURE-WORKSPACE-ENGINE.md` documents the result; the automations `WorkflowBuilder.tsx` is explicitly parked, untouched, as a future migration target. Archived at `.planning/milestones/v2.0-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md`; phase directories archived at `.planning/milestones/v2.0-phases/`.
 
-## Current Milestone: v2.0 — Workspace Engine (Engine Unification)
+Deferred at v1.0 close: 7 pending human-UAT scenarios (Phase 02/03) + 2 verification sign-offs — manual checks on shipped features, tracked in STATE.md → Deferred Items.
 
-**Goal:** Unify the `workspaces` app's three parallel block/node systems — Project Pages (30 widgets rendered by hand-maintained `switch` statements), Mini Programs v2 (already a real plugin architecture: manifest + sandbox + schema-driven `DynamicBlockView`), and a demo-only automations WorkflowBuilder — into **one plugin-driven block engine** where rendering is `registry.render(block)`, so "add a block = write one plugin entry, change nothing else" becomes literally true.
+Deferred at v2.0 close (tech debt, no functional gaps — see `.planning/milestones/v2.0-MILESTONE-AUDIT.md`): Phases 7-11 are missing formal `VERIFICATION.md` (never run after execution; independently re-confirmed wired by the milestone audit's integration check via direct code inspection + fresh `tsc --noEmit`); REQUIREMENTS.md checkboxes were stale for 8/14 requirements as a result (now archived with corrected status in the audit report); a live pre/post diff of persisted page JSON (RND-03) and a live mini-program round-trip run (MPG-02) were only statically traced, not runtime-executed — recommend backfilling via `/gsd:validate-phase` per phase if the audit trail needs to be complete.
 
-**Scope (tight):** engine unification only — no new user features, no document-schema change, no database/views engine, no realtime/CRDT (all recorded as North-Star / future milestones). Multiplayer explicitly deferred.
+## Next Milestone: v3.0 — On-Premise GA (queued)
 
-**Approach:** generalize the existing Mini Program plugin model (don't reinvent); collapse Project Pages' two switch statements into registry dispatch **without** merging the two block unions or touching persisted JSON; a per-domain `keyOf(block)` resolver reconciles the two data models. Phases 7-13, each compiles and ships. Full architecture: `~/.claude/plans/i-think-this-should-expressive-volcano.md`.
-
-**Target features:**
-- One generic `WorkspaceBlockRegistry` + `WorkspaceBlockPlugin` contract (native + manifest flavors)
-- Project page read/edit rendering via registry dispatch (kill both switches), zero JSON drift
-- Registry-derived slash menu and builder palettes
-- Mini Program blocks folded onto the same engine
-- Proven extensibility: add a block via one plugin entry
-- ADR + cleanup; WorkflowBuilder parked as a future migration target
+Not yet formally scoped — `/gsd:new-milestone` (questioning → research → requirements → roadmap) still needs to run. A draft plan already exists at [milestones/v3.0-on-premise-ga.md](milestones/v3.0-on-premise-ga.md): 7 phases, 17 requirements, derived from `docs/specs/deployment/*` + `ai-integration.md` §6.1. Goal per that draft: ship Vectra as a first-class On-Premise deployment of the same codebase — migration runner, production compose, installer/first-run, `DEPLOYMENT_MODE`, backend-side local Gemma, release versioning + upgrade procedure, and the committed-secret/hardening fixes that also help Cloud.
 
 ## Platform Vision & Architecture (North Star)
 
@@ -213,4 +212,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-12 — Phase 13 (final phase of v2.0) complete: engine ADR written, WorkflowBuilder parked, DOC-01/DOC-02 validated*
+*Last updated: 2026-07-12 — v2.0 Workspace Engine milestone shipped and archived; all 14 requirements validated; v3.0 On-Premise GA queued as next milestone*

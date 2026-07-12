@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Workspace Engine — Engine Unification
-status: milestone_complete
-stopped_at: Milestone complete (Phase 13 was final phase)
-last_updated: 2026-07-12T07:18:04.588Z
-last_activity: 2026-07-12
+status: Awaiting next milestone
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-07-12T07:28:39.102Z"
+last_activity: 2026-07-12 — Milestone v2.0 completed and archived
 progress:
   total_phases: 7
   completed_phases: 7
   total_plans: 8
-  completed_plans: 23
+  completed_plans: 8
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 ## Current Position
 
-Phase: 13
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-07-12
+Phase: Milestone v2.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-12 — Milestone v2.0 completed and archived
 
 ## Performance Metrics
 
@@ -109,4 +109,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Plan Phase 12 (Extensibility Proof) with /gsd-plan-phase
+- Start the next milestone with /gsd-new-milestone
