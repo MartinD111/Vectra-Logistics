@@ -11,9 +11,9 @@ Requirements for the v3.0 On-Premise GA milestone. Each maps to a roadmap phase.
 
 ### Security Hardening
 
-- [ ] **SEC-01**: No production-facing fallback for `ENCRYPTION_KEY`; server refuses to boot without it set
-- [ ] **SEC-02**: No production-facing fallback for `JWT_SECRET`; server refuses to boot without it set
-- [ ] **SEC-03**: `017_seed_admin_user.sql` (`admin@admin.com`/`admin`) never runs in any customer-facing install
+- [x] **SEC-01**: No production-facing fallback for `ENCRYPTION_KEY`; server refuses to boot without it set
+- [x] **SEC-02**: No production-facing fallback for `JWT_SECRET`; server refuses to boot without it set
+- [x] **SEC-03**: `017_seed_admin_user.sql` (`admin@admin.com`/`admin`) never runs in any customer-facing install
 
 ### Migrations
 
@@ -84,9 +84,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | Phase 14 | Pending |
-| SEC-02 | Phase 14 | Pending |
-| SEC-03 | Phase 14 | Pending |
+| SEC-01 | Phase 14 | Complete |
+| SEC-02 | Phase 14 | Complete |
+| SEC-03 | Phase 14 | Complete |
 | MIG-01 | Phase 15 | Pending |
 | MIG-02 | Phase 15 | Pending |
 | DEP-01 | Phase 16 | Pending |
