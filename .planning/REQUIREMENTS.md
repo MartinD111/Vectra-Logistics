@@ -17,8 +17,8 @@ Requirements for the v3.0 On-Premise GA milestone. Each maps to a roadmap phase.
 
 ### Migrations
 
-- [ ] **MIG-01**: A `schema_migrations` tracking table + `npm run migrate` runner applies pending numbered migrations in order, idempotently, recording each
-- [ ] **MIG-02**: First-run and upgrade use the same migration path; production stack drops the `docker-entrypoint-initdb.d` mounts
+- [x] **MIG-01**: A `schema_migrations` tracking table + `npm run migrate` runner applies pending numbered migrations in order, idempotently, recording each
+- [x] **MIG-02**: First-run and upgrade use the same migration path; production stack drops the `docker-entrypoint-initdb.d` mounts
 
 ### Deployment
 
@@ -87,8 +87,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-01 | Phase 14 | Complete |
 | SEC-02 | Phase 14 | Complete |
 | SEC-03 | Phase 14 | Complete |
-| MIG-01 | Phase 15 | Pending |
-| MIG-02 | Phase 15 | Pending |
+| MIG-01 | Phase 15 | Complete |
+| MIG-02 | Phase 15 + 16 | Complete |
 | DEP-01 | Phase 16 | Complete |
 | DEP-02 | Phase 16 | Complete |
 | INS-01 | Phase 17 | Pending |
