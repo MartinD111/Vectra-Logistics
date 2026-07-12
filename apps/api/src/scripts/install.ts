@@ -3,10 +3,12 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
+import axios from 'axios';
 import { execFileSync } from 'child_process';
 import * as readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import type { PoolClient } from 'pg';
+import { aiRepository } from '../domains/ai/ai.repository';
 
 // From apps/api/src/scripts/ up to repo root, then back into apps/api/dist or
 // database/. Same depth under apps/api for both dist/scripts/install.js
@@ -137,6 +139,58 @@ export async function prompt(question: string): Promise<string> {
   }
 }
 
+// ── Optional local-AI reachability probe (INS-02, D-01/D-02/D-03) ─────────
+// Basic reachability only (D-02) — a GET against Ollama's /api/tags endpoint,
+// not a full completion round-trip. Never blocks (D-03): failures are
+// reported by the caller as a warning, the write to company_ai_config still
+// happens regardless of probe outcome.
+
+export function buildTagsUrl(endpoint: string): string {
+  return `${endpoint.replace(/\/$/, '')}/api/tags`;
+}
+
+export async function probeOllamaEndpoint(endpoint: string): Promise<boolean> {
+  try {
+    const res = await axios.get(buildTagsUrl(endpoint), { timeout: 3000 });
+    return res.status >= 200 && res.status < 300;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Same reachability check as probeOllamaEndpoint(), but re-throws the raw
+ * error instead of swallowing it, so callers (main()'s optional step) can
+ * feed the real error shape into describeProbeError() rather than a
+ * re-synthesized one.
+ */
+async function fetchOllamaTags(endpoint: string): Promise<void> {
+  await axios.get(buildTagsUrl(endpoint), { timeout: 3000 });
+}
+
+/**
+ * Describe a probe failure with an actionable, specific message. Adapts
+ * ai.service.ts's providerError() discrimination shape (err.code vs axios
+ * response.status) -- no AppError/HTTP request context here, this is a CLI
+ * script, so it returns a plain string instead of throwing.
+ */
+export function describeProbeError(err: unknown): string {
+  const e = err as { code?: string; isAxiosError?: boolean; response?: { status?: number } };
+  if (e?.code === 'ECONNREFUSED') {
+    return 'Connection refused -- is Ollama running on that host/port?';
+  }
+  if (e?.code === 'ETIMEDOUT') {
+    return 'Connection timed out -- the endpoint did not respond within 3 seconds.';
+  }
+  if (e?.code === 'ENOTFOUND') {
+    return 'Could not resolve host -- check the hostname in the endpoint URL.';
+  }
+  if (e?.response?.status !== undefined) {
+    return `Endpoint responded with HTTP ${e.response.status} -- check the URL path.`;
+  }
+  return 'Endpoint unreachable -- check the URL and that Ollama is running.';
+}
+
 function parseFlag(name: string): string | undefined {
   const prefix = `--${name}=`;
   const arg = process.argv.find((a) => a.startsWith(prefix));
@@ -202,13 +256,39 @@ async function main() {
       email: adminEmail,
       password: adminPassword,
     });
-    void adminUserId;
 
     upsertEnvVars(ENV_PATH, {
       JWT_SECRET: jwtSecret,
       ENCRYPTION_KEY: encryptionKey,
       DEPLOYMENT_MODE: 'on-prem',
     });
+
+    // ── Step 6: optional local Gemma/Ollama wiring (INS-02, D-01..D-04) ────
+    // Entirely skippable (D-04): a blank prompt answer / unset flags leave
+    // company_ai_config untouched. When an endpoint is provided, it is
+    // probed for basic reachability (D-01/D-02) and a specific warning is
+    // printed on failure, but the value is written regardless (D-03).
+    let localAiEndpoint = parseFlag('local-ai-endpoint') ?? process.env.INSTALL_LOCAL_AI_ENDPOINT ?? '';
+    let localAiModel = parseFlag('local-ai-model') ?? process.env.INSTALL_LOCAL_AI_MODEL ?? '';
+
+    if (!localAiEndpoint && !nonInteractive) {
+      localAiEndpoint = await prompt('Local Ollama/Gemma endpoint URL (leave blank to skip): ');
+    }
+
+    if (localAiEndpoint) {
+      if (!localAiModel) localAiModel = 'gemma';
+
+      try {
+        await fetchOllamaTags(localAiEndpoint);
+      } catch (probeErr) {
+        console.warn(`WARNING: local AI endpoint check failed: ${describeProbeError(probeErr)}`);
+        console.warn('Continuing anyway -- you can fix the endpoint later in Settings.');
+      }
+
+      // provider: 'local' -- no cloud key is ever stored for this path (api_key_enc passed null)
+      await aiRepository.upsert(companyId, 'local', localAiModel, null, localAiEndpoint, localAiModel, adminUserId);
+      console.log(`Local AI endpoint configured: ${localAiEndpoint} (model: ${localAiModel})`);
+    }
 
     console.log('');
     console.log('Install complete.');
