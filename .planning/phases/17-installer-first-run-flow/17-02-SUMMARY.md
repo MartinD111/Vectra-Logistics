@@ -88,6 +88,15 @@ None - no external service configuration required. (Manual verification against 
 - INS-02 satisfied: the installer can now optionally wire a local Gemma/Ollama endpoint into `company_ai_config` at install time, reusing the existing `aiRepository` write path (no second write path introduced).
 - Ready for Phase 18 (Backend-side Local AI), which depends on `DEPLOYMENT_MODE` (Phase 16) to add the server-side dispatch path that will actually call the `local_endpoint`/`local_model` this plan writes.
 
+## Self-Check: PASSED
+
+- FOUND: apps/api/src/scripts/install.ts
+- FOUND: apps/api/src/scripts/install.test.ts
+- FOUND: .planning/phases/17-installer-first-run-flow/17-02-SUMMARY.md
+- FOUND: 9f7e07c (test commit)
+- FOUND: a1f3aff (feat commit)
+- FOUND: 0917cfb (docs commit)
+
 ---
 *Phase: 17-installer-first-run-flow*
 *Completed: 2026-07-12*
