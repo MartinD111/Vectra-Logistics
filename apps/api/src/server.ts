@@ -20,6 +20,7 @@ import podPublicRoutes from "./domains/pod/pod.public.routes";
 import ratingsRoutes from "./routes/ratingsRoutes";
 import companyRoutes from "./routes/companyRoutes";
 import { configureSocket } from "./core/realtime/socket";
+import { validateSecretsOrExit } from "./core/config/secrets";
 
 dotenv.config();
 
@@ -70,6 +71,9 @@ const PORT = process.env.PORT || 8080;
 
 async function bootstrap() {
   try {
+    // Fail fast on missing/default secrets before any DB/Redis I/O (SEC-01/SEC-02)
+    validateSecretsOrExit();
+
     // Connect to database
     await db.query("SELECT 1");
     console.log("PostgreSQL connected");
