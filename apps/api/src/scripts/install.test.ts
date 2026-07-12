@@ -12,6 +12,9 @@ import {
   buildTagsUrl,
   probeOllamaEndpoint,
   describeProbeError,
+  isAlreadyInstalled,
+  shouldBlockInstall,
+  formatFatalError,
 } from './install';
 
 // ── generateSecrets() ─────────────────────────────────────────────────────
@@ -146,4 +149,72 @@ test('describeProbeError() describes ENOTFOUND as a DNS resolution failure', () 
 test('describeProbeError() includes the HTTP status for an axios-shaped error', () => {
   const message = describeProbeError({ isAxiosError: true, response: { status: 404 } });
   assert.match(message, /404/);
+});
+
+// ── isAlreadyInstalled() / shouldBlockInstall() (CR-01) ────────────────────
+
+function makeFakeClient(responses: Array<{ rows: any[] }>) {
+  let callIndex = 0;
+  return {
+    query: async (_sql: string, _params?: unknown[]) => {
+      const response = responses[callIndex] ?? responses[responses.length - 1];
+      callIndex += 1;
+      return response;
+    },
+    release: () => {},
+  };
+}
+
+test('isAlreadyInstalled() returns false when companies table does not exist yet (first run, no schema)', async () => {
+  const fakeClient = makeFakeClient([{ rows: [{ exists: null }] }]);
+  const result = await isAlreadyInstalled(fakeClient as any);
+  assert.equal(result, false);
+});
+
+test('isAlreadyInstalled() returns false when companies table exists but is empty (schema pre-applied, no install run yet)', async () => {
+  const fakeClient = makeFakeClient([
+    { rows: [{ exists: 'companies' }] },
+    { rows: [{ has_company: false }] },
+  ]);
+  const result = await isAlreadyInstalled(fakeClient as any);
+  assert.equal(result, false);
+});
+
+test('isAlreadyInstalled() returns true when companies table exists and has a row (real prior install)', async () => {
+  const fakeClient = makeFakeClient([
+    { rows: [{ exists: 'companies' }] },
+    { rows: [{ has_company: true }] },
+  ]);
+  const result = await isAlreadyInstalled(fakeClient as any);
+  assert.equal(result, true);
+});
+
+test('shouldBlockInstall(true, false) returns true (already installed, no --force, must hard-stop)', () => {
+  assert.equal(shouldBlockInstall(true, false), true);
+});
+
+test('shouldBlockInstall(true, true) returns false (already installed, --force passed, proceed)', () => {
+  assert.equal(shouldBlockInstall(true, true), false);
+});
+
+test('shouldBlockInstall(false, false) returns false (fresh system, never block)', () => {
+  assert.equal(shouldBlockInstall(false, false), false);
+});
+
+// ── formatFatalError() (WR-02) ──────────────────────────────────────────────
+
+test('formatFatalError() formats an Error instance using its message', () => {
+  assert.equal(formatFatalError(new Error('boom')), 'FATAL: install failed: boom');
+});
+
+test('formatFatalError() formats a bare string throw without producing undefined', () => {
+  assert.equal(
+    formatFatalError('a bare string throw'),
+    'FATAL: install failed: a bare string throw',
+  );
+});
+
+test('formatFatalError() formats an undefined throw as a diagnostic string containing "undefined"', () => {
+  const message = formatFatalError(undefined);
+  assert.match(message, /undefined/);
 });
