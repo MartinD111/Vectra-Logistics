@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: On-Premise GA
-status: ready_to_plan
-stopped_at: Phase 16 complete (2/2) — ready to discuss Phase 17
-last_updated: 2026-07-12T17:32:13.903Z
-last_activity: 2026-07-12 -- Phase 16 execution started
+status: executing
+stopped_at: Phase 16 context gathered
+last_updated: "2026-07-12T17:51:37.026Z"
+last_activity: 2026-07-12 -- Phase 15 execution started
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 4
+  completed_phases: 2
+  total_plans: 5
   completed_plans: 4
-  percent: 14
+  percent: 29
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Phase 17 — installer / first run flow
+**Current focus:** Phase 15 — migration-runner
 
 ## Current Position
 
-Phase: 17
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-12
+Phase: 15 (migration-runner) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 15
+Last activity: 2026-07-12 -- Phase 15 execution started
 
 ## Performance Metrics
 
