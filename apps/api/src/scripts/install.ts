@@ -91,6 +91,28 @@ export async function applyBaseSchema(client: PoolClient): Promise<void> {
   console.log('Base schema applied (init.sql + extensions.sql).');
 }
 
+// ── Already-installed guard (CR-01 — never silently overwrite secrets or
+// create a second company/admin on a re-run) ───────────────────────────────
+// Three states must be distinguished: (1) companies table does not exist yet
+// (schema never applied — definitely a first run), (2) table exists but is
+// empty (e.g. schema pre-applied via a dev docker-entrypoint-initdb.d mount,
+// but no installer run has completed), (3) table exists and has a row (a
+// real prior install exists). Only state (3) must block a re-run.
+export async function isAlreadyInstalled(client: PoolClient): Promise<boolean> {
+  const { rows } = await client.query(`SELECT to_regclass('public.companies') AS exists`);
+  if (!rows[0].exists) {
+    return false;
+  }
+  const { rows: companyRows } = await client.query(
+    `SELECT EXISTS(SELECT 1 FROM companies) AS has_company`,
+  );
+  return companyRows[0].has_company;
+}
+
+export function shouldBlockInstall(alreadyInstalled: boolean, force: boolean): boolean {
+  return alreadyInstalled && !force;
+}
+
 // ── Migration runner invocation (subprocess — never in-process, per RESEARCH
 // Open Question 1: migrate.ts calls process.exit() itself which would kill
 // the installer process if imported in-process) ────────────────────────────
@@ -201,6 +223,12 @@ function hasFlag(name: string): boolean {
   return process.argv.includes(`--${name}`);
 }
 
+// ── Fatal error formatting (WR-02 — never produce "undefined" for a
+// non-Error thrown value) ───────────────────────────────────────────────────
+export function formatFatalError(err: unknown): string {
+  return `FATAL: install failed: ${err instanceof Error ? err.message : String(err)}`;
+}
+
 async function main() {
   try {
     const nonInteractive = hasFlag('non-interactive');
@@ -239,9 +267,23 @@ async function main() {
       process.exit(1);
     }
 
+    const schemaClient = await db.connect();
+    const alreadyInstalled = await isAlreadyInstalled(schemaClient);
+    if (shouldBlockInstall(alreadyInstalled, hasFlag('force'))) {
+      schemaClient.release();
+      console.error(
+        'FATAL: this system already has a company configured. Re-running the installer without --force would overwrite JWT_SECRET/ENCRYPTION_KEY and break existing encrypted data and sessions. Pass --force only if you understand and accept this.',
+      );
+      process.exit(1);
+    }
+    if (alreadyInstalled && hasFlag('force')) {
+      console.warn(
+        'WARNING: --force passed against an already-installed system. Proceeding will overwrite JWT_SECRET/ENCRYPTION_KEY and may create a duplicate company/admin.',
+      );
+    }
+
     const { jwtSecret, encryptionKey } = generateSecrets();
 
-    const schemaClient = await db.connect();
     try {
       await applyBaseSchema(schemaClient);
     } finally {
@@ -301,7 +343,7 @@ async function main() {
     process.exit(0);
   } catch (err) {
     // Log only .message — never the raw error object (T-17-03 mitigation).
-    console.error(`FATAL: install failed: ${(err as Error).message}`);
+    console.error(formatFatalError(err));
     process.exit(1);
   }
 }
