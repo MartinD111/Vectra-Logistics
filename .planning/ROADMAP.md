@@ -47,7 +47,7 @@ Milestone audit: [milestones/v2.0-MILESTONE-AUDIT.md](milestones/v2.0-MILESTONE-
 - Decimal phases (14.1, 14.2): Urgent insertions (marked with INSERTED).
 
 - [x] **Phase 14: Security Hardening** - No committed-secret fallbacks; server refuses to boot without required secrets; default admin seed never runs in customer-facing installs (completed 2026-07-12)
-- [ ] **Phase 15: Migration Runner** - `schema_migrations` tracking + `npm run migrate` runner shared by first-run and upgrade, idempotent
+- [x] **Phase 15: Migration Runner** - `schema_migrations` tracking + `npm run migrate` runner shared by first-run and upgrade, idempotent (completed 2026-07-12)
 - [x] **Phase 16: Production Compose + DEPLOYMENT_MODE** - `docker-compose.prod.yml` + boot-time cloud/on-prem mode toggle gating seed data and registration (completed 2026-07-12)
 - [ ] **Phase 17: Installer / First-Run Flow** - One-shot installer generates secrets, creates the single company + admin, runs migrations, optionally wires local AI
 - [ ] **Phase 18: Backend-side Local AI Provider** - Server can call a local Gemma/Ollama endpoint directly, not only via the browser path
@@ -80,7 +80,7 @@ Plans:
   3. The production stack no longer mounts `docker-entrypoint-initdb.d`; migrations only ever run through the runner, on first-run and upgrade alike.
 **Plans**: 1 plan
 Plans:
-- [ ] 15-01-PLAN.md — migrate.ts runner (schema_migrations, per-file transaction, 017 exclusion), package.json wiring, live two-run dry-run against vectra_postgres (MIG-01, MIG-02)
+- [x] 15-01-PLAN.md — migrate.ts runner (schema_migrations, per-file transaction, 017 exclusion), package.json wiring, live two-run dry-run against vectra_postgres (MIG-01, MIG-02)
 
 ### Phase 16: Production Compose + DEPLOYMENT_MODE
 **Goal**: A customer can stand up the full production stack from one compose file, and the running app knows at boot whether it's Cloud or On-Premise.
@@ -160,7 +160,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 12. Extensibility Proof | v2.0 | 2/2 | Complete | 2026-07-11 |
 | 13. Cleanup, ADR & Park WorkflowBuilder | v2.0 | 1/1 | Complete | 2026-07-12 |
 | 14. Security Hardening | v3.0 | 2/2 | Complete    | 2026-07-12 |
-| 15. Migration Runner | v3.0 | 0/1 | Not started | - |
+| 15. Migration Runner | v3.0 | 1/1 | Complete   | 2026-07-12 |
 | 16. Production Compose + DEPLOYMENT_MODE | v3.0 | 2/2 | Complete    | 2026-07-12 |
 | 17. Installer / First-Run Flow | v3.0 | 0/TBD | Not started | - |
 | 18. Backend-side Local AI Provider | v3.0 | 0/TBD | Not started | - |
