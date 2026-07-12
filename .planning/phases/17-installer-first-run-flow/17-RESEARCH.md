@@ -324,17 +324,19 @@ async function prompt(question: string): Promise<string> {
 
 **If this table is empty:** N/A — see above; both entries are LOW-risk given D-03's non-blocking design and the installer's documented "runs once against fresh DB" scope.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `install.ts` invoke `migrate.ts`'s logic via subprocess (`npm run migrate` as a child process) or by importing/calling shared functions in-process?**
    - What we know: `migrate.ts` currently has no exported functions — it's a `main()` IIFE-style script that calls `process.exit()` directly, which makes in-process import awkward (a shared `process.exit(1)` inside a library function would kill the installer itself, not just signal failure).
    - What's unclear: Whether the planner wants to refactor `migrate.ts` to export a reusable `runMigrations()` function (small overlap with Phase 15, already shipped) vs. spawning `node dist/scripts/migrate.js` as a subprocess from `install.ts` and checking its exit code (zero repo-code overlap, but adds a Node subprocess dependency — `child_process.execFileSync` is a built-in, no new package).
    - Recommendation: Subprocess invocation (`child_process.execFileSync('node', ['dist/scripts/migrate.js'])`) is simpler and touches zero already-shipped Phase 15 code — this is likely the safer default given Phase 15 is already complete and tested. Flag for the planner to confirm, since it affects task sequencing (installer's `package.json` script may need `&& npm run build` first, since `migrate` only has a compiled `dist/scripts/migrate.js` entry, no ts-node dev variant).
+   - **RESOLVED:** `17-01-PLAN.md` Task 2 adopts subprocess invocation — `runMigrations()` calls `child_process.execFileSync('node', [path.join(__dirname, '../../../../apps/api/dist/scripts/migrate.js')], { stdio: 'inherit' })`, propagating non-zero exit as a thrown error rather than importing/calling `migrate.ts` in-process.
 
 2. **Interaction mode: interactive-only, flag-only, or both from day one?**
    - What we know: CONTEXT.md leaves this to Claude's Discretion; spec (§5.2) allows either.
    - What's unclear: Whether supporting both adds meaningful scope for a "minimum viable installer."
    - Recommendation: Support both from the start — the underlying functions (`createCompanyAndAdmin`, `probeOllamaEndpoint`, `upsertEnvVars`) are interaction-mode-agnostic; the only branch is how values are collected (readline prompts vs. `process.argv`/env-var flags). This is a small amount of extra surface for meaningfully better automated-install support, and CI/scripted on-prem installs are a realistic customer scenario per the spec's own framing ("interactive (or scripted, non-interactive-with-flags for automated installs)").
+   - **RESOLVED:** `17-01-PLAN.md` Task 2's `main()` supports both — flags/env vars (`--company-name`/`INSTALL_COMPANY_NAME`, `--admin-email`/`INSTALL_ADMIN_EMAIL`, `INSTALL_ADMIN_PASSWORD`, `--non-interactive`) with a `readline/promises` prompt fallback for any value not supplied.
 
 ## Environment Availability
 
