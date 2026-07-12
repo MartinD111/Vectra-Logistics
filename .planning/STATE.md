@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: On-Premise GA
 status: planning
-last_updated: "2026-07-12T07:41:50.723Z"
+last_updated: "2026-07-12T00:00:00.000Z"
 last_activity: 2026-07-12
 progress:
-  total_phases: 0
-  completed_phases: 0
+  total_phases: 20
+  completed_phases: 13
   total_plans: 0
   completed_plans: 0
   percent: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Planning next milestone (v3.0 On-Premise GA — draft plan at .planning/milestones/v3.0-on-premise-ga.md, not yet formally scoped)
+**Current focus:** v3.0 On-Premise GA — roadmap created (Phases 14-20), ready for `/gsd:plan-phase 14`
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 14 of 20 (Security Hardening) — not yet planned
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-12 — Milestone v3.0 started
+Status: Roadmap approved, ready to plan Phase 14
+Last activity: 2026-07-12 — ROADMAP.md, REQUIREMENTS.md traceability written for v3.0 (Phases 14-20, 17/17 requirements mapped)
 
 ## Performance Metrics
 
@@ -54,7 +54,6 @@ Last activity: 2026-07-12 — Milestone v3.0 started
 - Trend: N/A
 
 *Updated after each plan completion*
-| Phase 13 P01 | 35min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -63,16 +62,10 @@ Last activity: 2026-07-12 — Milestone v3.0 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Roadmap: Phase 1 must resolve `kpi_results.user_id NOT NULL` schema issue before Phase 6 (risk evaluator) can be built — treated as explicit early decision, not discovered mid-implementation
-- Roadmap: Dedicated `crm` API domain (Phase 1) precedes all frontend/feature work — CRM logic currently fragmented in `billing`
-- Roadmap: `email_messages` table lands in Phase 1 alongside other schema so Phase 5 (email sync) has no missing-table blocker
-- Phase 3: Linked Projects UI placed in the main column above LivePageCanvas (not the 320px sidebar); per-field override toggle uses explicit "Override"/"Reset to default" text buttons per D-04; unlink requires confirm dialog, per-field reset does not
-- Phase 5: First node:test-based test suite in apps/api (ts-node --require register), pinned to ts-node-dev's resolved ^10.4.0; syncEmails() mirrors syncCalendar()'s exact silent-skip contract; email.worker.ts mirrors telematics.worker.ts's single-job-sweeps-all-companies + Promise.allSettled design (15-min interval vs telematics' 5-min)
-- Phase 6: credit_risk KPI evaluator targets a single client (target_client_id) or company-wide (null), mirroring target_project_id/target_user_id; "bad payment history" = any invoice with status='approved' and due_at passed (no new schema); computeCreditRiskDetail() is a shared pure function used by both the evaluator and crmService.getClientRisk() to avoid duplicated risk logic; the frosted-glass semaphore reads live client data directly (not KPI results) so it has zero dependency on evaluator cadence; no new BullMQ scheduler for KPI evaluation — stays on-demand like all existing evaluators
-- Phase 11: Filter for `available:false` lives only in `buildPaletteItems()`, in the engine layer; both slashMenu.ts and MiniProgramBuilder.tsx dropped their local availability checks. PaletteItem<B> intentionally omits renderer/editor/manifest fields — palettes never need them.
-- [Phase ?]: Phase 13: D-01 confirmed - settings-panel switches remain untouched, documented as permanent exception in new ADR
-- [Phase ?]: Phase 13: D-02 sweep of 6 engine-unification files found zero switch-era dead code - all already clean from Phases 7-12
-- [Phase ?]: Phase 13: docs/ARCHITECTURE-WORKSPACE-ENGINE.md created as single flat file (no ADR series), first ADR in repo
+- Roadmap (v3.0): Used the drafted 7-phase build order from `.planning/milestones/v3.0-on-premise-ga.md` as-is, renumbered 1-7 → 14-20 — it was already sequenced by dependency directly from the on-prem/cloud/release specs' own build-order sections, and validated cleanly 1:1 against the 17 REQUIREMENTS.md items with no gaps.
+- Roadmap (v3.0): Phase 14 (Security Hardening) precedes Phase 15 (Migration Runner) so the default-admin seed is already excluded from customer-facing installs before the migration runner formalizes execution order.
+- Roadmap (v3.0): Phase 18 (Backend-side Local AI) depends on Phase 16 (`DEPLOYMENT_MODE`) so the new server-side local-AI dispatch path can be scoped to on-prem without touching Cloud's existing hard-throw behavior.
+- Roadmap (v3.0): Phase 20 (Deploy Hardening + Connectivity Doc) has no hard dependency on the installer/release track and is sequenced last only to keep every earlier phase independently shippable.
 
 ### Pending Todos
 
@@ -89,7 +82,7 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-07-06:
 | verification | Phase 02 verification (02-VERIFICATION.md) | human_needed |
 | verification | Phase 03 verification (03-VERIFICATION.md) | human_needed |
 
-These are manual sign-offs on already-shipped CRM features (incl. the credit-risk semaphore). Run before/during production rollout; not blocking the v2.0 engine work.
+These are manual sign-offs on already-shipped CRM features (incl. the credit-risk semaphore). Run before/during production rollout; not blocking v3.0 work.
 
 Items acknowledged and deferred at v2.0 milestone close on 2026-07-12 (see `.planning/milestones/v2.0-MILESTONE-AUDIT.md` for full detail):
 
@@ -112,10 +105,10 @@ No functional gaps — all 14/14 v2.0 requirements independently re-confirmed sa
 
 ## Session Continuity
 
-Last session: 2026-07-12T07:11:03.104Z
-Stopped at: Completed 13-01-PLAN.md
+Last session: 2026-07-12T00:00:00.000Z
+Stopped at: v3.0 ROADMAP.md + REQUIREMENTS.md traceability written (Phases 14-20, 17/17 requirements mapped)
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Review .planning/ROADMAP.md Phase 14-20 detail; if approved, run `/gsd-plan-phase 14`

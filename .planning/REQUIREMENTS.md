@@ -84,29 +84,29 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | TBD | Pending |
-| SEC-02 | TBD | Pending |
-| SEC-03 | TBD | Pending |
-| MIG-01 | TBD | Pending |
-| MIG-02 | TBD | Pending |
-| DEP-01 | TBD | Pending |
-| DEP-02 | TBD | Pending |
-| INS-01 | TBD | Pending |
-| INS-02 | TBD | Pending |
-| AIL-01 | TBD | Pending |
-| REL-01 | TBD | Pending |
-| REL-02 | TBD | Pending |
-| REL-03 | TBD | Pending |
-| HRD-01 | TBD | Pending |
-| HRD-02 | TBD | Pending |
-| HRD-03 | TBD | Pending |
-| DOC-01 | TBD | Pending |
+| SEC-01 | Phase 14 | Pending |
+| SEC-02 | Phase 14 | Pending |
+| SEC-03 | Phase 14 | Pending |
+| MIG-01 | Phase 15 | Pending |
+| MIG-02 | Phase 15 | Pending |
+| DEP-01 | Phase 16 | Pending |
+| DEP-02 | Phase 16 | Pending |
+| INS-01 | Phase 17 | Pending |
+| INS-02 | Phase 17 | Pending |
+| AIL-01 | Phase 18 | Pending |
+| REL-01 | Phase 19 | Pending |
+| REL-02 | Phase 19 | Pending |
+| REL-03 | Phase 19 | Pending |
+| HRD-01 | Phase 20 | Pending |
+| HRD-02 | Phase 20 | Pending |
+| HRD-03 | Phase 20 | Pending |
+| DOC-01 | Phase 20 | Pending |
 
 **Coverage:**
 - v1 requirements: 17 total
-- Mapped to phases: 0 (pending roadmap creation)
-- Unmapped: 17 ⚠️
+- Mapped to phases: 17/17 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-12*
-*Last updated: 2026-07-12 after initial definition for milestone v3.0*
+*Last updated: 2026-07-12 after roadmap creation — 17/17 requirements mapped to Phases 14-20*
