@@ -45,12 +45,12 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 - ✓ Mini Program rendering runs on the same engine (`miniProgramBlockRegistry`, same `WorkspaceBlockRegistry` class); manifest plugins render via `DynamicBlockView` — v2.0 (Phase 10, round-trip statically verified; live smoke test still recommended, see STATE.md → Deferred Items)
 - ✓ A developer can add a native or manifest block via one plugin entry, no dispatch-file edits — v2.0 (Phase 12, proven via the `callout` native block + `rowCountCallout` manifest plugin)
 - ✓ No `switch(block.kind)` remains in any page or mini-program render/edit path; an ADR documents the engine, native-vs-manifest split, `keyOf` seam, and package-promotion path; `WorkflowBuilder.tsx` compiles unchanged and is documented as an explicitly deferred future migration target — v2.0 (Phase 13, `docs/ARCHITECTURE-WORKSPACE-ENGINE.md`)
+- ✓ SEC-01: No production-facing fallback for `ENCRYPTION_KEY`; server refuses to boot without it set — v3.0 (Phase 14)
+- ✓ SEC-02: No production-facing fallback for `JWT_SECRET`; server refuses to boot without it set — v3.0 (Phase 14)
+- ✓ SEC-03: `017_seed_admin_user.sql` (`admin@admin.com`/`admin`) never runs in any customer-facing install — v3.0 (Phase 14)
 
 ### Active
 
-- [ ] SEC-01: No production-facing fallback for `ENCRYPTION_KEY`; server refuses to boot without it set
-- [ ] SEC-02: No production-facing fallback for `JWT_SECRET`; server refuses to boot without it set
-- [ ] SEC-03: `017_seed_admin_user.sql` (`admin@admin.com`/`admin`) never runs in any customer-facing install
 - [ ] MIG-01: A `schema_migrations` tracking table + `npm run migrate` runner applies pending numbered migrations in order, idempotently, recording each
 - [ ] MIG-02: First-run and upgrade use the same migration path; production stack drops the `docker-entrypoint-initdb.d` mounts
 - [ ] DEP-01: A `docker-compose.prod.yml` assembles the four production images + Postgres + Redis with persistent volumes and no committed secret defaults
@@ -105,6 +105,7 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 | Keep `PageBlock` and `Block` as two typed registries over one generic `WorkspaceBlockRegistry` class, not one merged union | Merging would churn persisted discriminants for no gain; a per-domain `keyOf(block)` resolver reconciles the two data models instead | ✓ Good (v2.0) |
 | Page registry entries are an explicit `Record<PageBlockKind, …>` literal | Compile-time exhaustiveness (ENG-03) — a missing kind fails `tsc`, not production | ✓ Good (v2.0) |
 | WorkflowBuilder explicitly parked/deferred rather than migrated onto the engine now | Demo-only, no persistence, out of tight v2.0 scope; documented in the ADR as a named future migration target instead of silently ignored | ✓ Good (v2.0) |
+| Boot-time secret validation rejects unset/empty/known-bad values only, not general secret strength | Roadmap Phase 14 success criteria are scoped to "no fallback secret is used," not entropy/length; a min-length/entropy check was flagged by code review as a follow-up hardening item, not a phase-goal gap | ✓ Good (v3.0, Phase 14) |
 
 **Note on v2.0 verification debt:** the `verify_phase_goal` step appears to have been skipped during execution of Phases 7-11 (no VERIFICATION.md written, REQUIREMENTS.md checkboxes left unchecked). The v2.0 milestone audit independently re-confirmed all affected requirements via direct code/git inspection before shipping, but the pattern is worth watching for in future milestones — an executor completing tasks and writing SUMMARY.md is not the same as a verifier confirming the phase goal.
 
@@ -238,4 +239,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-12 — Milestone v3.0 On-Premise GA started; 17 requirements defined, active*
+*Last updated: 2026-07-12 — Phase 14 (Security Hardening) complete: SEC-01/02/03 validated*
