@@ -221,14 +221,14 @@ Note: this throws `AppError`, which is fine for `secretBox.ts` because it's call
 
 **If this table is empty:** N/A — see rows above.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should `017_seed_admin_user.sql` be deleted outright, or just un-mounted from `docker-compose.yml`?**
+1. **RESOLVED — Should `017_seed_admin_user.sql` be deleted outright, or just un-mounted from `docker-compose.yml`?**
    - What we know: CONTEXT.md's discretion note and the on-prem spec both frame this as "exclude from the customer-facing path" — the *mount* is the concrete customer-facing mechanism today. The file's continued existence in `database/migrations/` doesn't run anything on its own without the initdb mount.
    - What's unclear: Whether Phase 15's migration runner (MIG-01, reads `database/migrations/*.sql` in numeric order) would pick this file up and re-apply its `INSERT ... ON CONFLICT DO NOTHING` once it exists — which would reintroduce the seed via a different mechanism than the one this phase fixes.
    - Recommendation: Un-mount from `docker-compose.yml` now (satisfies SEC-03 for the only customer-facing path that exists today); leave a decision for Phase 15's planner about whether the migration runner's file-list should explicitly skip `017_seed_admin_user.sql` (or the file should be deleted/neutralized at that time) — flag this explicitly as a Phase 15 dependency note so it isn't silently reintroduced.
 
-2. **Should the "known bad" JWT_SECRET denylist include both `vectra-dev-secret-key-change-in-production` (compose-level) and `super-secret-key-for-dev` (4-call-site level), or just one?**
+2. **RESOLVED — Should the "known bad" JWT_SECRET denylist include both `vectra-dev-secret-key-change-in-production` (compose-level) and `super-secret-key-for-dev` (4-call-site level), or just one?**
    - What we know: CONTEXT.md D-02 explicitly names both strings as needing denylist treatment.
    - What's unclear: Nothing — this is already answered by CONTEXT.md, included here only to confirm the research aligns (it does — see Pattern 1's `KNOWN_BAD_JWT_SECRET` + `KNOWN_BAD_JWT_SECRET_LEGACY` constants).
    - Recommendation: Include both, as CONTEXT.md specifies.
