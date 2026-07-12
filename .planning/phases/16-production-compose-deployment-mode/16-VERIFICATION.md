@@ -11,21 +11,20 @@ re_verification:
     - "A customer can stand up the full production stack from one compose file (`docker compose -f docker-compose.prod.yml up`) — `.env.example` now documents API_PUBLIC_URL and WORKSPACES_APP_URL as required, uncommented vars, matching docker-compose.prod.yml's `${VAR:?required}` usage"
   gaps_remaining: []
   regressions: []
-human_verification:
+human_verification: []
+human_verification_resolved:
   - test: "Run `docker compose -f docker-compose.prod.yml config` on a machine with a live Docker Compose v2 daemon, with all required vars exported (dummy values), and confirm it resolves cleanly showing all 7 services."
-    expected: "Config resolves with no errors; 7 services listed (postgres, redis, api, matching-engine, marketplace, workspaces, cmr)."
-    why_human: "No live Docker daemon was available in the verification/execution sandbox; this is a live Compose-parser check that cannot be simulated by static grep alone."
-  - test: "Unset one required secret at a time (e.g. `unset DEPLOYMENT_MODE`) and re-run `docker compose -f docker-compose.prod.yml config`."
-    expected: "Command fails, naming the specific missing variable (proves `${VAR:?...}` syntax works as a hard requirement, not a silent `${VAR:-}` default)."
-    why_human: "Same live-daemon dependency as above; 16-02's own checkpoint:human-verify task documents this as deferred for the same reason (no verified Docker daemon in the worktree sandbox)."
+    result: "PASS — executed 2026-07-12T19:05:00Z via Docker Desktop 29.4.3 / Compose v5.1.3 (`C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe`). Exit 0, fully resolved config, all 7 services present, no unresolved `${VAR}` placeholders. See 16-HUMAN-UAT.md test 1."
+  - test: "Unset one required secret at a time and re-run `docker compose -f docker-compose.prod.yml config`."
+    result: "PASS — all 12 required vars tested individually; each failure names the specific missing variable (e.g. `required variable DEPLOYMENT_MODE is missing a value: DEPLOYMENT_MODE is required (cloud or on-prem)`). See 16-HUMAN-UAT.md test 2."
 ---
 
 # Phase 16: Production Compose + Deployment Mode Verification Report
 
 **Phase Goal:** A customer can stand up the full production stack from one compose file, and the running app knows at boot whether it's Cloud or On-Premise.
 **Verified:** 2026-07-12
-**Status:** human_needed
-**Re-verification:** Yes — after gap closure (commit ddcd9b5)
+**Status:** passed
+**Re-verification:** Yes — after gap closure (commit ddcd9b5) and human verification (2026-07-12T19:05:00Z, see 16-HUMAN-UAT.md)
 
 ## Goal Achievement
 
@@ -72,7 +71,8 @@ Not applicable — this phase produces infrastructure config (compose file, env 
 |----------|---------|--------|--------|
 | Unit test suite (secrets + authController + others) | `cd apps/api && npm test` | 34/34 tests pass | ✓ PASS |
 | Cross-check `.env.example` vs `docker-compose.prod.yml` required vars | grep both files for `${VAR:?` and manual diff against `.env.example` var names | All 12 distinct required vars present in `.env.example`, none missing | ✓ PASS |
-| Live `docker compose -f docker-compose.prod.yml config`/`up` | N/A — no Docker daemon in this environment | Not executed | ? SKIP (routed to Human Verification) |
+| Live `docker compose -f docker-compose.prod.yml config` (all vars set) | `docker compose --env-file <populated> -f docker-compose.prod.yml config` | Exit 0, all 7 services resolved | ✓ PASS |
+| Live `docker compose -f docker-compose.prod.yml config` (each required var unset) | Same command, 1 of 12 vars removed at a time | All 12 fail with a per-variable error naming the missing var | ✓ PASS |
 
 ### Requirements Coverage
 
@@ -89,23 +89,13 @@ Not applicable — this phase produces infrastructure config (compose file, env 
 
 No `TBD`/`FIXME`/`XXX` markers found in any file touched by this phase's fix commit (`.env.example` only touched comments and var placement).
 
-### Human Verification Required
+### Human Verification — Resolved
 
-### 1. Live `docker compose config` resolves cleanly with all vars set
-
-**Test:** Export dummy values for all required vars (see 16-02-SUMMARY.md's documented export block, now including `API_PUBLIC_URL`/`WORKSPACES_APP_URL`) and run `docker compose -f docker-compose.prod.yml config`.
-**Expected:** Resolves without error, shows all 7 services.
-**Why human:** No live Docker Compose v2 daemon was available in the verification sandbox; this exercises Compose's own YAML/interpolation resolver, not just static grep.
-
-### 2. Live `docker compose config` fails per-variable when a secret is unset
-
-**Test:** `unset DEPLOYMENT_MODE` (or any other required var) and re-run `docker compose -f docker-compose.prod.yml config`.
-**Expected:** Fails, naming the specific missing variable — proves `${VAR:?...}` syntax is enforced by Compose itself, not just present in the YAML text.
-**Why human:** Same live-daemon dependency; this was already flagged by 16-02's own `checkpoint:human-verify` task and deferred by the executor for the same documented reason.
+Both items originally routed to human verification have since been executed and passed (2026-07-12T19:05:00Z, Docker Desktop 29.4.3 / Compose v5.1.3). Full detail in `16-HUMAN-UAT.md`.
 
 ### Gaps Summary
 
-No remaining gaps. The single gap from the previous verification pass — `.env.example` missing `API_PUBLIC_URL` and mis-documenting `WORKSPACES_APP_URL` as optional — is confirmed closed by commit `ddcd9b5`. Cross-checking both files line-by-line shows all 12 distinct required (`${VAR:?...}`) variables in `docker-compose.prod.yml` are now documented, uncommented, and given sensible defaults with explanatory comments in `.env.example`. Full API test suite (34/34) still passes, confirming no regression to the deployment-mode boot-gate logic touched in earlier waves of this phase. The two remaining items are unchanged, pre-existing human-verification requirements (live Docker daemon not available in this sandbox) — not code gaps. Status is `human_needed` rather than `passed` because these live-daemon checks were never closed out, but the phase goal's codebase-verifiable half (compose file correctness + `.env.example` consistency + deployment-mode boot behavior) is now fully verified with no gaps.
+No remaining gaps. The single gap from the previous verification pass — `.env.example` missing `API_PUBLIC_URL` and mis-documenting `WORKSPACES_APP_URL` as optional — is confirmed closed by commit `ddcd9b5`. Cross-checking both files line-by-line shows all 12 distinct required (`${VAR:?...}`) variables in `docker-compose.prod.yml` are now documented, uncommented, and given sensible defaults with explanatory comments in `.env.example`. Full API test suite (34/34) still passes, confirming no regression to the deployment-mode boot-gate logic touched in earlier waves of this phase. The two live-Docker-daemon checks have now been executed and passed — see `16-HUMAN-UAT.md`. All observable truths for this phase are fully verified with no gaps.
 
 ---
 
