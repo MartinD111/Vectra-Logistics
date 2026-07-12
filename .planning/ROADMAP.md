@@ -46,7 +46,7 @@ Milestone audit: [milestones/v2.0-MILESTONE-AUDIT.md](milestones/v2.0-MILESTONE-
 - Integer phases (14, 15, 16...): Planned milestone work, continuing global numbering from v2.0's Phase 13.
 - Decimal phases (14.1, 14.2): Urgent insertions (marked with INSERTED).
 
-- [x] **Phase 14: Security Hardening** - No committed-secret fallbacks; server refuses to boot without required secrets; default admin seed never runs in customer-facing installs (completed 2026-07-12)
+- [x] **Phase 14: Security Hardening** - No committed-secret fallbacks; server refuses to boot without required secrets; default admin seed never runs in customer-facing installs (completed 2026-07-12)
 - [ ] **Phase 15: Migration Runner** - `schema_migrations` tracking + `npm run migrate` runner shared by first-run and upgrade, idempotent
 - [ ] **Phase 16: Production Compose + DEPLOYMENT_MODE** - `docker-compose.prod.yml` + boot-time cloud/on-prem mode toggle gating seed data and registration
 - [ ] **Phase 17: Installer / First-Run Flow** - One-shot installer generates secrets, creates the single company + admin, runs migrations, optionally wires local AI
@@ -89,7 +89,10 @@ Plans:
   2. The compose file ships with no committed secret defaults — a missing required secret fails startup rather than silently defaulting.
   3. Setting `DEPLOYMENT_MODE=on-prem` closes open registration and skips cloud-only seed data at boot; `DEPLOYMENT_MODE=cloud` preserves today's behavior unchanged.
   4. `DEPLOYMENT_MODE` is read once at API boot, not re-evaluated per request.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 16-01-PLAN.md — DEPLOYMENT_MODE validator/cache in secrets.ts, server.ts bootstrap wiring, signup() 403 registration gate (DEP-02)
+- [ ] 16-02-PLAN.md — docker-compose.prod.yml (7 services, no host ports on datastores, no committed secret defaults) + .env.example (DEP-01, DEP-02)
 
 ### Phase 17: Installer / First-Run Flow
 **Goal**: A customer or their IT partner can go from a fresh checkout to a running, secured instance through one guided flow — no manual SQL, no default credentials.
@@ -156,7 +159,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 13. Cleanup, ADR & Park WorkflowBuilder | v2.0 | 1/1 | Complete | 2026-07-12 |
 | 14. Security Hardening | v3.0 | 2/2 | Complete    | 2026-07-12 |
 | 15. Migration Runner | v3.0 | 0/TBD | Not started | - |
-| 16. Production Compose + DEPLOYMENT_MODE | v3.0 | 0/TBD | Not started | - |
+| 16. Production Compose + DEPLOYMENT_MODE | v3.0 | 0/2 | Planned | - |
 | 17. Installer / First-Run Flow | v3.0 | 0/TBD | Not started | - |
 | 18. Backend-side Local AI Provider | v3.0 | 0/TBD | Not started | - |
 | 19. Release Versioning & Upgrade Docs | v3.0 | 0/TBD | Not started | - |
