@@ -22,8 +22,8 @@ Requirements for the v3.0 On-Premise GA milestone. Each maps to a roadmap phase.
 
 ### Deployment
 
-- [ ] **DEP-01**: A `docker-compose.prod.yml` assembles the four production images + Postgres + Redis with persistent volumes and no committed secret defaults
-- [ ] **DEP-02**: `DEPLOYMENT_MODE=cloud|on-prem` read once at API boot; gates seed data + registration (open on cloud, closed after first-run on-prem)
+- [x] **DEP-01**: A `docker-compose.prod.yml` assembles the four production images + Postgres + Redis with persistent volumes and no committed secret defaults
+- [x] **DEP-02**: `DEPLOYMENT_MODE=cloud|on-prem` read once at API boot; gates seed data + registration (open on cloud, closed after first-run on-prem)
 
 ### Installer
 
@@ -89,8 +89,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-03 | Phase 14 | Complete |
 | MIG-01 | Phase 15 | Pending |
 | MIG-02 | Phase 15 | Pending |
-| DEP-01 | Phase 16 | Pending |
-| DEP-02 | Phase 16 | Pending |
+| DEP-01 | Phase 16 | Complete |
+| DEP-02 | Phase 16 | Complete |
 | INS-01 | Phase 17 | Pending |
 | INS-02 | Phase 17 | Pending |
 | AIL-01 | Phase 18 | Pending |
