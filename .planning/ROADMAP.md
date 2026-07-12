@@ -78,7 +78,9 @@ Plans:
   1. `npm run migrate` applies all pending numbered files from `database/migrations/` in order and records each one in a `schema_migrations` table.
   2. Running `npm run migrate` again with no new files is a no-op — no errors, no re-application.
   3. The production stack no longer mounts `docker-entrypoint-initdb.d`; migrations only ever run through the runner, on first-run and upgrade alike.
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 15-01-PLAN.md — migrate.ts runner (schema_migrations, per-file transaction, 017 exclusion), package.json wiring, live two-run dry-run against vectra_postgres (MIG-01, MIG-02)
 
 ### Phase 16: Production Compose + DEPLOYMENT_MODE
 **Goal**: A customer can stand up the full production stack from one compose file, and the running app knows at boot whether it's Cloud or On-Premise.
@@ -158,7 +160,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 12. Extensibility Proof | v2.0 | 2/2 | Complete | 2026-07-11 |
 | 13. Cleanup, ADR & Park WorkflowBuilder | v2.0 | 1/1 | Complete | 2026-07-12 |
 | 14. Security Hardening | v3.0 | 2/2 | Complete    | 2026-07-12 |
-| 15. Migration Runner | v3.0 | 0/TBD | Not started | - |
+| 15. Migration Runner | v3.0 | 0/1 | Not started | - |
 | 16. Production Compose + DEPLOYMENT_MODE | v3.0 | 2/2 | Complete    | 2026-07-12 |
 | 17. Installer / First-Run Flow | v3.0 | 0/TBD | Not started | - |
 | 18. Backend-side Local AI Provider | v3.0 | 0/TBD | Not started | - |
