@@ -47,7 +47,8 @@ Milestone audit: [milestones/v2.0-MILESTONE-AUDIT.md](milestones/v2.0-MILESTONE-
 - Decimal phases (14.1, 14.2): Urgent insertions (marked with INSERTED).
 
 - [x] **Phase 14: Security Hardening** - No committed-secret fallbacks; server refuses to boot without required secrets; default admin seed never runs in customer-facing installs (completed 2026-07-12)
-- [x] **Phase 15: Migration Runner** - `schema_migrations` tracking + `npm run migrate` runner shared by first-run and upgrade, idempotent (completed 2026-07-12)
+- [x] **Phase 15: Migration Runner** - `schema_migrations` tracking + `npm run migrate` runner shared by first-run and upgrade, idempotent
+ (completed 2026-07-12)
 - [x] **Phase 16: Production Compose + DEPLOYMENT_MODE** - `docker-compose.prod.yml` + boot-time cloud/on-prem mode toggle gating seed data and registration (completed 2026-07-12)
 - [ ] **Phase 17: Installer / First-Run Flow** - One-shot installer generates secrets, creates the single company + admin, runs migrations, optionally wires local AI
 - [ ] **Phase 18: Backend-side Local AI Provider** - Server can call a local Gemma/Ollama endpoint directly, not only via the browser path
@@ -106,7 +107,10 @@ Plans:
   3. The installer runs the migration runner so the schema is current before the app serves traffic.
   4. The installer can optionally write a reachable local Gemma/Ollama endpoint into `company_ai_config` (`provider:'local'`).
   5. The installer writes `DEPLOYMENT_MODE=on-prem`, so the resulting instance boots closed (registration off, no cloud seed data).
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 17-01-PLAN.md — install.ts core: secrets generation, base-schema bootstrap, migration invocation, company+admin creation, .env write, script wiring (INS-01)
+- [ ] 17-02-PLAN.md — install.ts optional local-AI step: Ollama reachability probe, company_ai_config write (INS-02)
 
 ### Phase 18: Backend-side Local AI Provider
 **Goal**: Every AI-powered feature works on an on-prem install using only a local model — no dependency on a browser-side call path.
@@ -162,7 +166,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 14. Security Hardening | v3.0 | 2/2 | Complete    | 2026-07-12 |
 | 15. Migration Runner | v3.0 | 1/1 | Complete   | 2026-07-12 |
 | 16. Production Compose + DEPLOYMENT_MODE | v3.0 | 2/2 | Complete    | 2026-07-12 |
-| 17. Installer / First-Run Flow | v3.0 | 0/TBD | Not started | - |
+| 17. Installer / First-Run Flow | v3.0 | 0/2 | Not started | - |
 | 18. Backend-side Local AI Provider | v3.0 | 0/TBD | Not started | - |
 | 19. Release Versioning & Upgrade Docs | v3.0 | 0/TBD | Not started | - |
 | 20. Deploy Hardening + Connectivity Doc | v3.0 | 0/TBD | Not started | - |
