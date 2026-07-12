@@ -17,6 +17,7 @@
     "build:marketplace": "npm run build --workspace @vectra/marketplace",
     "build:cmr": "npm run build --workspace @vectra/cmr",
     "build:api": "npm run build --workspace @vectra/api",
-    "migrate": "npm run migrate --workspace @vectra/api"
+    "migrate": "npm run migrate --workspace @vectra/api",
+    "install:on-prem": "npm run install:on-prem --workspace @vectra/api"
   }
 }
