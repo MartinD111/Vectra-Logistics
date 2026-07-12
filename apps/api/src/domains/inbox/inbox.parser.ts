@@ -45,16 +45,25 @@ Example output:
 class InboxParser {
   /** Extract via the company LLM, or a deterministic fallback in demo mode. */
   async extract(companyId: string, email: { subject?: string; body: string }): Promise<{ extraction: Extraction; demo: boolean }> {
-    if (!(await aiService.hasCloudProvider(companyId))) {
+    const usable = (await aiService.hasCloudProvider(companyId)) || (await aiService.hasUsableProvider(companyId));
+    if (!usable) {
       return { extraction: this.demoExtract(email), demo: true };
     }
     const text = `${email.subject ? `Subject: ${email.subject}\n` : ''}${email.body}`;
-    const completion = await aiService.complete(companyId, {
-      system: SYSTEM_PROMPT,
-      prompt: text,
-      json: true,
-      maxTokens: 500,
-    });
+    let completion;
+    try {
+      completion = await aiService.complete(companyId, {
+        system: SYSTEM_PROMPT,
+        prompt: text,
+        json: true,
+        maxTokens: 500,
+      });
+    } catch {
+      // Local completion failed (timeout, connection refused, bad response) —
+      // degrade the same way a non-JSON model response degrades. Never surfaces
+      // a hard error to the dispatcher (D-01 corollary).
+      return { extraction: this.demoExtract(email), demo: false };
+    }
     let raw: unknown;
     try {
       raw = JSON.parse(completion.text);
