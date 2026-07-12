@@ -48,7 +48,23 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 
 ### Active
 
-*(v3.0 — On-Premise GA; queued, not yet formally scoped via `/gsd:new-milestone`. See [milestones/v3.0-on-premise-ga.md](milestones/v3.0-on-premise-ga.md) for the 7-phase/17-requirement plan derived from `docs/specs/deployment/*` + `ai-integration.md` §6.1.)*
+- [ ] SEC-01: No production-facing fallback for `ENCRYPTION_KEY`; server refuses to boot without it set
+- [ ] SEC-02: No production-facing fallback for `JWT_SECRET`; server refuses to boot without it set
+- [ ] SEC-03: `017_seed_admin_user.sql` (`admin@admin.com`/`admin`) never runs in any customer-facing install
+- [ ] MIG-01: A `schema_migrations` tracking table + `npm run migrate` runner applies pending numbered migrations in order, idempotently, recording each
+- [ ] MIG-02: First-run and upgrade use the same migration path; production stack drops the `docker-entrypoint-initdb.d` mounts
+- [ ] DEP-01: A `docker-compose.prod.yml` assembles the four production images + Postgres + Redis with persistent volumes and no committed secret defaults
+- [ ] DEP-02: `DEPLOYMENT_MODE=cloud|on-prem` read once at API boot; gates seed data + registration
+- [ ] INS-01: An installer/first-run flow generates `JWT_SECRET`+`ENCRYPTION_KEY`, creates one company + real admin, runs migrations, writes `DEPLOYMENT_MODE=on-prem`
+- [ ] INS-02: Installer can optionally write a reachable local Gemma/Ollama endpoint into `company_ai_config` (`provider:'local'`)
+- [ ] AIL-01: Backend can call a server-reachable `local` AI provider (not only the browser path)
+- [ ] REL-01: One whole-release version (`VERSION` file + git tag), stamped into images and reported by `/health`
+- [ ] REL-02: `CHANGELOG.md` at repo root, one section per release, migration list generated from filenames
+- [ ] REL-03: The 5-step upgrade procedure replaces the manual per-file `psql` instructions in `docs/DEPLOYMENT.md`
+- [ ] HRD-01: CORS + Socket.IO origins restricted to env-configured app origins (not `*`)
+- [ ] HRD-02: Rate limiting on `/api/auth/*` at minimum
+- [ ] HRD-03: `/health` (or `/ready`) actually verifies Postgres + Redis reachability
+- [ ] DOC-01: Customer-facing doc of the inbound-connectivity posture (reverse proxy exposing only `/api/webhooks/*` + `/api/pod/*`)
 
 ### Out of Scope
 
@@ -102,9 +118,19 @@ Deferred at v1.0 close: 7 pending human-UAT scenarios (Phase 02/03) + 2 verifica
 
 Deferred at v2.0 close (tech debt, no functional gaps — see `.planning/milestones/v2.0-MILESTONE-AUDIT.md`): Phases 7-11 are missing formal `VERIFICATION.md` (never run after execution; independently re-confirmed wired by the milestone audit's integration check via direct code inspection + fresh `tsc --noEmit`); REQUIREMENTS.md checkboxes were stale for 8/14 requirements as a result (now archived with corrected status in the audit report); a live pre/post diff of persisted page JSON (RND-03) and a live mini-program round-trip run (MPG-02) were only statically traced, not runtime-executed — recommend backfilling via `/gsd:validate-phase` per phase if the audit trail needs to be complete.
 
-## Next Milestone: v3.0 — On-Premise GA (queued)
+## Current Milestone: v3.0 On-Premise GA
 
-Not yet formally scoped — `/gsd:new-milestone` (questioning → research → requirements → roadmap) still needs to run. A draft plan already exists at [milestones/v3.0-on-premise-ga.md](milestones/v3.0-on-premise-ga.md): 7 phases, 17 requirements, derived from `docs/specs/deployment/*` + `ai-integration.md` §6.1. Goal per that draft: ship Vectra as a first-class On-Premise deployment of the same codebase — migration runner, production compose, installer/first-run, `DEPLOYMENT_MODE`, backend-side local Gemma, release versioning + upgrade procedure, and the committed-secret/hardening fixes that also help Cloud.
+**Goal:** Make Vectra deployable and self-upgradeable at a customer's own site as a first-class configuration of the same codebase used for Cloud — not a fork, not a "lite" build.
+
+**Target features:**
+- Migration runner (`schema_migrations` + `npm run migrate`) shared by first-run and upgrade
+- Production compose (`docker-compose.prod.yml`) + `DEPLOYMENT_MODE=cloud|on-prem` toggle
+- Installer/first-run flow (secrets, one company + admin, migrations, optional local AI endpoint)
+- Backend-side local Gemma/Ollama AI provider (not just browser-path)
+- Release versioning (`VERSION` + tag), `CHANGELOG.md`, 5-step upgrade procedure
+- Security hardening: no committed secret fallbacks, no seeded default admin, CORS/rate-limit/health hardening
+
+Sourced from `docs/specs/deployment/{on-premise-deployment,cloud-deployment,release-and-migrations}.md`, `docs/specs/core/ai-integration.md` §6.1, `docs/specs/architecture-steering.md` §2. Full phase/requirement draft at [milestones/v3.0-on-premise-ga.md](milestones/v3.0-on-premise-ga.md).
 
 ## Platform Vision & Architecture (North Star)
 
@@ -212,4 +238,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-12 — v2.0 Workspace Engine milestone shipped and archived; all 14 requirements validated; v3.0 On-Premise GA queued as next milestone*
+*Last updated: 2026-07-12 — Milestone v3.0 On-Premise GA started; 17 requirements defined, active*
