@@ -124,7 +124,7 @@ Plans:
   4. The installer can optionally write a reachable local Gemma/Ollama endpoint into `company_ai_config` (`provider:'local'`).
   5. The installer writes `DEPLOYMENT_MODE=on-prem`, so the resulting instance boots closed (registration off, no cloud seed data).
 
-**Plans**: 2 plans
+**Plans**: 3 plans
 Plans:
 **Wave 1**
 
@@ -133,6 +133,10 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 17-02-PLAN.md — install.ts optional local-AI step: Ollama reachability probe, company_ai_config write (INS-02)
+
+**Wave 3** *(gap closure — CR-01, blocked on Wave 1+2 completion)*
+
+- [ ] 17-03-PLAN.md — install.ts already-installed guard (isAlreadyInstalled/shouldBlockInstall, --force override) + safe error formatting (formatFatalError) (INS-01)
 
 ### Phase 18: Backend-side Local AI Provider
 
