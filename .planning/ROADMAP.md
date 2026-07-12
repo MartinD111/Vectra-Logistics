@@ -133,7 +133,7 @@ Full detail: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 10. Mini Program onto the Engine | v2.0 | 1/1 | Complete | 2026-07-06 |
 | 11. Palette Derivation Unification | v2.0 | 1/1 | Complete   | 2026-07-11 |
 | 12. Extensibility Proof | v2.0 | 2/2 | Complete   | 2026-07-11 |
-| 13. Cleanup, ADR & Park WorkflowBuilder | v2.0 | 1/1 | Complete   | 2026-07-12 |
+| 13. Cleanup, ADR & Park WorkflowBuilder | v2.0 | 1/1 | Complete    | 2026-07-12 |
 
 ## Requirement Coverage (v2.0)
 
