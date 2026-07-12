@@ -52,7 +52,7 @@ Milestone audit: [milestones/v2.0-MILESTONE-AUDIT.md](milestones/v2.0-MILESTONE-
  (completed 2026-07-12)
 
 - [x] **Phase 16: Production Compose + DEPLOYMENT_MODE** - `docker-compose.prod.yml` + boot-time cloud/on-prem mode toggle gating seed data and registration (completed 2026-07-12)
-- [ ] **Phase 17: Installer / First-Run Flow** - One-shot installer generates secrets, creates the single company + admin, runs migrations, optionally wires local AI
+- [x] **Phase 17: Installer / First-Run Flow** - One-shot installer generates secrets, creates the single company + admin, runs migrations, optionally wires local AI (completed 2026-07-12)
 - [ ] **Phase 18: Backend-side Local AI Provider** - Server can call a local Gemma/Ollama endpoint directly, not only via the browser path
 - [ ] **Phase 19: Release Versioning & Upgrade Docs** - One `VERSION` + git tag stamped into images/`/health`, `CHANGELOG.md`, 5-step upgrade procedure
 - [ ] **Phase 20: Deploy Hardening + Connectivity Doc** - CORS/Socket.IO origin allowlist, auth rate limiting, real `/health` dependency checks, inbound-connectivity doc
@@ -132,7 +132,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 17-02-PLAN.md — install.ts optional local-AI step: Ollama reachability probe, company_ai_config write (INS-02)
+- [x] 17-02-PLAN.md — install.ts optional local-AI step: Ollama reachability probe, company_ai_config write (INS-02)
 
 ### Phase 18: Backend-side Local AI Provider
 
@@ -197,7 +197,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 14. Security Hardening | v3.0 | 2/2 | Complete    | 2026-07-12 |
 | 15. Migration Runner | v3.0 | 1/1 | Complete   | 2026-07-12 |
 | 16. Production Compose + DEPLOYMENT_MODE | v3.0 | 2/2 | Complete    | 2026-07-12 |
-| 17. Installer / First-Run Flow | v3.0 | 1/2 | In Progress|  |
+| 17. Installer / First-Run Flow | v3.0 | 2/2 | Complete   | 2026-07-12 |
 | 18. Backend-side Local AI Provider | v3.0 | 0/TBD | Not started | - |
 | 19. Release Versioning & Upgrade Docs | v3.0 | 0/TBD | Not started | - |
 | 20. Deploy Hardening + Connectivity Doc | v3.0 | 0/TBD | Not started | - |
