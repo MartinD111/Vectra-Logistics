@@ -149,7 +149,10 @@ Plans:
   2. Inbox/document parsing (`inbox.parser.ts`) gets real AI extraction on a local-only install rather than silently failing.
   3. Cloud/hosted backend behavior for `provider==='local'` is unchanged — still hard-throws when no server-reachable local endpoint exists.
 
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+
+- [ ] 18-01-PLAN.md — ai.service.ts hasUsableProvider/completeLocal/on-prem dispatch branch + inbox.parser.ts hasUsableProvider gate and graceful degrade (AIL-01)
 
 ### Phase 19: Release Versioning & Upgrade Docs
 
@@ -202,7 +205,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 15. Migration Runner | v3.0 | 1/1 | Complete   | 2026-07-12 |
 | 16. Production Compose + DEPLOYMENT_MODE | v3.0 | 2/2 | Complete    | 2026-07-12 |
 | 17. Installer / First-Run Flow | v3.0 | 3/3 | Complete   | 2026-07-12 |
-| 18. Backend-side Local AI Provider | v3.0 | 0/TBD | Not started | - |
+| 18. Backend-side Local AI Provider | v3.0 | 0/1 | Not started | - |
 | 19. Release Versioning & Upgrade Docs | v3.0 | 0/TBD | Not started | - |
 | 20. Deploy Hardening + Connectivity Doc | v3.0 | 0/TBD | Not started | - |
 
