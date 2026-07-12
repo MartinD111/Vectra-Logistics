@@ -5,12 +5,18 @@ import { db } from '../config/db';
 import { v4 as uuidv4 } from 'uuid';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { recordEvent } from '../core/events/activityLog';
-import { getJwtSecret } from '../core/config/secrets';
+import { getJwtSecret, getDeploymentMode } from '../core/config/secrets';
 
 const JWT_EXPIRES_IN = '24h';
 
 // Signup
 export const signup = async (req: Request, res: Response) => {
+  // On-prem installs are single-company by design: public self-service
+  // registration is unconditionally closed (D-04), checked before any DB I/O.
+  if (getDeploymentMode() === 'on-prem') {
+    return res.status(403).json({ error: 'Registration is closed on this on-premise install' });
+  }
+
   const client = await db.connect(); // use a transaction
   try {
     const { 

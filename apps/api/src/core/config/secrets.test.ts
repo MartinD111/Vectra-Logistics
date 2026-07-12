@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateJwtSecretValue, validateEncryptionKeyValue } from './secrets';
+import {
+  validateJwtSecretValue,
+  validateEncryptionKeyValue,
+  validateDeploymentModeValue,
+  getDeploymentMode,
+} from './secrets';
 
 // ── getJwtSecret() / validateJwtSecretValue() ────────────────────────────
 
@@ -53,4 +58,45 @@ test('both JWT_SECRET and ENCRYPTION_KEY valid and non-default -> no exit, no th
   const encResult = validateEncryptionKeyValue('a'.repeat(64));
   assert.equal(jwtResult.valid, true);
   assert.equal(encResult.valid, true);
+});
+
+// ── DEPLOYMENT_MODE ───────────────────────────────────────────────────────
+
+test('DEPLOYMENT_MODE unset -> invalid', () => {
+  const result = validateDeploymentModeValue(undefined);
+  assert.equal(result.valid, false);
+  assert.equal(result.reason, 'DEPLOYMENT_MODE is unset or empty');
+});
+
+test('DEPLOYMENT_MODE empty string -> invalid', () => {
+  const result = validateDeploymentModeValue('');
+  assert.equal(result.valid, false);
+});
+
+test('DEPLOYMENT_MODE invalid value -> invalid with descriptive reason', () => {
+  const result = validateDeploymentModeValue('production');
+  assert.equal(result.valid, false);
+  assert.equal(
+    result.reason,
+    'DEPLOYMENT_MODE must be exactly "cloud" or "on-prem", got "production"',
+  );
+});
+
+test('DEPLOYMENT_MODE "cloud" -> valid', () => {
+  const result = validateDeploymentModeValue('cloud');
+  assert.equal(result.valid, true);
+});
+
+test('DEPLOYMENT_MODE "on-prem" -> valid', () => {
+  const result = validateDeploymentModeValue('on-prem');
+  assert.equal(result.valid, true);
+});
+
+test('getDeploymentMode() caches after first read — later env mutation has no effect', () => {
+  process.env.DEPLOYMENT_MODE = 'cloud';
+  const first = getDeploymentMode();
+  process.env.DEPLOYMENT_MODE = 'on-prem';
+  const second = getDeploymentMode();
+  assert.equal(first, 'cloud');
+  assert.equal(second, 'cloud');
 });

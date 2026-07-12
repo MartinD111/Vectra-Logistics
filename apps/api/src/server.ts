@@ -20,7 +20,7 @@ import podPublicRoutes from "./domains/pod/pod.public.routes";
 import ratingsRoutes from "./routes/ratingsRoutes";
 import companyRoutes from "./routes/companyRoutes";
 import { configureSocket } from "./core/realtime/socket";
-import { validateSecretsOrExit } from "./core/config/secrets";
+import { validateSecretsOrExit, validateDeploymentModeOrExit } from "./core/config/secrets";
 
 dotenv.config();
 
@@ -73,6 +73,9 @@ async function bootstrap() {
   try {
     // Fail fast on missing/default secrets before any DB/Redis I/O (SEC-01/SEC-02)
     validateSecretsOrExit();
+
+    // Fail fast on missing/invalid DEPLOYMENT_MODE before any DB/Redis I/O (DEP-02)
+    validateDeploymentModeOrExit();
 
     // Connect to database
     await db.query("SELECT 1");

@@ -76,3 +76,56 @@ export function validateSecretsOrExit(): void {
     fail('ENCRYPTION_KEY', encResult.reason ?? 'invalid value');
   }
 }
+
+// ── Boot-time DEPLOYMENT_MODE validation (D-02/D-04) ─────────────────────
+//
+// `DEPLOYMENT_MODE` is a trusted (operator-set) input, not user input, but is
+// still exact-match validated so a misconfigured or garbage value can never
+// silently fall through to either cloud or on-prem behavior. Read once per
+// process lifetime and cached, mirroring the JWT_SECRET/ENCRYPTION_KEY shape.
+
+export type DeploymentMode = 'cloud' | 'on-prem';
+
+let cachedDeploymentMode: DeploymentMode | undefined;
+
+/** Pure validator for DEPLOYMENT_MODE — no side effects, safe to unit test directly. */
+export function validateDeploymentModeValue(value: string | undefined): SecretValidationResult {
+  if (!value) {
+    return { valid: false, reason: 'DEPLOYMENT_MODE is unset or empty' };
+  }
+  if (value !== 'cloud' && value !== 'on-prem') {
+    return {
+      valid: false,
+      reason: `DEPLOYMENT_MODE must be exactly "cloud" or "on-prem", got "${value}"`,
+    };
+  }
+  return { valid: true };
+}
+
+/**
+ * Validated, cached read of DEPLOYMENT_MODE. Reads and validates
+ * `process.env.DEPLOYMENT_MODE` exactly once per process lifetime; every
+ * subsequent call returns the cached value regardless of later env mutation
+ * (T-16-03 — prevents access-control behavior from flipping mid-process).
+ */
+export function getDeploymentMode(): DeploymentMode {
+  if (cachedDeploymentMode !== undefined) {
+    return cachedDeploymentMode;
+  }
+  const value = process.env.DEPLOYMENT_MODE;
+  const result = validateDeploymentModeValue(value);
+  if (!result.valid) {
+    fail('DEPLOYMENT_MODE', result.reason ?? 'invalid value');
+  }
+  cachedDeploymentMode = value as DeploymentMode;
+  return cachedDeploymentMode;
+}
+
+/**
+ * Boot-time gate: validates DEPLOYMENT_MODE, exiting the process with a
+ * clear error if unset, empty, or not exactly "cloud"/"on-prem". Call once,
+ * inside bootstrap(), alongside validateSecretsOrExit().
+ */
+export function validateDeploymentModeOrExit(): void {
+  getDeploymentMode();
+}
