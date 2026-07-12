@@ -65,7 +65,10 @@ Milestone audit: [milestones/v2.0-MILESTONE-AUDIT.md](milestones/v2.0-MILESTONE-
   2. Starting the API with `JWT_SECRET` unset fails at boot with a clear error — no fallback secret is used.
   3. `017_seed_admin_user.sql` (or its effect, `admin@admin.com`/`admin`) never runs in any customer-facing (production/on-prem) install path.
   4. Local development workflows still start normally when secrets are supplied via env/`.env`.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 14-01-PLAN.md — Boot-time secrets.ts validated-read module + server.ts wiring + 4 call-site fixes (SEC-01, SEC-02)
+- [ ] 14-02-PLAN.md — docker-compose.yml seed-admin mount + secret defaults removed; .env.example documented (SEC-01, SEC-02, SEC-03)
 
 ### Phase 15: Migration Runner
 **Goal**: Schema migrations apply the same way on first install and on every upgrade, tracked and idempotent.
@@ -151,7 +154,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 11. Palette Derivation Unification | v2.0 | 1/1 | Complete | 2026-07-11 |
 | 12. Extensibility Proof | v2.0 | 2/2 | Complete | 2026-07-11 |
 | 13. Cleanup, ADR & Park WorkflowBuilder | v2.0 | 1/1 | Complete | 2026-07-12 |
-| 14. Security Hardening | v3.0 | 0/TBD | Not started | - |
+| 14. Security Hardening | v3.0 | 0/2 | Planned | - |
 | 15. Migration Runner | v3.0 | 0/TBD | Not started | - |
 | 16. Production Compose + DEPLOYMENT_MODE | v3.0 | 0/TBD | Not started | - |
 | 17. Installer / First-Run Flow | v3.0 | 0/TBD | Not started | - |
