@@ -33,8 +33,8 @@
 
 ### Docs & Cleanup (DOC)
 
-- [ ] **DOC-01**: No `switch(block.kind)` remains in any page or mini-program render/edit path
-- [ ] **DOC-02**: An ADR documents the engine, the native-vs-manifest split, the `keyOf` seam, and the package-promotion path; the automations `WorkflowBuilder` is documented as explicitly deferred
+- [x] **DOC-01**: No `switch(block.kind)` remains in any page or mini-program render/edit path
+- [x] **DOC-02**: An ADR documents the engine, the native-vs-manifest split, the `keyOf` seam, and the package-promotion path; the automations `WorkflowBuilder` is documented as explicitly deferred
 
 ## Future Requirements (deferred — North Star)
 
