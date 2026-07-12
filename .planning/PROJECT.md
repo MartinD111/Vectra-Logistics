@@ -48,13 +48,13 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 - ✓ SEC-01: No production-facing fallback for `ENCRYPTION_KEY`; server refuses to boot without it set — v3.0 (Phase 14)
 - ✓ SEC-02: No production-facing fallback for `JWT_SECRET`; server refuses to boot without it set — v3.0 (Phase 14)
 - ✓ SEC-03: `017_seed_admin_user.sql` (`admin@admin.com`/`admin`) never runs in any customer-facing install — v3.0 (Phase 14)
+- ✓ DEP-01: `docker-compose.prod.yml` assembles all 5 production images (marketplace, workspaces, cmr, api, matching-engine) + Postgres + Redis, persistent volumes, no committed secret defaults (`${VAR:?required}` on every secret), no host ports on datastores — v3.0 (Phase 16)
+- ✓ DEP-02: `DEPLOYMENT_MODE=cloud|on-prem` boot-validated (hard-fail on unset/invalid) and cached in `secrets.ts`, read once via `getDeploymentMode()`; gates `signup()` with an unconditional 403 on `on-prem` — v3.0 (Phase 16)
 
 ### Active
 
 - [ ] MIG-01: A `schema_migrations` tracking table + `npm run migrate` runner applies pending numbered migrations in order, idempotently, recording each
 - [ ] MIG-02: First-run and upgrade use the same migration path; production stack drops the `docker-entrypoint-initdb.d` mounts
-- [ ] DEP-01: A `docker-compose.prod.yml` assembles the four production images + Postgres + Redis with persistent volumes and no committed secret defaults
-- [ ] DEP-02: `DEPLOYMENT_MODE=cloud|on-prem` read once at API boot; gates seed data + registration
 - [ ] INS-01: An installer/first-run flow generates `JWT_SECRET`+`ENCRYPTION_KEY`, creates one company + real admin, runs migrations, writes `DEPLOYMENT_MODE=on-prem`
 - [ ] INS-02: Installer can optionally write a reachable local Gemma/Ollama endpoint into `company_ai_config` (`provider:'local'`)
 - [ ] AIL-01: Backend can call a server-reachable `local` AI provider (not only the browser path)
@@ -239,4 +239,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-12 — Phase 14 (Security Hardening) complete: SEC-01/02/03 validated*
+*Last updated: 2026-07-12 — Phase 16 (Production Compose + DEPLOYMENT_MODE) complete: DEP-01/02 validated. Note: Phase 16 shipped ahead of its declared dependency, Phase 15 (Migration Runner) — the migrate-then-serve compose sequencing is wired against Phase 15's committed `npm run migrate` interface only, not yet runtime-verified end-to-end. Two Docker-daemon-dependent checks (`docker compose config` resolve/fail behavior) remain pending human verification — see `16-HUMAN-UAT.md`.*
