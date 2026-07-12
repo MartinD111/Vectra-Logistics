@@ -303,17 +303,19 @@ See Architecture Patterns section above (Patterns 1-4) — all four are drawn fr
 | A2 | Building an entrypoint shell script (Pattern 2's alternative) vs. the documented 2-step `run --rm ... && up -d` procedure — no locked decision on which the plan should implement | Standard Stack "Alternatives Considered"; Open Questions | Medium — affects task structure (new Dockerfile step vs. pure compose/doc change); does not affect correctness of either approach, but the planner must pick one explicitly since CONTEXT.md doesn't lock this |
 | A3 | `matching-engine`'s FastAPI app has no `/health`-style endpoint (Pitfall 3) — inferred from the Dockerfile/CMD alone; `main.py`'s actual route table was not read in this research pass | Pitfall 3 | Low-Medium — if a health endpoint *does* exist, Pitfall 3's recommended mitigation (plain `depends_on` without health condition) is more conservative than necessary but still correct; if the planner wants a tighter health-gated dependency, `services/matching-engine/main.py` should be read directly before writing that task |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should migrate-then-serve be a compose-level 2-step procedure or baked into the API image's entrypoint?**
    - What we know: `release-and-migrations.md` §5 documents the 2-step procedure (`docker compose run --rm api npm run migrate` then `docker compose up -d`) as the canonical operator-facing upgrade flow. This requires zero Dockerfile changes and matches the spec's literal wording.
    - What's unclear: Whether success criterion 1 ("`docker compose up` starts all four production app images... " — singular `up`, no separate migrate step mentioned) implies the *initial* `up` invocation itself must also run migrations automatically (e.g. via an entrypoint script), rather than requiring the two-step dance even on first install.
    - Recommendation: Treat the two-step procedure as satisfying the phase (it's what the canonical spec documents, and Phase 15's CONTEXT.md D-01 explicitly says the runner is "never auto-run inside `server.ts`'s `bootstrap()`" and is meant to be invoked as `docker compose run --rm api npm run migrate` before `up`) — the plan should have the human/planner confirm this reading against success criterion 1's literal wording before locking the task shape, since it's the one place phrasing could be read two ways.
+   - **RESOLVED:** 16-02-PLAN.md (Task 1) adopted the documented 2-step compose-level procedure (`docker compose run --rm api npm run migrate` then `docker compose up -d`), with zero Dockerfile changes — the entrypoint-script alternative was not chosen. The plan wires this in as an inline YAML comment above the `api` service block rather than a Dockerfile entrypoint.
 
 2. **matching-engine health/readiness signal for `depends_on`**
    - What we know: `services/matching-engine/Dockerfile` has no `HEALTHCHECK` instruction; dev compose's `matching-engine` service has no `healthcheck:` block either.
    - What's unclear: Whether `services/matching-engine/main.py` (FastAPI) already exposes a trivial root/`/health` route that could be wired into a compose healthcheck cheaply, since this file wasn't read in this research pass (out of this phase's locked scope per D-01's "additive" framing).
    - Recommendation: Planner should do a quick read of `services/matching-engine/main.py`'s route table before deciding whether to add a `healthcheck:` block; if trivial (a bare FastAPI app almost always has at least the auto-generated `/docs`), a `curl`-based healthcheck costs one line and meaningfully improves Pitfall 3's mitigation. Not blocking — plain `depends_on` (no health condition) is an acceptable minimum for this phase.
+   - **RESOLVED:** 16-02-PLAN.md (Task 1) adopted the conservative plain `depends_on` (no health condition) for `api → matching-engine`, per Pitfall 3's documented minimum-safe-move — `main.py`'s route table was not read and no `healthcheck:` block was added in this phase.
 
 ## Environment Availability
 
