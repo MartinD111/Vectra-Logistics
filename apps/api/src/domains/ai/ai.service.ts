@@ -7,6 +7,7 @@ import { aiRepository } from './ai.repository';
 import { AiConfigPublic, AiConfigRow, AiCompletion, AiProvider } from './ai.types';
 import { SaveAiConfigSchema } from './dto/save-ai-config.dto';
 import { AiCompleteSchema } from './dto/ai-complete.dto';
+import { getDeploymentMode } from '../../core/config/secrets';
 
 const DEFAULT_MODEL: Record<AiProvider, string> = {
   openai: 'gpt-4o',
@@ -67,6 +68,17 @@ class AiService {
     return !!row && row.provider !== 'local' && !!row.api_key_enc;
   }
 
+  /**
+   * hasUsableProvider: whether the company has a usable server-reachable
+   * LOCAL provider (on-prem only). No live ping — trusts stored config,
+   * mirroring hasCloudProvider (D-01).
+   */
+  async hasUsableProvider(companyId: string): Promise<boolean> {
+    if (getDeploymentMode() !== 'on-prem') return false;
+    const row = await aiRepository.findByCompany(companyId);
+    return !!row && row.provider === 'local' && !!row.local_endpoint;
+  }
+
   /** Proxy a completion to the company's configured CLOUD provider. Local providers are handled client-side and rejected here. */
   async complete(companyId: string, body: unknown): Promise<AiCompletion> {
     const parsed = AiCompleteSchema.safeParse(body);
@@ -77,6 +89,10 @@ class AiService {
     if (!row) throw new AppError(400, 'No AI provider configured for this company. Set one in Settings.');
 
     if (row.provider === 'local') {
+      if (getDeploymentMode() === 'on-prem' && row.local_endpoint) {
+        const localModel = row.local_model?.trim() || DEFAULT_MODEL.local;
+        return this.completeLocal(row.local_endpoint, localModel, system, prompt, json, maxTokens);
+      }
       throw new AppError(400, 'Local providers are called directly from the browser, not via the server proxy.');
     }
     if (!row.api_key_enc) {
@@ -114,6 +130,33 @@ class AiService {
       return { text, provider: 'openai', model };
     } catch (err) {
       throw this.providerError('OpenAI', err);
+    }
+  }
+
+  private async completeLocal(
+    endpoint: string, model: string, system: string | undefined, prompt: string, json: boolean | undefined, maxTokens: number | undefined,
+  ): Promise<AiCompletion> {
+    const base = endpoint.replace(/\/+$/, '');
+    const messages: { role: string; content: string }[] = [];
+    if (system) messages.push({ role: 'system', content: system });
+    messages.push({ role: 'user', content: prompt });
+
+    try {
+      const res = await axios.post(
+        `${base}/v1/chat/completions`,
+        {
+          model,
+          messages,
+          stream: false,
+          ...(json ? { response_format: { type: 'json_object' } } : {}),
+          ...(maxTokens ? { max_tokens: maxTokens } : {}),
+        },
+        { headers: { 'Content-Type': 'application/json' }, timeout: 180000 }, // D-02: 180s, not 60s
+      );
+      const text = res.data?.choices?.[0]?.message?.content ?? '';
+      return { text, provider: 'local', model };
+    } catch (err) {
+      throw this.providerError('Local model', err);
     }
   }
 
