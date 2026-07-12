@@ -28,7 +28,6 @@ services:
       - ./database/migrations/014_dispatcher_widgets.sql:/docker-entrypoint-initdb.d/15-dispatcher-widgets.sql:ro
       - ./database/migrations/015_smart_inbox.sql:/docker-entrypoint-initdb.d/16-smart-inbox.sql:ro
       - ./database/migrations/016_yard_management.sql:/docker-entrypoint-initdb.d/17-yard-management.sql:ro
-      - ./database/migrations/017_seed_admin_user.sql:/docker-entrypoint-initdb.d/18-seed-admin-user.sql:ro
       - ./database/migrations/018_field_execution.sql:/docker-entrypoint-initdb.d/19-field-execution.sql:ro
       - ./database/migrations/019_crm_billing.sql:/docker-entrypoint-initdb.d/20-crm-billing.sql:ro
       - ./database/migrations/020_ltl_matching.sql:/docker-entrypoint-initdb.d/21-ltl-matching.sql:ro
@@ -66,8 +65,8 @@ services:
       - DATABASE_URL=postgres://${POSTGRES_USER:-vectra_user}:${POSTGRES_PASSWORD:-vectra_password}@postgres:5432/${POSTGRES_DB:-vectra_db}
       - REDIS_URL=redis://redis:6379
       - MATCHING_ENGINE_URL=http://matching-engine:8000
-      - JWT_SECRET=${JWT_SECRET:-vectra-dev-secret-key-change-in-production}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-204a7160ec31da5e8aa66cdedaff651050c60f78e62001f6b8790c74bf8cda20}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - MS_CLIENT_ID=${MS_CLIENT_ID:-}
       - MS_CLIENT_SECRET=${MS_CLIENT_SECRET:-}
       - MS_REDIRECT_URI=${MS_REDIRECT_URI:-}
