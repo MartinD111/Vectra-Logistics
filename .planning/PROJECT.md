@@ -34,6 +34,7 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 - ✓ Credit-limit/payment-history risk evaluated as a first-class KPI evaluator — v1.0 (Phase 6)
 - ✓ Red "frosted glass" risk semaphore at load-assignment time for over-limit clients — v1.0 (Phase 6)
 - ✓ Over-limit assignment remains a hard 403 block; semaphore only visualizes it — v1.0 (Phase 6)
+- ✓ No `switch(block.kind)` remains in any page or mini-program render/edit path; an ADR documents the engine, native-vs-manifest split, `keyOf` seam, and package-promotion path; `WorkflowBuilder.tsx` compiles unchanged and is documented as an explicitly deferred future migration target — Validated in Phase 13 (`docs/ARCHITECTURE-WORKSPACE-ENGINE.md`)
 
 ### Active
 
@@ -47,7 +48,7 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 - [ ] Slash menu + both builders' palettes derive from the registry (PAL-01, PAL-02)
 - [ ] Mini Program rendering runs on the same engine; manifest plugins + v2 round-trip intact (MPG-01, MPG-02)
 - [ ] A developer can add a native or manifest block via one plugin entry, no dispatch-file edits (EXT-01, EXT-02)
-- [ ] No `switch(block.kind)` remains in render/edit paths; ADR written; WorkflowBuilder documented as deferred (DOC-01, DOC-02)
+- [x] ~~No `switch(block.kind)` remains in render/edit paths; ADR written; WorkflowBuilder documented as deferred (DOC-01, DOC-02)~~ — Validated in Phase 13
 
 ### Out of Scope
 
@@ -106,6 +107,94 @@ Deferred at close: 7 pending human-UAT scenarios (Phase 02/03) + 2 verification 
 - Proven extensibility: add a block via one plugin entry
 - ADR + cleanup; WorkflowBuilder parked as a future migration target
 
+## Platform Vision & Architecture (North Star)
+
+> Enduring product vision the current work builds toward — steering context, **not** the active build scope (tracked under Current Milestone above). Sourced from the Vectra business plan + the CLAUDE.md steering rules. Hardware, Vectra Academy, and the IT-Partner network are long-term business-plan items and are **explicitly out of current build scope** (see §"Ecosystem & Revenue").
+
+### What Vectra Is
+
+Vectra is a purpose-built **Workspace platform for logistics** — not another TMS, ERP, or AI product. It replaces the fragmented daily toolset (Excel, Outlook, WhatsApp, Teams, Notion, Google Drive, assorted TMS/ERP systems) with one modular, deeply customizable workspace the company fully owns. Target framing: the **operating system for a logistics company** — where dispatchers, drivers, warehouse staff, and management do their daily work.
+
+**Core promise — data sovereignty:** Vectra is **On-Premise by default.** All data stays on the customer's own server; nothing is stored in Vectra's cloud unless the customer explicitly opts into the *Vectra AI* service or the *App Store*. AI is strictly a support tool, never the center of the product.
+
+### Steering rule — platform-core vs. vertical modules
+
+- **Generic core primitives** (workspace, program, record, template, automation, integration, metric, and generic page-block types: rich-text, heading, chart, kpi-grid, kanban, activity-timeline, etc.) stay generic. New generic capability goes here.
+- **Named vertical blocks/domains** (fleet, ltl, yard, pod, crm, vat, marketplace, cmr) are an accepted, explicit product layer — the "Business Modules" / logistics smart blocks. New vertical features go into their own domain + block kind, not scattered into generic primitives.
+- **No single-tenant logic** — nothing that only makes sense for one customer (vs. the vertical as a whole) belongs anywhere in `apps/*` or `packages/*`.
+- **Do not port `blg_master` code** — it is a pattern reference only, never a source of literal code or copy.
+
+### The Five Engines
+
+The platform is five interconnected but independent systems:
+
+1. **Workspace Engine** — the content/knowledge core. Projects, sub-pages, SOPs, knowledge base, operational instructions. Tree-structured pages (unlimited nesting: Projects → Client → Shipments → SOP → Finance → Notes), each built from modular blocks.
+2. **Database Engine** — business objects (Shipment, Customer, Carrier, Driver, Vehicle, Trailer, Warehouse, Route, Invoice, CMR, Task, Port, Terminal, and user-defined) modeled as **rich records that are also full workspace pages**: properties + relations + files + comments/mentions + record-scoped automations + a live collaboration page. Same data, multiple views: **Table, Kanban, Calendar, Timeline (Gantt), Gallery.**
+3. **Automation Engine** — no-code graphical **Workflow Builder** (drag-and-drop). Triggers: new email, new shipment, status change, date/time, QR scan, new document, OCR result, new CMR, HTTP request. Actions: Outlook/Gmail send, WhatsApp/SMS, OCR, PDF parse, HTTP request, in-app notification, approval, delay, conditions, loops, webhooks, database create/update/delete.
+4. **Integration Engine** — connectivity to the outside world: Outlook, Gmail, WhatsApp, SMS; REST/SOAP/EDI/SFTP/Webhooks; ERP + accounting (e.g. Minimax, Zantheon) + customs systems; telematics/GPS (Geotab, Samsara); cloud storage (Drive, OneDrive, SharePoint — as source/consumer only, data stays under customer control).
+5. **Business Modules** — the specialized logistics modules that plug onto the Workspace Engine (see Module Map).
+
+### Navigation / Module Map (left sidebar)
+
+Dashboard · Projects (tree) · CMR Customers · Programs · My Fleet · Procurement · LTL Marketplace · Storage Marketplace · Team · PWA Manager · Routes · CMR Manager · App Store · Settings.
+
+### Block System (the `/` palette)
+
+Pages are composed of blocks inserted via `/`, in categories:
+- **Basic:** heading (to level 4), paragraph, bullet/numbered list, checklist, toggle, divider, quote, callout.
+- **Media:** image, PDF embed, video, files, bookmarks, embeds.
+- **Collaboration:** comments (threaded), mentions, assignments, status, dates, buttons (action triggers).
+- **Database:** table, kanban, calendar, timeline/Gantt, gallery, charts.
+- **Logistics smart blocks:** Shipment, Vehicle, Driver, Route, Warehouse, Container, Fleet, Marketplace, Storage, CMR — plus the already-shipped `crm-clients`, and existing vertical kinds (`fleet-telematics`, `spot-quote`, `railway-terminal`, `yard-map`, `pod-tracker`, `vat-matrix`, `ltl-matches`, `smart-inbox`).
+
+### Programs
+
+Under **Programs**: **Templates** (pre-built workspace pages: Shipment, Customer, Warehouse, Port, SOP, Driver Instructions — adaptable and re-savable), **Mini Programs** (no-code micro-apps built from blocks/forms: VIN Validator, Route Calculator, Cost/Fuel Calculator, Container Checker, etc.), and **Automations** (the Workflow Builder, with enable/disable + execution logs).
+
+### Business Modules (detail)
+
+- **Procurement** — digitized RFQ: dispatcher builds an RFQ, auto-distributes to a carrier group (email/API/WhatsApp/portal), system normalizes returned quotes into one format, dispatcher compares price/terms/ratings, one-click select → notifies all parties + creates a Shipment.
+- **PWA Manager** — mobile driver instructions as a PWA link (QR check-in code, forwarder data, destination, load/unload locations, cargo/VINs, terminal PIN, contacts, special notes, interactive checklist). Smart location templates (e.g. "Luka Koper", "Port of Trieste", "MSC Terminal") auto-fill known instructions.
+- **QR Check-In** — certified QR reader at gate scans the driver's PWA code; Vectra instantly shows driver, plate, company, shipment ref, destination, load/unload, PIN, container, VINs, notes.
+- **CMR Digital Workflow** — dispatcher prepares CMR → sent to driver via PWA → optional Bluetooth print in cab → driver photographs signed CMR → OCR validates signatures/dates/numbers/missing fields (AI fallback when OCR fails) → auto-completes shipment, archives + links CMR, notifies dispatcher, triggers downstream automations (invoicing, accounting archive).
+- **Marketplace** — LTL Marketplace (post/find partial loads) + Storage Marketplace (find/offer pallet/warehouse capacity).
+- **Fleet** — vehicles, drivers (licenses, AETR hours), trailers, service/maintenance reminders + history, documentation, GPS/telematics live tracking.
+- **Team** — users, groups, permissions (project/data-level), departments (dispo/forwarding/accounting), tasks + comments.
+
+### AI — support tool only
+
+Company-level AI config is deployment-mode-aware and supports three install modes (extend `company_ai_config`, don't fork):
+1. **BYOK** — customer's own API key (OpenAI / Gemini / Grok); backend-proxied, key encrypted at rest.
+2. **Local Gemma** — open-source model on the customer's server; nothing leaves the building.
+3. **Vectra AI** (paid subscription) — Vectra-hosted secure server for customers without capable hardware.
+
+**AI performs ONLY these functions** (a hard product constraint — the system deliberately contains no other AI features): help build Mini Programs (describe → AI assembles blocks); help build automations (suggest steps); analyze OCR documents when classic OCR fails; extract spot-quote data from emails; convert unstructured email inquiries into structured Procurement records.
+
+### On-Premise & Deployment Mode (current strategic priority)
+
+**Goal:** make Vectra deployable On-Premise at a customer site as a first-class target — **one codebase, one `DEPLOYMENT_MODE=cloud|on-prem` toggle** (env-driven, read once at boot), never a "lite" fork. Follow the `company_ai_config` pattern (a config value selects behavior, not a code branch).
+
+Known cloud-only assumptions to make optional: **auth/SSO** (must work without wildcard-subdomain cookie sharing — on-prem may be a single internal domain or bare IP); **secrets** (installer must generate `ENCRYPTION_KEY` & friends on first run, no call-home); **inbound webhooks** (need outbound/polling fallback behind firewalls); **multi-tenancy** (schema already `company_id`-scoped → on-prem = seed one company, no schema fork).
+
+New work this phase requires: licensing/activation (seat/module gating without a permanent cloud link); an on-prem release/update pipeline (versioned tagged Docker images + the existing idempotent numbered migrations — reuse, don't reinvent); an installer/first-run flow (seed company, generate secrets, pick mode, configure local AI).
+
+### Build-sequence discipline
+
+Tenant isolation (`company_id` scoping) and the `activity_events` event spine are the foundation everything reads from. **Do not introduce KPI/statistics logic that bypasses `activity_events` in favor of ad-hoc counters** — even under on-prem time pressure.
+
+### When in doubt
+
+If a change only makes sense for Cloud *or* only for On-Premise, stop and make it a **config toggle**, not a fork. If a specific subsystem genuinely can't be toggled, flag it explicitly rather than quietly building single-mode behavior into shared code.
+
+### Ecosystem & Revenue (business context — out of current build scope)
+
+Long-term business-plan layers, tracked here for context but **not** part of the current build sequence:
+- **App Store** — installable third-party extensions (ERP/customs integrations, calculators, dashboard widgets, mini programs, workflow templates, block plugins); 20–30% revenue share.
+- **Hardware (HaaS)** — Standard Server + AI Server (GPU, local Gemma), certified QR readers, certified Bluetooth CMR printers; sale or leasing.
+- **Vectra Academy** — training + certification (Operator, Builder, Architect); paid courses/exams.
+- **IT Partner Network** — certified implementers/developers; annual membership or deal commission.
+- **Revenue pillars:** (A) software/subscriptions — core license, per-seat, paid modules, Vectra AI, App Store commission; (B) hardware — servers/readers/printers, one-time + leasing; (C) services/ecosystem — Academy, partner program, premium templates/mini-programs.
+
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
@@ -124,4 +213,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-06 after v1.0 CRM Rework milestone*
+*Last updated: 2026-07-12 — Phase 13 (final phase of v2.0) complete: engine ADR written, WorkflowBuilder parked, DOC-01/DOC-02 validated*
