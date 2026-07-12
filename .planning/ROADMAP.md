@@ -46,7 +46,7 @@ Milestone audit: [milestones/v2.0-MILESTONE-AUDIT.md](milestones/v2.0-MILESTONE-
 - Integer phases (14, 15, 16...): Planned milestone work, continuing global numbering from v2.0's Phase 13.
 - Decimal phases (14.1, 14.2): Urgent insertions (marked with INSERTED).
 
-- [ ] **Phase 14: Security Hardening** - No committed-secret fallbacks; server refuses to boot without required secrets; default admin seed never runs in customer-facing installs
+- [x] **Phase 14: Security Hardening** - No committed-secret fallbacks; server refuses to boot without required secrets; default admin seed never runs in customer-facing installs (completed 2026-07-12)
 - [ ] **Phase 15: Migration Runner** - `schema_migrations` tracking + `npm run migrate` runner shared by first-run and upgrade, idempotent
 - [ ] **Phase 16: Production Compose + DEPLOYMENT_MODE** - `docker-compose.prod.yml` + boot-time cloud/on-prem mode toggle gating seed data and registration
 - [ ] **Phase 17: Installer / First-Run Flow** - One-shot installer generates secrets, creates the single company + admin, runs migrations, optionally wires local AI
@@ -67,8 +67,8 @@ Milestone audit: [milestones/v2.0-MILESTONE-AUDIT.md](milestones/v2.0-MILESTONE-
   4. Local development workflows still start normally when secrets are supplied via env/`.env`.
 **Plans**: 2 plans
 Plans:
-- [ ] 14-01-PLAN.md — Boot-time secrets.ts validated-read module + server.ts wiring + 4 call-site fixes (SEC-01, SEC-02)
-- [ ] 14-02-PLAN.md — docker-compose.yml seed-admin mount + secret defaults removed; .env.example documented (SEC-01, SEC-02, SEC-03)
+- [x] 14-01-PLAN.md — Boot-time secrets.ts validated-read module + server.ts wiring + 4 call-site fixes (SEC-01, SEC-02)
+- [x] 14-02-PLAN.md — docker-compose.yml seed-admin mount + secret defaults removed; .env.example documented (SEC-01, SEC-02, SEC-03)
 
 ### Phase 15: Migration Runner
 **Goal**: Schema migrations apply the same way on first install and on every upgrade, tracked and idempotent.
@@ -154,7 +154,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 11. Palette Derivation Unification | v2.0 | 1/1 | Complete | 2026-07-11 |
 | 12. Extensibility Proof | v2.0 | 2/2 | Complete | 2026-07-11 |
 | 13. Cleanup, ADR & Park WorkflowBuilder | v2.0 | 1/1 | Complete | 2026-07-12 |
-| 14. Security Hardening | v3.0 | 0/2 | Planned | - |
+| 14. Security Hardening | v3.0 | 2/2 | Complete   | 2026-07-12 |
 | 15. Migration Runner | v3.0 | 0/TBD | Not started | - |
 | 16. Production Compose + DEPLOYMENT_MODE | v3.0 | 0/TBD | Not started | - |
 | 17. Installer / First-Run Flow | v3.0 | 0/TBD | Not started | - |
