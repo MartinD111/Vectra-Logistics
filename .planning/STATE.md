@@ -4,12 +4,12 @@ milestone: v2.0
 milestone_name: Workspace Engine — Engine Unification
 status: executing
 stopped_at: Phase 13 context gathered
-last_updated: "2026-07-11T09:24:00.111Z"
-last_activity: 2026-07-11 -- Phase 12 execution started
+last_updated: "2026-07-12T06:35:34.533Z"
+last_activity: 2026-07-12 -- Phase 13 planning complete
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 7
+  total_plans: 8
   completed_plans: 7
   percent: 86
 ---
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-07-05)
 
 Phase: 12 (extensibility-proof) — EXECUTING
 Plan: 1 of 2
-Status: Executing Phase 12
-Last activity: 2026-07-11 -- Phase 12 execution started
+Status: Ready to execute
+Last activity: 2026-07-12 -- Phase 13 planning complete
 
 ## Performance Metrics
 
@@ -94,6 +94,7 @@ These are manual sign-offs on already-shipped CRM features (incl. the credit-ris
 - [Phase 5] `integration_credentials` table has no formal migration (schema drift risk) — not fixed incidentally during Phase 5 since no Outlook credentials-table changes were needed (only last_sync_at, which is a pre-existing column)
 - [Phase 6] Migration 024's idempotency also verified by manual SQL inspection only, same reason (no live DB in this environment) — worth a real dry-run before/during deployment, same as migration 023.
 - [Phase 6] `crmService.getClientEmails()` (separate from the timeline's real email read path) still returns a hardcoded empty array — a pre-existing stub noticed but out of this phase's RSK-01/02/03 scope; worth fixing in a future cleanup pass since Phase 5 already made real email data available via `crmRepository.listClientEmails()`.
+- [Phase 13] Decision Coverage Gate (`check.decision-coverage-plan`) reported 0/4 CONTEXT.md decisions (D-01–D-04) covered by 13-01-PLAN.md — overridden and proceeded. Manual `grep` confirms all 4 IDs appear 8 times total in the plan body (`read_first`, task actions, ADR section), and the independent gsd-plan-checker agent pass explicitly confirmed all 4 decisions are correctly handled. Looks like a gate tool false-negative (phase-dir/glob resolution issue), not a real coverage gap — worth a closer look if the gate misfires again on a future phase.
 
 ## Session Continuity
 
