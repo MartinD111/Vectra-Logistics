@@ -4,8 +4,8 @@ milestone: v3.0
 milestone_name: On-Premise GA
 status: executing
 stopped_at: Phase 17 context gathered
-last_updated: "2026-07-12T18:37:27.826Z"
-last_activity: 2026-07-12 -- Phase 17 planning complete
+last_updated: "2026-07-12T18:39:07.550Z"
+last_activity: 2026-07-12 -- Phase 17 execution started
 progress:
   total_phases: 7
   completed_phases: 3
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Phase 15 — migration-runner
+**Current focus:** Phase 17 — installer-first-run-flow
 
 ## Current Position
 
-Phase: 15 (migration-runner) — EXECUTING
-Plan: 1 of 1
-Status: Ready to execute
-Last activity: 2026-07-12 -- Phase 17 planning complete
+Phase: 17 (installer-first-run-flow) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 17
+Last activity: 2026-07-12 -- Phase 17 execution started
 
 ## Performance Metrics
 
