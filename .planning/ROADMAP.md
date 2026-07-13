@@ -79,7 +79,13 @@ Milestone audit: [milestones/v3.0-MILESTONE-AUDIT.md](milestones/v3.0-MILESTONE-
   3. User can insert a quote block, a fenced code block with a language picker, and each of image/file/video/bookmark/embed media blocks
   4. User can insert a simple inline table block and a multi-column layout block, distinct from any collection-view table
   5. User can insert a sub-page link block and type `@` inline to mention a person, page, or date
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 21-01-PLAN.md — Foundation (nestable flag) + Checklist, Quote, Code blocks (CONT-01, CONT-03, CONT-04)
+- [ ] 21-02-PLAN.md — @mention system: person/page/date (CONT-09)
+- [ ] 21-03-PLAN.md — Table + media blocks, URL-only (CONT-05, CONT-06)
+- [ ] 21-04-PLAN.md — Sub-page link block (CONT-08)
+- [ ] 21-05-PLAN.md — Toggle + Columns nesting (CONT-02, CONT-07)
 **UI hint**: yes
 
 ### Phase 22: Records + Views Data Model
@@ -168,7 +174,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 18. Backend-side Local AI Provider | v3.0 | 1/1 | Complete   | 2026-07-12 |
 | 19. Release Versioning & Upgrade Docs | v3.0 | 3/3 | Complete    | 2026-07-13 |
 | 20. Deploy Hardening + Connectivity Doc | v3.0 | 4/4 | Complete    | 2026-07-13 |
-| 21. Missing Content Blocks | v4.0 | 0/TBD | Not started | - |
+| 21. Missing Content Blocks | v4.0 | 0/5 | Not started | - |
 | 22. Records + Views Data Model | v4.0 | 0/TBD | Not started | - |
 | 23. Record Detail Page | v4.0 | 0/TBD | Not started | - |
 | 24. Board View & Legacy Kanban Migration | v4.0 | 0/TBD | Not started | - |
