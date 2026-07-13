@@ -42,13 +42,13 @@ Requirements for the v3.0 On-Premise GA milestone. Each maps to a roadmap phase.
 
 ### Deploy Hardening
 
-- [ ] **HRD-01**: CORS + Socket.IO origins restricted to env-configured app origins (not `*`)
-- [ ] **HRD-02**: Rate limiting on `/api/auth/*` at minimum
-- [ ] **HRD-03**: `/health` (or `/ready`) actually verifies Postgres + Redis reachability
+- [x] **HRD-01**: CORS + Socket.IO origins restricted to env-configured app origins (not `*`)
+- [x] **HRD-02**: Rate limiting on `/api/auth/*` at minimum
+- [x] **HRD-03**: `/health` (or `/ready`) actually verifies Postgres + Redis reachability
 
 ### Documentation
 
-- [ ] **DOC-01**: Customer-facing doc of the inbound-connectivity posture (reverse proxy exposing only `/api/webhooks/*` + `/api/pod/*`)
+- [x] **DOC-01**: Customer-facing doc of the inbound-connectivity posture (reverse proxy exposing only `/api/webhooks/*` + `/api/pod/*`)
 
 ## v2 Requirements
 
@@ -97,10 +97,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REL-01 | Phase 19 | Complete |
 | REL-02 | Phase 19 | Complete |
 | REL-03 | Phase 19 | Complete |
-| HRD-01 | Phase 20 | Pending |
-| HRD-02 | Phase 20 | Pending |
-| HRD-03 | Phase 20 | Pending |
-| DOC-01 | Phase 20 | Pending |
+| HRD-01 | Phase 20 | Complete |
+| HRD-02 | Phase 20 | Complete |
+| HRD-03 | Phase 20 | Complete |
+| DOC-01 | Phase 20 | Complete |
 
 **Coverage:**
 - v1 requirements: 17 total

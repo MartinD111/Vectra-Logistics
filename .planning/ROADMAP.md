@@ -227,7 +227,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 17. Installer / First-Run Flow | v3.0 | 3/3 | Complete   | 2026-07-12 |
 | 18. Backend-side Local AI Provider | v3.0 | 1/1 | Complete   | 2026-07-12 |
 | 19. Release Versioning & Upgrade Docs | v3.0 | 3/3 | Complete    | 2026-07-13 |
-| 20. Deploy Hardening + Connectivity Doc | v3.0 | 4/4 | Complete   | 2026-07-13 |
+| 20. Deploy Hardening + Connectivity Doc | v3.0 | 4/4 | Complete    | 2026-07-13 |
 
 ---
 *Roadmap created: 2026-07-05 · v1.0 archived: 2026-07-06 · v2.0 archived: 2026-07-12 · v3.0 phases 14-20 added: 2026-07-12*
