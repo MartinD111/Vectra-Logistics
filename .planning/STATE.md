@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Workspace Records & Views
-status: Roadmap ready
-stopped_at: Phase 21 context gathered
-last_updated: "2026-07-13T12:28:26.602Z"
-last_activity: 2026-07-13 — v4.0 ROADMAP.md created (Phases 21-26, 30/30 requirements mapped)
+status: executing
+stopped_at: Phase 21 UI-SPEC approved
+last_updated: "2026-07-13T16:39:26.043Z"
+last_activity: 2026-07-13 -- Phase 21 planning complete
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 0
+  total_plans: 5
   completed_plans: 0
   percent: 0
 ---
@@ -25,10 +25,12 @@ See: .planning/PROJECT.md (updated 2026-07-12)
 
 ## Current Position
 
-Phase: Not started (roadmap approved, awaiting first `/gsd:plan-phase 21`)
-Plan: —
-Status: Roadmap ready
-Last activity: 2026-07-13 — v4.0 ROADMAP.md created (Phases 21-26, 30/30 requirements mapped)
+Phase: 21 - Missing Content Blocks
+Plan: 5 plans in 4 waves (21-01..21-05)
+Status: Ready to execute
+Last activity: 2026-07-13 -- Phase 21 planning complete
+
+**Decision coverage override (2026-07-13):** Decision Coverage Gate flagged D-01, D-04, D-05, D-06, D-07, D-08, D-09, D-11, D-13 as not literally cited by ID in any 21-*-PLAN.md. User reviewed and chose "Proceed anyway" — gsd-plan-checker's independent Dimension 7 review already confirmed all 9 are substantively implemented (nesting mechanism in 21-05, media decisions in 21-03, mention scope in 21-02, sub-page preview in 21-04); the gap is citation-format only, not a missing feature. If verify-phase re-surfaces this, treat it as already reviewed and accepted.
 
 ## Performance Metrics
 
@@ -120,9 +122,9 @@ No functional gaps — all 14/14 v2.0 requirements independently re-confirmed sa
 
 ## Session Continuity
 
-Last session: 2026-07-13T12:28:26.593Z
-Stopped at: Phase 21 context gathered
-Resume file: .planning/phases/21-missing-content-blocks/21-CONTEXT.md
+Last session: 2026-07-13T16:08:36.099Z
+Stopped at: Phase 21 UI-SPEC approved
+Resume file: .planning/phases/21-missing-content-blocks/21-UI-SPEC.md
 
 ## Operator Next Steps
 
