@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: On-Premise GA
-status: milestone_complete
-stopped_at: Milestone complete (Phase 20 was final phase)
-last_updated: 2026-07-13T10:12:45.862Z
-last_activity: 2026-07-13 -- Phase 20 execution started
+status: Awaiting next milestone
+stopped_at: Phase 20 context gathered
+last_updated: "2026-07-13T10:38:04.395Z"
+last_activity: 2026-07-13 — Milestone v3.0 completed and archived
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 16
   completed_plans: 16
-  percent: 86
+  percent: 100
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-07-12)
 
 ## Current Position
 
-Phase: 20
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-07-13
+Phase: Milestone v3.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-13 — Milestone v3.0 completed and archived
 
 ## Performance Metrics
 
@@ -118,4 +118,4 @@ Resume file: .planning/phases/20-deploy-hardening-connectivity-doc/20-CONTEXT.md
 
 ## Operator Next Steps
 
-- Phase 18 complete (AIL-01 satisfied). Run `/gsd-plan-phase 19` to plan Release Versioning & Upgrade Docs.
+- Start the next milestone with /gsd-new-milestone
