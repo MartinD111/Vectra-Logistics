@@ -55,7 +55,7 @@ Milestone audit: [milestones/v2.0-MILESTONE-AUDIT.md](milestones/v2.0-MILESTONE-
 - [x] **Phase 17: Installer / First-Run Flow** - One-shot installer generates secrets, creates the single company + admin, runs migrations, optionally wires local AI (completed 2026-07-12)
 - [x] **Phase 18: Backend-side Local AI Provider** - Server can call a local Gemma/Ollama endpoint directly, not only via the browser path
  (completed 2026-07-12)
-- [ ] **Phase 19: Release Versioning & Upgrade Docs** - One `VERSION` + git tag stamped into images/`/health`, `CHANGELOG.md`, 5-step upgrade procedure
+- [x] **Phase 19: Release Versioning & Upgrade Docs** - One `VERSION` + git tag stamped into images/`/health`, `CHANGELOG.md`, 5-step upgrade procedure (completed 2026-07-13)
 - [ ] **Phase 20: Deploy Hardening + Connectivity Doc** - CORS/Socket.IO origin allowlist, auth rate limiting, real `/health` dependency checks, inbound-connectivity doc
 
 ## Phase Details
@@ -175,7 +175,7 @@ Plans:
 
 **Wave 2** *(blocked on 19-01 completion)*
 
-- [ ] 19-02-PLAN.md — ARG VERSION in all 4 Dockerfiles + docker-compose.prod.yml build args (REL-01)
+- [x] 19-02-PLAN.md — ARG VERSION in all 4 Dockerfiles + docker-compose.prod.yml build args (REL-01)
 
 ### Phase 20: Deploy Hardening + Connectivity Doc
 
@@ -216,7 +216,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 16. Production Compose + DEPLOYMENT_MODE | v3.0 | 2/2 | Complete    | 2026-07-12 |
 | 17. Installer / First-Run Flow | v3.0 | 3/3 | Complete   | 2026-07-12 |
 | 18. Backend-side Local AI Provider | v3.0 | 1/1 | Complete   | 2026-07-12 |
-| 19. Release Versioning & Upgrade Docs | v3.0 | 2/3 | In Progress|  |
+| 19. Release Versioning & Upgrade Docs | v3.0 | 3/3 | Complete   | 2026-07-13 |
 | 20. Deploy Hardening + Connectivity Doc | v3.0 | 0/TBD | Not started | - |
 
 ---
