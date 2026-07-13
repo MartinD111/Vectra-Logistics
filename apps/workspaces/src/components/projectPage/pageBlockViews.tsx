@@ -6,26 +6,79 @@
 // circular import. Widget blocks fetch their own data via existing hooks, keyed
 // on projectId — there is no shared runtime/dataset (unlike mini-program blocks).
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import DOMPurify from 'dompurify';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 import { Loader2, Inbox, FileCode2, CalendarClock, RefreshCw, Play, ExternalLink } from 'lucide-react';
+import { crossAppUrl } from '@vectra/ui';
 import type {
   RichTextBlock, HeadingBlock, ListBlock, PeopleBlock, StatCardsBlock, KpiGridBlock,
   ChartBlock, ActivityTimelineBlock, ProgramLinkBlock, MiniProgramBlock,
 } from '@/lib/projectPage/blocks';
 import { isMiniProgramConfig } from '@/lib/miniProgram/blocks';
 import { useProjectStats, useProjectActivity, usePrograms, useProgram, useProjectCalendar } from '@/lib/hooks/useProjects';
-import { useProjectMembers } from '@/lib/hooks/useTeam';
+import { useProjectMembers, useTeam } from '@/lib/hooks/useTeam';
 import { useKpiSummary } from '@/lib/hooks/useKpi';
 import { useSyncOutlookCalendar } from '@/lib/hooks/useOutlook';
 import MiniProgramPlayer from '@/components/miniProgram/MiniProgramPlayer';
 
+// data-* attributes stamped onto rendered mention spans (see EditableRichText's
+// MENTION_ADD_ATTR) — the read-mode render path needs the same DOMPurify
+// allowlist extension or mentions degrade to plain text on reload.
+const MENTION_ADD_ATTR = ['data-mention-type', 'data-mention-id'];
+
 const clean = (html: string): string =>
-  typeof window === 'undefined' ? '' : DOMPurify.sanitize(html);
+  typeof window === 'undefined' ? '' : DOMPurify.sanitize(html, { ADD_ATTR: MENTION_ADD_ATTR });
+
+/** Small fixed-position tooltip shown on hover of a rendered @person mention. */
+function MentionHoverCard({ name, email, x, y }: { name: string; email: string; x: number; y: number }) {
+  return (
+    <div
+      className="fixed z-50 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl px-3 py-2 pointer-events-none"
+      style={{ left: x, top: y }}
+    >
+      <p className="text-sm font-semibold text-gray-900 dark:text-white">{name}</p>
+      <p className="text-xs text-gray-400">{email}</p>
+    </div>
+  );
+}
+
+/**
+ * Shared click/hover handling for rendered mention spans inside a
+ * dangerouslySetInnerHTML container: @page navigates in a new tab, @person
+ * shows a hover card, @date is inert (per locked decision D-10).
+ */
+function useMentionInteractions(projectId?: string) {
+  const { data: members } = useTeam();
+  const [hoverCard, setHoverCard] = useState<{ name: string; email: string; x: number; y: number } | null>(null);
+
+  const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = (e.target as HTMLElement).closest('[data-mention-type]');
+    if (!target) return;
+    const type = target.getAttribute('data-mention-type');
+    const id = target.getAttribute('data-mention-id');
+    if (type === 'page' && id && projectId) {
+      window.open(crossAppUrl('workspaces', `/projects/${projectId}/pages/${id}`), '_blank');
+    }
+  };
+
+  const onMouseOver = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = (e.target as HTMLElement).closest('[data-mention-type="person"]') as HTMLElement | null;
+    if (!target) { setHoverCard(null); return; }
+    const id = target.getAttribute('data-mention-id');
+    const member = (members ?? []).find((m) => m.id === id);
+    if (!member) { setHoverCard(null); return; }
+    const rect = target.getBoundingClientRect();
+    setHoverCard({ name: `${member.first_name} ${member.last_name}`, email: member.email, x: rect.left, y: rect.bottom + 4 });
+  };
+
+  const onMouseLeave = () => setHoverCard(null);
+
+  return { onClick, onMouseOver, onMouseLeave, hoverCard };
+}
 
 function timeAgo(iso: string | null): string {
   if (!iso) return 'No activity yet';
@@ -46,12 +99,36 @@ export function HeadingView({ block }: { block: HeadingBlock }) {
   return <Tag className={`${cls} text-gray-900 dark:text-white`}>{block.text}</Tag>;
 }
 
-export function RichTextView({ block }: { block: RichTextBlock }) {
-  return <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: clean(block.html) }} />;
+export function RichTextView({ block, projectId }: { block: RichTextBlock; projectId?: string }) {
+  const { onClick, onMouseOver, onMouseLeave, hoverCard } = useMentionInteractions(projectId);
+  return (
+    <>
+      <div
+        className="prose prose-sm dark:prose-invert max-w-none"
+        dangerouslySetInnerHTML={{ __html: clean(block.html) }}
+        onClick={onClick}
+        onMouseOver={onMouseOver}
+        onMouseLeave={onMouseLeave}
+      />
+      {hoverCard && <MentionHoverCard {...hoverCard} />}
+    </>
+  );
 }
 
-export function ListView({ block }: { block: ListBlock }) {
-  return <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: clean(block.html) }} />;
+export function ListView({ block, projectId }: { block: ListBlock; projectId?: string }) {
+  const { onClick, onMouseOver, onMouseLeave, hoverCard } = useMentionInteractions(projectId);
+  return (
+    <>
+      <div
+        className="prose prose-sm dark:prose-invert max-w-none"
+        dangerouslySetInnerHTML={{ __html: clean(block.html) }}
+        onClick={onClick}
+        onMouseOver={onMouseOver}
+        onMouseLeave={onMouseLeave}
+      />
+      {hoverCard && <MentionHoverCard {...hoverCard} />}
+    </>
+  );
 }
 
 export function DividerView() {

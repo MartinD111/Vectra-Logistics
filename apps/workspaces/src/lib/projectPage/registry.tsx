@@ -104,7 +104,7 @@ const entries: Record<PageBlockKind, WorkspaceBlockPlugin<PageBlock, PageCtx>> =
     ),
   ),
   'rich-text': entry('rich-text',
-    ({ block }) => <RichTextView block={block as RichTextBlock} />,
+    ({ block, ctx }) => <RichTextView block={block as RichTextBlock} projectId={ctx.projectId} />,
     ({ block, ctx, onUpdate }) => (
       <EditableRichText
         html={(block as RichTextBlock).html}
@@ -112,17 +112,19 @@ const entries: Record<PageBlockKind, WorkspaceBlockPlugin<PageBlock, PageCtx>> =
         placeholder="Type '/' for commands…"
         slashItems={ctx.slashItems!}
         onSlashSelect={ctx.onSlashSelect!}
+        ctx={{ projectId: ctx.projectId }}
       />
     ),
   ),
   'list': entry('list',
-    ({ block }) => <ListView block={block as ListBlock} />,
+    ({ block, ctx }) => <ListView block={block as ListBlock} projectId={ctx.projectId} />,
     ({ block, ctx, onUpdate }) => (
       <EditableRichText
         html={(block as ListBlock).html}
         onChange={(html) => onUpdate({ ...(block as ListBlock), html })}
         slashItems={ctx.slashItems!}
         onSlashSelect={ctx.onSlashSelect!}
+        ctx={{ projectId: ctx.projectId }}
       />
     ),
   ),
