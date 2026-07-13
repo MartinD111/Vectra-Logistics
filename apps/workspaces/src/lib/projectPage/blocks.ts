@@ -26,6 +26,7 @@ export type PageBlockKind =
   | 'video'
   | 'bookmark'
   | 'embed'
+  | 'sub-page'
   // Data widgets
   | 'people'
   | 'stat-cards'
@@ -157,6 +158,13 @@ export interface EmbedBlock extends PageBlockBase {
   kind: 'embed';
   url: string;
   caption?: string;
+}
+
+export interface SubPageBlock extends PageBlockBase {
+  kind: 'sub-page';
+  /** null = not yet created — the placeholder state before the create-on-mount side effect runs. */
+  pageId: string | null;
+  title: string;
 }
 
 export interface PeopleBlock extends PageBlockBase {
@@ -345,6 +353,7 @@ export type PageBlock =
   | VideoBlock
   | BookmarkBlock
   | EmbedBlock
+  | SubPageBlock
   | PeopleBlock
   | StatCardsBlock
   | KpiGridBlock
@@ -481,6 +490,11 @@ export const PAGE_BLOCK_REGISTRY: PageBlockDef[] = [
     kind: 'embed', group: 'widget', title: 'Embed', icon: 'Frame',
     description: 'Embed an external link.', available: true, nestable: true,
     create: () => ({ id: uid(), kind: 'embed', span: 'full', url: '' }),
+  },
+  {
+    kind: 'sub-page', group: 'widget', title: 'Sub-page', icon: 'FileText',
+    description: 'Link to a brand-new child page.', available: true, nestable: true,
+    create: () => ({ id: uid(), kind: 'sub-page', span: 'full', pageId: null, title: 'Untitled' }),
   },
   {
     kind: 'people', group: 'widget', title: 'People', icon: 'Users',

@@ -15,6 +15,7 @@ import type {
   RichTextBlock, HeadingBlock, CalloutBlock, ListBlock, ChecklistBlock, QuoteBlock, CodeBlock,
   TableBlock,
   ImageBlock, FileBlock, VideoBlock, BookmarkBlock, EmbedBlock,
+  SubPageBlock,
   PeopleBlock, StatCardsBlock, KpiGridBlock,
   ChartBlock, ActivityTimelineBlock, ProgramLinkBlock, MiniProgramBlock, KanbanBlock,
   FleetTelematicsBlock, SpotQuoteBlock, ExceptionRadarBlock, OmniChatBlock, SmartInboxBlock,
@@ -39,6 +40,7 @@ import {
   VideoBlockView, VideoBlockEditor, BookmarkBlockView, BookmarkBlockEditor,
   EmbedBlockView, EmbedBlockEditor,
 } from '@/components/projectPage/MediaBlocks';
+import { SubPageBlockView, SubPageBlockEditor } from '@/components/projectPage/SubPageBlock';
 import {
   HeadingView, RichTextView, ListView, DividerView, MiniProgramEmbedView,
   PeopleView, StatCardsView, KpiGridView, ChartWidgetView, ActivityTimelineView,
@@ -68,6 +70,10 @@ export interface PageCtx {
   projectId?: string;
   /** Set only on the client detail page (/records/[clientId]) canvas. */
   clientId?: string;
+  /** The current page's own id — needed as parent_page_id for sub-page creation.
+   *  Undefined on the client-detail canvas (/records/[clientId]), which has no
+   *  project_pages row to be a parent of. */
+  pageId?: string;
   /** Present on the live canvas — lets interactive widgets write back to config. */
   onChange?: (block: PageBlock) => void;
   /** Edit-mode only (used by the rich-text/list editors in Phase 9). */
@@ -176,6 +182,10 @@ const entries: Record<PageBlockKind, WorkspaceBlockPlugin<PageBlock, PageCtx>> =
   'embed': entry('embed',
     ({ block }) => <EmbedBlockView block={block as EmbedBlock} />,
     ({ block, onUpdate }) => <EmbedBlockEditor block={block as EmbedBlock} onUpdate={onUpdate} />,
+  ),
+  'sub-page': entry('sub-page',
+    ({ block, ctx }) => <SubPageBlockView block={block as SubPageBlock} ctx={ctx} />,
+    ({ block, ctx, onUpdate }) => <SubPageBlockEditor block={block as SubPageBlock} ctx={ctx} onUpdate={onUpdate} />,
   ),
   'people': entry('people', ({ block, ctx }) => <PeopleView block={block as PeopleBlock} projectId={ctx.projectId as string} />),
   'stat-cards': entry('stat-cards', ({ block, ctx }) => <StatCardsView block={block as StatCardsBlock} projectId={ctx.projectId as string} />),

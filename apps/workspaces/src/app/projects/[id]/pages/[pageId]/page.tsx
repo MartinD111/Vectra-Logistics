@@ -137,7 +137,7 @@ export default function ProjectPagePage() {
 
         {/* pl-10 leaves room for the per-block hover gutter (drag handle + insert). */}
         <div className="pl-10">
-          <LivePageCanvas config={config} projectId={projectId} onChange={setConfig} />
+          <LivePageCanvas config={config} projectId={projectId} pageId={pageId} onChange={setConfig} />
         </div>
 
         {(allPages ?? []).some((p) => p.parent_page_id === pageId) && (

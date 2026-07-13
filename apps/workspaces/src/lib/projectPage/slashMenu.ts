@@ -59,6 +59,7 @@ const EXTRA_KEYWORDS: Partial<Record<PageBlockKind, string[]>> = {
   'video': ['youtube', 'vimeo', 'mp4', 'clip'],
   'bookmark': ['link', 'url', 'card'],
   'embed': ['iframe', 'external'],
+  'sub-page': ['page', 'child', 'nested', 'link'],
 };
 
 export function buildSlashMenuItems(): SlashMenuItem[] {
