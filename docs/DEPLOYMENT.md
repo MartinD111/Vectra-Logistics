@@ -126,6 +126,35 @@ step — see `CHANGELOG.md` for what shipped in each release.
    ```
    Check the returned `version` field matches the tag checked out in step 1.
 
+## Inbound connectivity
+
+If you're placing Vectra behind a reverse proxy or firewall, only two route
+prefixes need to be reachable from outside your network:
+
+| Route | Why it must be public | Notes |
+|-------|----------------------|-------|
+| `/api/webhooks/*` | Samsara and Geotab push GPS/telematics events to your server via signed webhook (HMAC-verified). There is no polling alternative today — if this route isn't reachable, telematics updates stop. | Only needed if you use Samsara or Geotab integration. |
+| `/api/pod/*` | Drivers upload signed proof-of-delivery photos from a single-use link on their phone — often from the road, not your office network. | Deliberately unauthenticated (token-scoped per link), by design. |
+
+Everything else — the three frontend apps, the rest of the API, admin
+tooling — should stay on your internal network / VPN. There is no
+functional requirement for the general API or UI to be internet-reachable.
+
+**Outlook / Microsoft 365 setup:** if you enable live Outlook integration,
+the OAuth callback needs to be reachable by whichever browser completes the
+admin's sign-in at setup time — this does not need to be the public
+internet if the admin configuring it is on your LAN/VPN, but it will fail
+if the admin is external and no ingress exists at all. See the "Outlook /
+Microsoft 365 integration" section below for the exact callback URL to
+register.
+
+**Recommended posture:** run a reverse proxy (nginx, Caddy, Traefik, your
+cloud LB) that exposes only `/api/webhooks/*` and `/api/pod/*` publicly,
+and routes everything else so it's reachable only from your internal
+network or VPN. A fully air-gapped install (no public ingress at all) will
+lose telematics webhooks and public POD upload links — that's a real
+tradeoff to make consciously, not a bug.
+
 ## Outlook / Microsoft 365 integration
 
 The Outlook connector links a company mailbox so programs and automations can
