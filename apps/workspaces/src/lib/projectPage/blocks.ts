@@ -20,6 +20,12 @@ export type PageBlockKind =
   | 'checklist'
   | 'quote'
   | 'code'
+  | 'table'
+  | 'image'
+  | 'file'
+  | 'video'
+  | 'bookmark'
+  | 'embed'
   // Data widgets
   | 'people'
   | 'stat-cards'
@@ -115,6 +121,42 @@ export interface CodeBlock extends PageBlockBase {
   kind: 'code';
   code: string;
   language: string;
+}
+
+export interface TableBlock extends PageBlockBase {
+  kind: 'table';
+  /** rows[0] is the header row. */
+  rows: string[][];
+}
+
+export interface ImageBlock extends PageBlockBase {
+  kind: 'image';
+  url: string;
+  caption?: string;
+}
+
+export interface FileBlock extends PageBlockBase {
+  kind: 'file';
+  url: string;
+  caption?: string;
+}
+
+export interface VideoBlock extends PageBlockBase {
+  kind: 'video';
+  url: string;
+  caption?: string;
+}
+
+export interface BookmarkBlock extends PageBlockBase {
+  kind: 'bookmark';
+  url: string;
+  caption?: string;
+}
+
+export interface EmbedBlock extends PageBlockBase {
+  kind: 'embed';
+  url: string;
+  caption?: string;
 }
 
 export interface PeopleBlock extends PageBlockBase {
@@ -297,6 +339,12 @@ export type PageBlock =
   | ChecklistBlock
   | QuoteBlock
   | CodeBlock
+  | TableBlock
+  | ImageBlock
+  | FileBlock
+  | VideoBlock
+  | BookmarkBlock
+  | EmbedBlock
   | PeopleBlock
   | StatCardsBlock
   | KpiGridBlock
@@ -403,6 +451,36 @@ export const PAGE_BLOCK_REGISTRY: PageBlockDef[] = [
     kind: 'code', group: 'content', title: 'Code', icon: 'Code2',
     description: 'A fenced code block with a language label.', available: true, nestable: true,
     create: () => ({ id: uid(), kind: 'code', span: 'full', code: '', language: 'Plain text' }),
+  },
+  {
+    kind: 'table', group: 'widget', title: 'Table', icon: 'Table2',
+    description: 'A simple inline table — rows and columns.', available: true, nestable: true,
+    create: () => ({ id: uid(), kind: 'table', span: 'full', rows: [['Column 1', 'Column 2'], ['', '']] }),
+  },
+  {
+    kind: 'image', group: 'widget', title: 'Image', icon: 'Image',
+    description: 'An image from a URL.', available: true, nestable: true,
+    create: () => ({ id: uid(), kind: 'image', span: 'full', url: '' }),
+  },
+  {
+    kind: 'file', group: 'widget', title: 'File', icon: 'File',
+    description: 'A linked file.', available: true, nestable: true,
+    create: () => ({ id: uid(), kind: 'file', span: 'full', url: '' }),
+  },
+  {
+    kind: 'video', group: 'widget', title: 'Video', icon: 'Play',
+    description: 'A video from a URL (YouTube/Vimeo or a direct file link).', available: true, nestable: true,
+    create: () => ({ id: uid(), kind: 'video', span: 'full', url: '' }),
+  },
+  {
+    kind: 'bookmark', group: 'widget', title: 'Bookmark', icon: 'Bookmark',
+    description: 'A bookmarked link, shown as a card.', available: true, nestable: true,
+    create: () => ({ id: uid(), kind: 'bookmark', span: 'full', url: '' }),
+  },
+  {
+    kind: 'embed', group: 'widget', title: 'Embed', icon: 'Frame',
+    description: 'Embed an external link.', available: true, nestable: true,
+    create: () => ({ id: uid(), kind: 'embed', span: 'full', url: '' }),
   },
   {
     kind: 'people', group: 'widget', title: 'People', icon: 'Users',

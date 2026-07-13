@@ -13,6 +13,8 @@ import type { ComponentType } from 'react';
 import type {
   PageBlock, PageBlockKind,
   RichTextBlock, HeadingBlock, CalloutBlock, ListBlock, ChecklistBlock, QuoteBlock, CodeBlock,
+  TableBlock,
+  ImageBlock, FileBlock, VideoBlock, BookmarkBlock, EmbedBlock,
   PeopleBlock, StatCardsBlock, KpiGridBlock,
   ChartBlock, ActivityTimelineBlock, ProgramLinkBlock, MiniProgramBlock, KanbanBlock,
   FleetTelematicsBlock, SpotQuoteBlock, ExceptionRadarBlock, OmniChatBlock, SmartInboxBlock,
@@ -31,6 +33,12 @@ import { CalloutView, CalloutEditor } from '@/components/projectPage/CalloutBloc
 import { ChecklistView, ChecklistEditor } from '@/components/projectPage/ChecklistBlock';
 import { QuoteView, QuoteEditor } from '@/components/projectPage/QuoteBlock';
 import { CodeView, CodeEditor } from '@/components/projectPage/CodeBlock';
+import { TableView, TableEditor } from '@/components/projectPage/TableBlock';
+import {
+  ImageBlockView, ImageBlockEditor, FileBlockView, FileBlockEditor,
+  VideoBlockView, VideoBlockEditor, BookmarkBlockView, BookmarkBlockEditor,
+  EmbedBlockView, EmbedBlockEditor,
+} from '@/components/projectPage/MediaBlocks';
 import {
   HeadingView, RichTextView, ListView, DividerView, MiniProgramEmbedView,
   PeopleView, StatCardsView, KpiGridView, ChartWidgetView, ActivityTimelineView,
@@ -144,6 +152,30 @@ const entries: Record<PageBlockKind, WorkspaceBlockPlugin<PageBlock, PageCtx>> =
   'code': entry('code',
     ({ block }) => <CodeView block={block as CodeBlock} />,
     ({ block, onUpdate }) => <CodeEditor block={block as CodeBlock} onUpdate={(b) => onUpdate(b)} />,
+  ),
+  'table': entry('table',
+    ({ block }) => <TableView block={block as TableBlock} />,
+    ({ block, onUpdate }) => <TableEditor block={block as TableBlock} onUpdate={onUpdate} />,
+  ),
+  'image': entry('image',
+    ({ block }) => <ImageBlockView block={block as ImageBlock} />,
+    ({ block, onUpdate }) => <ImageBlockEditor block={block as ImageBlock} onUpdate={onUpdate} />,
+  ),
+  'file': entry('file',
+    ({ block }) => <FileBlockView block={block as FileBlock} />,
+    ({ block, onUpdate }) => <FileBlockEditor block={block as FileBlock} onUpdate={onUpdate} />,
+  ),
+  'video': entry('video',
+    ({ block }) => <VideoBlockView block={block as VideoBlock} />,
+    ({ block, onUpdate }) => <VideoBlockEditor block={block as VideoBlock} onUpdate={onUpdate} />,
+  ),
+  'bookmark': entry('bookmark',
+    ({ block }) => <BookmarkBlockView block={block as BookmarkBlock} />,
+    ({ block, onUpdate }) => <BookmarkBlockEditor block={block as BookmarkBlock} onUpdate={onUpdate} />,
+  ),
+  'embed': entry('embed',
+    ({ block }) => <EmbedBlockView block={block as EmbedBlock} />,
+    ({ block, onUpdate }) => <EmbedBlockEditor block={block as EmbedBlock} onUpdate={onUpdate} />,
   ),
   'people': entry('people', ({ block, ctx }) => <PeopleView block={block as PeopleBlock} projectId={ctx.projectId as string} />),
   'stat-cards': entry('stat-cards', ({ block, ctx }) => <StatCardsView block={block as StatCardsBlock} projectId={ctx.projectId as string} />),
