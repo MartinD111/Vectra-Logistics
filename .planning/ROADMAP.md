@@ -99,7 +99,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 21-05-PLAN.md — Toggle + Columns nesting (CONT-02, CONT-07)
+- [x] 21-05-PLAN.md — Toggle + Columns nesting (CONT-02, CONT-07)
 
 **UI hint**: yes
 
@@ -204,7 +204,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 18. Backend-side Local AI Provider | v3.0 | 1/1 | Complete   | 2026-07-12 |
 | 19. Release Versioning & Upgrade Docs | v3.0 | 3/3 | Complete    | 2026-07-13 |
 | 20. Deploy Hardening + Connectivity Doc | v3.0 | 4/4 | Complete    | 2026-07-13 |
-| 21. Missing Content Blocks | v4.0 | 4/5 | In Progress|  |
+| 21. Missing Content Blocks | v4.0 | 5/5 | Complete   | 2026-07-13 |
 | 22. Records + Views Data Model | v4.0 | 0/TBD | Not started | - |
 | 23. Record Detail Page | v4.0 | 0/TBD | Not started | - |
 | 24. Board View & Legacy Kanban Migration | v4.0 | 0/TBD | Not started | - |
