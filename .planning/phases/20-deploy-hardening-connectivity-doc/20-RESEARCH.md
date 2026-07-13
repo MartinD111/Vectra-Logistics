@@ -414,12 +414,13 @@ tradeoff to make consciously, not a bug.
 | A3 | Applying the rate limiter to all 5 auth routes (not just login+signup) is desired | Architecture Patterns § Pattern 2 | If product wants only login+signup limited (per the spec's literal "at minimum" reading), the extra 3 routes being limited is a strictly more conservative, harmless default — but could theoretically throttle a legitimate bulk-invite or verification-heavy admin workflow if one exists (none found in current code). |
 | A4 | `express-rate-limit`'s in-memory store (no Redis-backed store) is acceptable for this phase | Standard Stack § Alternatives Considered | If the API is later horizontally scaled (SCALE-01, a v2/future requirement, explicitly deferred alongside the Socket.IO Redis-adapter gap), in-memory rate limits won't share state across replicas — each instance enforces its own count. Not a problem today (single instance), flagged for future revisit. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `GET /api/auth/me` be included in the rate limiter's scope?**
    - What we know: `docs/DEPLOYMENT.md` documents that all three frontends call `GET /me` on every page load to validate the session — a moderately high-frequency, legitimate, low-risk endpoint.
    - What's unclear: the phase's "5 auth routes" framing in `20-CONTEXT.md` lists `/me` among the 5 (via `getMe`), but doesn't explicitly say whether it should share the same limiter.
    - Recommendation: exclude `/me` from the rate limiter (apply the limiter only to the 5 write/mutation-adjacent routes: signup, login, verify-email, forgot-password, reset-password) to avoid throttling normal multi-tab/multi-app session checks. Planner should confirm this framing in the plan.
+   - RESOLVED: excluded `/me`, see 20-02-PLAN.md Task 1.
 
 ## Environment Availability
 
