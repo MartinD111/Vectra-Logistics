@@ -86,8 +86,8 @@ Milestone audit: [milestones/v3.0-MILESTONE-AUDIT.md](milestones/v3.0-MILESTONE-
 Plans:
 **Wave 1**
 
-- [ ] 21-01-PLAN.md — Foundation (nestable flag) + Checklist, Quote, Code blocks (CONT-01, CONT-03, CONT-04)
-- [ ] 21-02-PLAN.md — @mention system: person/page/date (CONT-09)
+- [x] 21-01-PLAN.md — Foundation (nestable flag) + Checklist, Quote, Code blocks (CONT-01, CONT-03, CONT-04)
+- [x] 21-02-PLAN.md — @mention system: person/page/date (CONT-09)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -204,7 +204,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 18. Backend-side Local AI Provider | v3.0 | 1/1 | Complete   | 2026-07-12 |
 | 19. Release Versioning & Upgrade Docs | v3.0 | 3/3 | Complete    | 2026-07-13 |
 | 20. Deploy Hardening + Connectivity Doc | v3.0 | 4/4 | Complete    | 2026-07-13 |
-| 21. Missing Content Blocks | v4.0 | 0/5 | Not started | - |
+| 21. Missing Content Blocks | v4.0 | 2/5 | In Progress|  |
 | 22. Records + Views Data Model | v4.0 | 0/TBD | Not started | - |
 | 23. Record Detail Page | v4.0 | 0/TBD | Not started | - |
 | 24. Board View & Legacy Kanban Migration | v4.0 | 0/TBD | Not started | - |
