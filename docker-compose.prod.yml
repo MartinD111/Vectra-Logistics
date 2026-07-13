@@ -57,6 +57,20 @@ services:
       - MS_TENANT=${MS_TENANT:-common}
       - WORKSPACES_APP_URL=${WORKSPACES_APP_URL:?WORKSPACES_APP_URL is required}
       - API_PUBLIC_URL=${API_PUBLIC_URL:?API_PUBLIC_URL is required}
+      # CORS/Socket.IO allowlist (HRD-01). Falls back to the same
+      # NEXT_PUBLIC_*_URL vars the frontend services below already require,
+      # so the three shipped frontends are allowed by default; set
+      # CORS_ALLOWED_ORIGINS explicitly to override with a different list.
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-}
+      - NEXT_PUBLIC_MARKETPLACE_URL=${NEXT_PUBLIC_MARKETPLACE_URL:?NEXT_PUBLIC_MARKETPLACE_URL is required}
+      - NEXT_PUBLIC_WORKSPACES_URL=${NEXT_PUBLIC_WORKSPACES_URL:?NEXT_PUBLIC_WORKSPACES_URL is required}
+      - NEXT_PUBLIC_CMR_URL=${NEXT_PUBLIC_CMR_URL:?NEXT_PUBLIC_CMR_URL is required}
+      # Reverse-proxy hop count (HRD-02 follow-up). Required whenever this
+      # stack sits behind nginx/Caddy/Traefik/an LB, per the "Recommended
+      # posture" in docs/DEPLOYMENT.md — otherwise the auth rate limiter
+      # throws on every request. Defaults to 0 (no proxy trusted), matching
+      # server.ts's fail-closed default.
+      - TRUST_PROXY_HOPS=${TRUST_PROXY_HOPS:-0}
     ports:
       - "8080:8080"
     depends_on:

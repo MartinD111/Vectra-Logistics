@@ -93,6 +93,53 @@ On load each app calls `GET /api/auth/me` to validate the session server-side
 rather than trusting a client-decoded token. Logging out anywhere clears the
 shared cookie, logging the user out everywhere.
 
+## Fresh install (on-premise)
+
+A customer or their IT partner can go from a fresh checkout to a running,
+secured instance without manual SQL or default credentials, using the
+one-shot installer:
+
+1. **Set the build/deploy env vars** required by `docker-compose.prod.yml`
+   (`POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB`, `WORKSPACES_APP_URL`,
+   `API_PUBLIC_URL`, `NEXT_PUBLIC_*_URL` per app, `VERSION`). Copy
+   `.env.example` to `.env` and fill these in — everything else below is
+   generated for you.
+2. **Start the database and cache only:**
+   ```bash
+   export VERSION=$(cat VERSION)
+   docker compose -f docker-compose.prod.yml up -d postgres redis
+   ```
+3. **Run the installer** (builds the API image if needed, then runs
+   one-shot inside it):
+   ```bash
+   docker compose -f docker-compose.prod.yml build api
+   docker compose -f docker-compose.prod.yml run --rm api npm run install:on-prem
+   ```
+   This generates a unique `JWT_SECRET` + `ENCRYPTION_KEY` (never a repo or
+   prior-install value), creates exactly one company and one real admin
+   account (never `admin@admin.com`), runs all pending migrations via the
+   same runner used for upgrades (see below), writes `DEPLOYMENT_MODE=on-prem`
+   into `.env`, and — optionally, if you have a local Gemma/Ollama endpoint
+   reachable from the API container — configures it as the company's AI
+   provider. It refuses to re-run against an already-installed system unless
+   you pass `--force`.
+4. **Build and start the rest of the stack:**
+   ```bash
+   docker compose -f docker-compose.prod.yml build
+   docker compose -f docker-compose.prod.yml up -d
+   ```
+5. **Confirm the install:**
+   ```bash
+   curl https://<your-api-host>/health
+   ```
+   Expect `"status":"OK"` with live `dependencies.postgres`/`dependencies.redis`
+   both `"up"`, and log in as the admin account created in step 3.
+
+See "Inbound connectivity" below for what needs to be reachable from the
+public internet (short answer: nothing, for a fresh install — only
+`/api/webhooks/*` and `/api/pod/*` need it, and only once you're taking live
+traffic).
+
 ## Upgrading a running install
 
 First-run and upgrade share the same migration path: a `schema_migrations`
