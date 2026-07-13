@@ -11,15 +11,15 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Content Blocks
 
-- [ ] **CONT-01**: User can add a checklist/to-do block with checkable items
-- [ ] **CONT-02**: User can add a collapsible toggle block containing child blocks
-- [ ] **CONT-03**: User can add a quote block
-- [ ] **CONT-04**: User can add a fenced code block with language selection
-- [ ] **CONT-05**: User can add media blocks (image, file, video, bookmark, embed)
-- [ ] **CONT-06**: User can add a simple inline table block (distinct from a collection-view table)
-- [ ] **CONT-07**: User can add a multi-column layout block
-- [ ] **CONT-08**: User can add an inline sub-page link block
-- [ ] **CONT-09**: User can @mention a person/page/date inline in rich text
+- [x] **CONT-01**: User can add a checklist/to-do block with checkable items
+- [x] **CONT-02**: User can add a collapsible toggle block containing child blocks
+- [x] **CONT-03**: User can add a quote block
+- [x] **CONT-04**: User can add a fenced code block with language selection
+- [x] **CONT-05**: User can add media blocks (image, file, video, bookmark, embed)
+- [x] **CONT-06**: User can add a simple inline table block (distinct from a collection-view table)
+- [x] **CONT-07**: User can add a multi-column layout block
+- [x] **CONT-08**: User can add an inline sub-page link block
+- [x] **CONT-09**: User can @mention a person/page/date inline in rich text
 
 ### Records + Views Data Model
 
@@ -89,15 +89,15 @@ Explicitly excluded from v4.0. Documented to prevent scope creep.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONT-01 | Phase 21 | Pending |
-| CONT-02 | Phase 21 | Pending |
-| CONT-03 | Phase 21 | Pending |
-| CONT-04 | Phase 21 | Pending |
-| CONT-05 | Phase 21 | Pending |
-| CONT-06 | Phase 21 | Pending |
-| CONT-07 | Phase 21 | Pending |
-| CONT-08 | Phase 21 | Pending |
-| CONT-09 | Phase 21 | Pending |
+| CONT-01 | Phase 21 | Done |
+| CONT-02 | Phase 21 | Done |
+| CONT-03 | Phase 21 | Done |
+| CONT-04 | Phase 21 | Done |
+| CONT-05 | Phase 21 | Done |
+| CONT-06 | Phase 21 | Done |
+| CONT-07 | Phase 21 | Done |
+| CONT-08 | Phase 21 | Done |
+| CONT-09 | Phase 21 | Done |
 | REC-01 | Phase 22 | Pending |
 | REC-02 | Phase 22 | Pending |
 | REC-03 | Phase 22 | Pending |
