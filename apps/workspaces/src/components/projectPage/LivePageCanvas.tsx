@@ -30,8 +30,8 @@ const SPAN_CYCLE: Record<BlockSpan, BlockSpan> = { full: 'half', half: 'third', 
 const SPAN_LABEL: Record<BlockSpan, string> = { full: 'Full', half: '1/2', third: '1/3' };
 
 export default function LivePageCanvas({
-  config, projectId, clientId, onChange,
-}: { config: PageConfig; projectId?: string; clientId?: string; onChange: (c: PageConfig) => void }) {
+  config, projectId, clientId, pageId, onChange,
+}: { config: PageConfig; projectId?: string; clientId?: string; pageId?: string; onChange: (c: PageConfig) => void }) {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [settingsId, setSettingsId] = useState<string | null>(null);
   const [insertMenu, setInsertMenu] = useState<{ anchor: { x: number; y: number }; index: number } | null>(null);
@@ -129,6 +129,7 @@ export default function LivePageCanvas({
                 block={b}
                 projectId={projectId}
                 clientId={clientId}
+                pageId={pageId}
                 slashItems={slashItems}
                 onUpdate={updateBlock}
                 onSlashSelect={(item, ctx) => handleSlashSelect(i, item, ctx)}
@@ -306,11 +307,12 @@ function SettingsPopover({
 // ── Per-kind inline editors ──────────────────────────────────────────────────
 
 function BlockEditor({
-  block, projectId, clientId, slashItems, onUpdate, onSlashSelect,
+  block, projectId, clientId, pageId, slashItems, onUpdate, onSlashSelect,
 }: {
   block: PageBlock;
   projectId?: string;
   clientId?: string;
+  pageId?: string;
   slashItems: SlashMenuItem[];
   onUpdate: (b: PageBlock) => void;
   onSlashSelect: (item: SlashMenuItem, ctx: SlashSelectContext) => void;
@@ -318,7 +320,7 @@ function BlockEditor({
   // Edit-mode dispatch via the registry: kinds with an `editor` (rich-text,
   // list, heading, kanban) render it; everything else falls back to the read
   // renderer — exactly the old `default: <PageBlockView/>` behaviour.
-  return <>{pageBlockRegistry.renderEditor(block, { projectId, clientId, slashItems, onSlashSelect }, onUpdate)}</>;
+  return <>{pageBlockRegistry.renderEditor(block, { projectId, clientId, pageId, slashItems, onSlashSelect }, onUpdate)}</>;
 }
 
 // ── Empty page ───────────────────────────────────────────────────────────────
