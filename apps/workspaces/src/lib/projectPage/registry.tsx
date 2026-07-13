@@ -12,7 +12,7 @@
 import type { ComponentType } from 'react';
 import type {
   PageBlock, PageBlockKind,
-  RichTextBlock, HeadingBlock, CalloutBlock, ListBlock, ChecklistBlock, QuoteBlock,
+  RichTextBlock, HeadingBlock, CalloutBlock, ListBlock, ChecklistBlock, QuoteBlock, CodeBlock,
   PeopleBlock, StatCardsBlock, KpiGridBlock,
   ChartBlock, ActivityTimelineBlock, ProgramLinkBlock, MiniProgramBlock, KanbanBlock,
   FleetTelematicsBlock, SpotQuoteBlock, ExceptionRadarBlock, OmniChatBlock, SmartInboxBlock,
@@ -30,6 +30,7 @@ import { EditableHeading } from '@/components/projectPage/EditableHeading';
 import { CalloutView, CalloutEditor } from '@/components/projectPage/CalloutBlock';
 import { ChecklistView, ChecklistEditor } from '@/components/projectPage/ChecklistBlock';
 import { QuoteView, QuoteEditor } from '@/components/projectPage/QuoteBlock';
+import { CodeView, CodeEditor } from '@/components/projectPage/CodeBlock';
 import {
   HeadingView, RichTextView, ListView, DividerView, MiniProgramEmbedView,
   PeopleView, StatCardsView, KpiGridView, ChartWidgetView, ActivityTimelineView,
@@ -137,6 +138,10 @@ const entries: Record<PageBlockKind, WorkspaceBlockPlugin<PageBlock, PageCtx>> =
   'quote': entry('quote',
     ({ block }) => <QuoteView block={block as QuoteBlock} />,
     ({ block, onUpdate }) => <QuoteEditor block={block as QuoteBlock} onUpdate={(b) => onUpdate(b)} />,
+  ),
+  'code': entry('code',
+    ({ block }) => <CodeView block={block as CodeBlock} />,
+    ({ block, onUpdate }) => <CodeEditor block={block as CodeBlock} onUpdate={(b) => onUpdate(b)} />,
   ),
   'people': entry('people', ({ block, ctx }) => <PeopleView block={block as PeopleBlock} projectId={ctx.projectId as string} />),
   'stat-cards': entry('stat-cards', ({ block, ctx }) => <StatCardsView block={block as StatCardsBlock} projectId={ctx.projectId as string} />),
