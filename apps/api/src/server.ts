@@ -21,6 +21,7 @@ import ratingsRoutes from "./routes/ratingsRoutes";
 import companyRoutes from "./routes/companyRoutes";
 import { configureSocket } from "./core/realtime/socket";
 import { validateSecretsOrExit, validateDeploymentModeOrExit } from "./core/config/secrets";
+import { getVersion } from "./core/config/version";
 
 dotenv.config();
 
@@ -57,7 +58,7 @@ app.use("/uploads", express.static("uploads"));
 
 // Health check
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK", message: "VECTRA backend running" });
+  res.status(200).json({ status: "OK", message: "VECTRA backend running", version: getVersion() });
 });
 
 // Global error handler — must be last
@@ -99,4 +100,8 @@ async function bootstrap() {
   }
 }
 
-bootstrap();
+if (require.main === module) {
+  bootstrap();
+}
+
+export { app };
