@@ -28,6 +28,19 @@ import { checkDependencyHealth } from "./core/health/health.service";
 dotenv.config();
 
 const app = express();
+
+// Trust proxy hops (HRD-02 follow-up). Required whenever the API sits behind
+// a reverse proxy (see docs/DEPLOYMENT.md "Recommended posture") — without
+// this, express-rate-limit throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR on every
+// request carrying an X-Forwarded-For header, and req.ip resolves to the
+// proxy's own address instead of the real client. Defaults to 0 (no proxy
+// trusted) so a misconfigured deployment fails closed rather than trusting
+// an arbitrary number of forwarded-for hops.
+const trustProxyHops = Number.parseInt(process.env.TRUST_PROXY_HOPS ?? "0", 10);
+if (Number.isFinite(trustProxyHops) && trustProxyHops > 0) {
+  app.set("trust proxy", trustProxyHops);
+}
+
 const server = http.createServer(app);
 const allowedOrigins = getAllowedOrigins();
 const io = new Server(server, {

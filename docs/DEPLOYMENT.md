@@ -155,6 +155,15 @@ network or VPN. A fully air-gapped install (no public ingress at all) will
 lose telematics webhooks and public POD upload links — that's a real
 tradeoff to make consciously, not a bug.
 
+**`TRUST_PROXY_HOPS` is required whenever a reverse proxy is in front of the
+API.** Set it to the exact number of proxy hops (usually `1`) in your `.env`.
+Without it, Express doesn't trust the proxy's `X-Forwarded-For` header: the
+`/api/auth/*` rate limiter (HRD-02) will throw on every request that carries
+one, and `req.ip` elsewhere resolves to the proxy's address rather than the
+real client's. Set this to match your actual topology — trusting more hops
+than you actually have lets a client spoof `X-Forwarded-For` to bypass rate
+limiting.
+
 ## Outlook / Microsoft 365 integration
 
 The Outlook connector links a company mailbox so programs and automations can
