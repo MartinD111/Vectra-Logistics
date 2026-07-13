@@ -90,86 +90,38 @@ On load each app calls `GET /api/auth/me` to validate the session server-side
 rather than trusting a client-decoded token. Logging out anywhere clears the
 shared cookie, logging the user out everywhere.
 
-## Database migrations
+## Upgrading a running install
 
-`docker compose` applies `database/init.sql`, `extensions.sql`, and the numbered
-files in `database/migrations/` (002 realtime/documents, 003 workspaces/presets)
-on first Postgres init. For an existing database, apply new migrations manually:
+First-run and upgrade share the same migration path: a `schema_migrations`
+tracking table plus `npm run migrate` (`apps/api/src/scripts/migrate.ts`)
+applies pending numbered files from `database/migrations/` in order,
+idempotently, recording each as it runs. There is no manual per-file `psql`
+step — see `CHANGELOG.md` for what shipped in each release.
 
-```bash
-psql "$DATABASE_URL" -f database/migrations/003_workspaces_and_presets.sql
-```
-
-Migration 003 seeds five example workspace-type presets (`is_system_seed`).
-These are editable tenant data, not platform logic — a tenant may clone, edit,
-or delete them.
-
-Migration 013 adds project page header metadata (`cover_image_url`,
-`header_settings`) to `project_pages`; apply it manually on existing databases
-(idempotent):
-
-```bash
-psql "$DATABASE_URL" -f database/migrations/013_page_header.sql
-```
-
-Migration 014 adds the dispatcher-widget tables (`fleet_exceptions`, project
-chat threads, message channels); apply it manually on existing databases
-(idempotent):
-
-```bash
-psql "$DATABASE_URL" -f database/migrations/014_dispatcher_widgets.sql
-```
-
-Migration 015 adds the Smart Inbox tables (`locations` reference data +
-`shipment_drafts`); apply it manually on existing databases (idempotent):
-
-```bash
-psql "$DATABASE_URL" -f database/migrations/015_smart_inbox.sql
-```
-
-Migration 016 adds the spatial yard-management tables (`yard_zones`,
-`yard_slots`, `yard_assets`, `rail_wagons`). It deliberately does **not** use
-PostGIS — the yard is a 2D floor plan stored as plain numeric coordinates, so
-no database image change is required. Apply it manually on existing databases
-(idempotent):
-
-```bash
-psql "$DATABASE_URL" -f database/migrations/016_yard_management.sql
-```
-
-Migration 018 adds the `pod_requests` table (single-use proof-of-delivery
-upload links). Apply it manually on existing databases (idempotent):
-
-```bash
-psql "$DATABASE_URL" -f database/migrations/018_field_execution.sql
-```
-
-Migration 019 adds the CRM/billing tables (`clients` with credit limits,
-`invoices` with the Smart-VAT treatment) and links POD requests to clients.
-Apply it manually on existing databases (idempotent):
-
-```bash
-psql "$DATABASE_URL" -f database/migrations/019_crm_billing.sql
-```
-
-Migration 020 adds the Silent LTL matching tables (`partial_loads`,
-`ltl_suggestions`). Apply it manually on existing databases (idempotent):
-
-```bash
-psql "$DATABASE_URL" -f database/migrations/020_ltl_matching.sql
-```
-
-Migration 021 adds CRM extensions: `clients.address` and
-`clients.responsible_employee_id`, a new `client_project_links` table
-(per-project rate/employee/notes overrides), a new `email_messages` table
-(synced Outlook metadata), and a `kpi_results` schema fix (`user_id` now
-nullable, new `client_id` column) so a client-subject credit-risk KPI
-evaluator can write results. Apply it manually on existing databases
-(idempotent):
-
-```bash
-psql "$DATABASE_URL" -f database/migrations/021_crm_extensions.sql
-```
+1. **Pull the new release.** `git fetch --tags` then `git checkout vX.Y.Z`
+   (check `CHANGELOG.md` for the latest tag/section).
+2. **Rebuild the images stamped with the new version.** Export the `VERSION`
+   env var from the repo's `VERSION` file, then build:
+   ```bash
+   export VERSION=$(cat VERSION)
+   docker compose -f docker-compose.prod.yml build
+   ```
+   (`VERSION` is passed as a build arg into all 4 images.)
+3. **Run pending migrations before restarting.**
+   ```bash
+   docker compose -f docker-compose.prod.yml run --rm api npm run migrate
+   ```
+   This is the same runner used on first-run, idempotent, and safe to run
+   even when there are zero pending files.
+4. **Restart the stack on the new images.**
+   ```bash
+   docker compose -f docker-compose.prod.yml up -d
+   ```
+5. **Confirm the upgrade.**
+   ```bash
+   curl https://<your-api-host>/health
+   ```
+   Check the returned `version` field matches the tag checked out in step 1.
 
 ## Outlook / Microsoft 365 integration
 
