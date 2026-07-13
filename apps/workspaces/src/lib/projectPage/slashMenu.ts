@@ -53,6 +53,12 @@ const EXTRA_KEYWORDS: Partial<Record<PageBlockKind, string[]>> = {
   'checklist': ['todo', 'checkbox', 'task', 'to-do'],
   'quote': ['blockquote', 'citation'],
   'code': ['snippet', 'syntax', 'programming', 'fenced'],
+  'table': ['grid', 'spreadsheet', 'rows', 'columns'],
+  'image': ['picture', 'photo', 'img'],
+  'file': ['attachment', 'document', 'upload'],
+  'video': ['youtube', 'vimeo', 'mp4', 'clip'],
+  'bookmark': ['link', 'url', 'card'],
+  'embed': ['iframe', 'external'],
 };
 
 export function buildSlashMenuItems(): SlashMenuItem[] {
