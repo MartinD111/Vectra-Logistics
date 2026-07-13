@@ -39,7 +39,7 @@ Declared values (must be multiples of 4), matching existing block components exa
 | lg | 24px (`py-6`) | Empty-state vertical padding |
 | xl | 32px (`py-8`) | Loading-state vertical padding |
 
-Exceptions: Existing block components also use sub-4px fractional Tailwind spacing (`px-2.5`, `py-1.5`, `gap-1.5`) for icon/label alignment inside compact rows — these are an established exception in this codebase (see `CalloutBlock.tsx`, `SlashMenu.tsx`, `KanbanBlock.tsx`) and MUST be reused verbatim rather than rounded up to the strict 8-point scale, to stay visually consistent with every existing block.
+**Approved Exception (2026-07-13):** `px-2.5` (10px), `py-1.5` (6px), and `gap-1.5` (6px) are kept verbatim (not rounded to the 8-point scale) for the Toggle header row, Table body cells, and Sub-page block row. Justification: visual parity with already-shipped block components (`CalloutBlock.tsx`, `SlashMenu.tsx`, `KanbanBlock.tsx`) that use these exact Tailwind classes today — rounding the new blocks to `px-2`/`py-2`/`gap-2` would create a visible, inconsistent misalignment against their existing siblings on the same page. This is a deliberate, developer-approved deviation from the 8-point scale, not an oversight, and is scoped narrowly to these three call sites.
 
 ---
 
@@ -48,11 +48,11 @@ Exceptions: Existing block components also use sub-4px fractional Tailwind spaci
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 (Tailwind default `leading-normal`, matches `prose-sm` used in `EditableRichText.tsx`) |
-| Label | 11px (`text-[11px]`) / 10px (`text-[10px]`) | 700 (bold/semibold) | 1.2 — used for group headers, badges, counts (matches `SlashMenu.tsx`'s `GROUP_LABEL`, `KanbanBlock.tsx`'s column count) |
+| Label | 11px (`text-[11px]`) | 700 (bold/semibold) | 1.2 — used for group headers, badges, counts, table header cells, and the code-block language picker label (matches `SlashMenu.tsx`'s `GROUP_LABEL`, `KanbanBlock.tsx`'s column count) |
 | Heading | 14px (`text-sm font-bold`) | 700 (bold) | 1.2 — block/section titles (matches `KanbanBlock.tsx`, `LtlMatchesBlock.tsx` title rows) |
 | Code | 13px (`text-[13px]`) monospace (`font-mono`) | 400 (regular) | 1.5 — code block body text (new for CONT-04, no existing precedent; monospace is a hard requirement of a code block) |
 
-Only 2 weights are used across this phase's new blocks: 400 (regular, body/content text) and 700 (bold, titles/labels/badges) — matches the existing codebase's exclusive use of `font-semibold`/`font-bold` for emphasis (no `font-medium` observed in block components).
+Only 2 weights are used across this phase's new blocks: 400 (regular, body/content text) and 700 (bold, titles/labels/badges) — matches the existing codebase's exclusive use of `font-semibold`/`font-bold` for emphasis (no `font-medium` observed in block components). The label size is collapsed to a single 11px (`text-[11px]`) across every use case (group headers, badges, counts, table headers, code-block language picker) — a separate 10px size is not needed anywhere in this phase's block set.
 
 ---
 
@@ -66,6 +66,8 @@ Only 2 weights are used across this phase's new blocks: 400 (regular, body/conte
 | Destructive | `text-red-500` / `bg-red-100` `text-red-700` (dark: `bg-red-900/30` `text-red-400`) | Delete-item icon on checklist rows and table row/column delete controls only |
 
 Accent reserved for: primary CTA buttons ("Add column", "Add sub-page", language-picker active state), the active row highlight in the `@mention` popover (mirroring `SlashMenuPanel`'s `bg-primary-50` active state), toggle chevron hover state, and the rendered `@mention` span's text/underline color. Never apply accent to static content text, borders on non-interactive containers, or disabled elements.
+
+**Visual hierarchy on a mixed-block page:** across any page containing a mix of this phase's new blocks, the accent-colored elements (active slash-menu row, toggle chevron hover, mention span text, primary CTAs) are the ONLY intentional visual anchor — every other surface, border, and text color stays neutral gray/slate so the accent reads as a clear, singular focal point rather than competing with it.
 
 ---
 
@@ -135,3 +137,4 @@ No new external UI package is introduced by this phase's default (cheapest) impl
 - [ ] Dimension 6 Registry Safety: PASS
 
 **Approval:** pending
+</content>
