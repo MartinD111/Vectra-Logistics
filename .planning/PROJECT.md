@@ -12,6 +12,21 @@ The same codebase is now also a first-class On-Premise deployment target (shippe
 
 Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
 
+## Current Milestone: v4.0 Workspace Records & Views
+
+**Goal:** Elevate Kanban from a page-JSON placeholder into a real Records+Views database engine (`data_collections`/`collection_records`/`collection_views`), with cards that open as full pages reusing the existing editor.
+
+**Target features:**
+- Missing generic content blocks (checklist/to-do, toggle, quote, code, image/file/video/bookmark/embed, table, columns, sub-page, mention) so card bodies have a complete palette
+- Records+Views schema (`data_collections`, `collection_records`, `collection_views`) as a new API domain
+- Record detail page: title + property panel (schema-driven inline editors) + body reusing `LivePageCanvas`/`EditableRichText`/`SlashMenu`
+- `collection-view` page block + real drag-and-drop board grouped by any property, with zero-data-loss auto-migration of legacy `kanban` blocks
+- View-editing UX parity (sub-groups, filters/sorts, card preview properties, column aggregations, view switching)
+- Additional view types (table/calendar/gallery/list/timeline) over the same collection
+- Optional/stretch: realtime record sync via existing `emitToRoom` socket.io bus
+
+**Scope note:** Deliberately narrow — only `docs/specs/core/workspace-blocks.md`'s gap. Other `core/` spec gaps (KPI scheduler, program-builder blocks, doc-AI/OCR, event-spine retention) are explicitly out of scope for this milestone; candidates for a future one.
+
 ## Requirements
 
 ### Validated
@@ -67,7 +82,7 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 
 ### Active
 
-(None — v3.0 was the active milestone; all its requirements shipped. Next milestone not yet defined; run `/gsd:new-milestone` to scope one.)
+v4.0 Workspace Records & Views requirements are being scoped now — see REQUIREMENTS.md once written.
 
 ### Out of Scope
 
@@ -136,9 +151,9 @@ Deferred at v3.0 close (tech debt, no functional gaps — see `.planning/milesto
 
 ## Next Milestone Goals
 
-Not yet defined — v3.0 was the active/current milestone and has now shipped. Run `/gsd:new-milestone` to scope the next one.
+v4.0 Workspace Records & Views is now the active milestone (see Current Milestone above).
 
-Candidates surfaced during v3.0 (not committed, just visible from Active/Out-of-Scope history and the platform vision below): v2 requirements already tracked in the archived `v3.0-REQUIREMENTS.md` (LIC-01 offline licensing/activation, SCALE-01/02 cloud multi-replica scaling, AIL-02 Vectra-hosted AI tier) — none were promoted to this milestone's Active scope; that's a decision for whoever scopes the next one, not a carry-forward default.
+Deferred from v3.0, not promoted into v4.0 (candidates for a future milestone): LIC-01 offline licensing/activation, SCALE-01/02 cloud multi-replica scaling, AIL-02 Vectra-hosted AI tier (all tracked in the archived `v3.0-REQUIREMENTS.md`). Also deferred: the remaining `docs/specs/core/` gaps not covered by v4.0 — KPI scheduler + `response_time` evaluator (`kpi-engine.md`), a few generic program-builder blocks (`program-builder.md`), Document AI/OCR real wiring (`ai-integration.md` §6.2), event-spine retention/partitioning strategy (`event-spine.md` §8). `task_completion`/`on_time_delivery` KPI evaluators specifically depend on v4.0's Records+Views model shipping first.
 
 ## Platform Vision & Architecture (North Star)
 
@@ -246,4 +261,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-13 after v3.0 On-Premise GA milestone close — all 17 requirements shipped and validated; 2 cross-phase integration blockers (compose env-var passthrough, undocumented installer) found and fixed inline during the milestone audit before archiving.*
+*Last updated: 2026-07-13 — milestone v4.0 Workspace Records & Views started, scoped to `docs/specs/core/workspace-blocks.md`'s Kanban→Records+Views gap only.*

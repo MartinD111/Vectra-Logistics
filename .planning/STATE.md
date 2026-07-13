@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: On-Premise GA
-status: Awaiting next milestone
-stopped_at: Phase 20 context gathered
-last_updated: "2026-07-13T10:38:04.395Z"
-last_activity: 2026-07-13 — Milestone v3.0 completed and archived
+milestone: v4.0
+milestone_name: Workspace Records & Views
+status: planning
+last_updated: "2026-07-13T11:19:05.232Z"
+last_activity: 2026-07-13
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-12)
 
 ## Current Position
 
-Phase: Milestone v3.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-13 — Milestone v3.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-07-13 — Milestone v4.0 started
 
 ## Performance Metrics
 
