@@ -32,12 +32,14 @@ services:
   #   docker compose -f docker-compose.prod.yml run --rm api npm run migrate
   # then:
   #   docker compose -f docker-compose.prod.yml up -d
-  # Requires Phase 15's migration runner (apps/api/src/scripts/migrate.ts, the
-  # `npm run migrate` script) — not present in this repo as of Phase 16.
+  # The migration runner (apps/api/src/scripts/migrate.ts, the `npm run migrate`
+  # script) exists in this repo — run it via the command shown above before every "up".
   api:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
+      args:
+        VERSION: ${VERSION:?VERSION is required (export VERSION from the VERSION file before build)}
     container_name: vectra_api
     restart: unless-stopped
     environment:
@@ -86,6 +88,8 @@ services:
     build:
       context: .
       dockerfile: apps/marketplace/Dockerfile
+      args:
+        VERSION: ${VERSION:?VERSION is required (export VERSION from the VERSION file before build)}
     container_name: vectra_marketplace
     restart: unless-stopped
     environment:
@@ -104,6 +108,8 @@ services:
     build:
       context: .
       dockerfile: apps/workspaces/Dockerfile
+      args:
+        VERSION: ${VERSION:?VERSION is required (export VERSION from the VERSION file before build)}
     container_name: vectra_workspaces
     restart: unless-stopped
     environment:
@@ -122,6 +128,8 @@ services:
     build:
       context: .
       dockerfile: apps/cmr/Dockerfile
+      args:
+        VERSION: ${VERSION:?VERSION is required (export VERSION from the VERSION file before build)}
     container_name: vectra_cmr
     restart: unless-stopped
     environment:

@@ -1,5 +1,8 @@
 FROM node:18-alpine
 
+ARG VERSION=unknown
+ENV VERSION=$VERSION
+
 WORKDIR /app
 
 COPY package*.json ./

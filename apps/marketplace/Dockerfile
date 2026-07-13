@@ -23,6 +23,8 @@ RUN npm run build --workspace @vectra/marketplace
 
 # ── Runner (Next standalone) ─────────────────────────────────────────────────
 FROM base AS runner
+ARG VERSION=unknown
+LABEL org.opencontainers.image.version=$VERSION
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
