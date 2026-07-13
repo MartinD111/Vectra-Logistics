@@ -12,7 +12,8 @@
 import type { ComponentType } from 'react';
 import type {
   PageBlock, PageBlockKind,
-  RichTextBlock, HeadingBlock, CalloutBlock, ListBlock, PeopleBlock, StatCardsBlock, KpiGridBlock,
+  RichTextBlock, HeadingBlock, CalloutBlock, ListBlock, ChecklistBlock, QuoteBlock,
+  PeopleBlock, StatCardsBlock, KpiGridBlock,
   ChartBlock, ActivityTimelineBlock, ProgramLinkBlock, MiniProgramBlock, KanbanBlock,
   FleetTelematicsBlock, SpotQuoteBlock, ExceptionRadarBlock, OmniChatBlock, SmartInboxBlock,
   DraftsKanbanBlock, YardMapBlock, RailwayTerminalBlock, PodTrackerBlock, OmniDocsBlock,
@@ -27,6 +28,8 @@ import type { SlashMenuItem } from './slashMenu';
 import { EditableRichText, type SlashSelectContext } from '@/components/projectPage/EditableRichText';
 import { EditableHeading } from '@/components/projectPage/EditableHeading';
 import { CalloutView, CalloutEditor } from '@/components/projectPage/CalloutBlock';
+import { ChecklistView, ChecklistEditor } from '@/components/projectPage/ChecklistBlock';
+import { QuoteView, QuoteEditor } from '@/components/projectPage/QuoteBlock';
 import {
   HeadingView, RichTextView, ListView, DividerView, MiniProgramEmbedView,
   PeopleView, StatCardsView, KpiGridView, ChartWidgetView, ActivityTimelineView,
@@ -126,6 +129,14 @@ const entries: Record<PageBlockKind, WorkspaceBlockPlugin<PageBlock, PageCtx>> =
   'callout': entry('callout',
     ({ block }) => <CalloutView block={block as CalloutBlock} />,
     ({ block, onUpdate }) => <CalloutEditor block={block as CalloutBlock} onUpdate={(b) => onUpdate(b)} />,
+  ),
+  'checklist': entry('checklist',
+    ({ block, ctx }) => <ChecklistView block={block as ChecklistBlock} onChange={ctx.onChange} />,
+    ({ block, onUpdate }) => <ChecklistEditor block={block as ChecklistBlock} onUpdate={onUpdate} />,
+  ),
+  'quote': entry('quote',
+    ({ block }) => <QuoteView block={block as QuoteBlock} />,
+    ({ block, onUpdate }) => <QuoteEditor block={block as QuoteBlock} onUpdate={(b) => onUpdate(b)} />,
   ),
   'people': entry('people', ({ block, ctx }) => <PeopleView block={block as PeopleBlock} projectId={ctx.projectId as string} />),
   'stat-cards': entry('stat-cards', ({ block, ctx }) => <StatCardsView block={block as StatCardsBlock} projectId={ctx.projectId as string} />),
