@@ -16,6 +16,7 @@ import type {
   TableBlock,
   ImageBlock, FileBlock, VideoBlock, BookmarkBlock, EmbedBlock,
   SubPageBlock,
+  ToggleBlock, ColumnsBlock,
   PeopleBlock, StatCardsBlock, KpiGridBlock,
   ChartBlock, ActivityTimelineBlock, ProgramLinkBlock, MiniProgramBlock, KanbanBlock,
   FleetTelematicsBlock, SpotQuoteBlock, ExceptionRadarBlock, OmniChatBlock, SmartInboxBlock,
@@ -41,6 +42,8 @@ import {
   EmbedBlockView, EmbedBlockEditor,
 } from '@/components/projectPage/MediaBlocks';
 import { SubPageBlockView, SubPageBlockEditor } from '@/components/projectPage/SubPageBlock';
+import { ToggleView, ToggleEditor } from '@/components/projectPage/ToggleBlock';
+import { ColumnsView, ColumnsEditor } from '@/components/projectPage/ColumnsBlock';
 import {
   HeadingView, RichTextView, ListView, DividerView, MiniProgramEmbedView,
   PeopleView, StatCardsView, KpiGridView, ChartWidgetView, ActivityTimelineView,
@@ -85,6 +88,13 @@ export interface PageCtx {
 
 type Renderer = ComponentType<BlockRenderProps<PageBlock, PageCtx>>;
 type Editor = ComponentType<BlockEditProps<PageBlock, PageCtx>>;
+
+/** Extends PageCtx with a renderChild closure — used only by the toggle/columns
+ *  entries below to let ToggleBlock.tsx/ColumnsBlock.tsx render arbitrary child
+ *  blocks without importing this registry module themselves. */
+type PageCtxWithRenderChild = PageCtx & {
+  renderChild: (block: PageBlock, onUpdate: (b: PageBlock) => void) => JSX.Element;
+};
 
 /** Build a native page plugin from existing PAGE_BLOCK_REGISTRY metadata + factory. */
 function entry(kind: PageBlockKind, renderer: Renderer, editor?: Editor): WorkspaceBlockPlugin<PageBlock, PageCtx> {
@@ -188,6 +198,38 @@ const entries: Record<PageBlockKind, WorkspaceBlockPlugin<PageBlock, PageCtx>> =
   'sub-page': entry('sub-page',
     ({ block, ctx }) => <SubPageBlockView block={block as SubPageBlock} ctx={ctx} />,
     ({ block, ctx, onUpdate }) => <SubPageBlockEditor block={block as SubPageBlock} ctx={ctx} onUpdate={onUpdate} />,
+  ),
+  'toggle': entry('toggle',
+    ({ block, ctx }) => (
+      <ToggleView
+        block={block as ToggleBlock}
+        ctx={{ ...ctx, renderChild: (child, onChildUpdate) => pageBlockRegistry.renderEditor(child, ctx, onChildUpdate) }}
+        onChange={ctx.onChange as ((b: ToggleBlock) => void) | undefined}
+      />
+    ),
+    ({ block, ctx, onUpdate }) => (
+      <ToggleEditor
+        block={block as ToggleBlock}
+        ctx={{ ...ctx, renderChild: (child, onChildUpdate) => pageBlockRegistry.renderEditor(child, ctx, onChildUpdate) }}
+        onUpdate={onUpdate}
+      />
+    ),
+  ),
+  'columns': entry('columns',
+    ({ block, ctx }) => (
+      <ColumnsView
+        block={block as ColumnsBlock}
+        ctx={{ ...ctx, renderChild: (child, onChildUpdate) => pageBlockRegistry.renderEditor(child, ctx, onChildUpdate) }}
+        onChange={ctx.onChange as ((b: ColumnsBlock) => void) | undefined}
+      />
+    ),
+    ({ block, ctx, onUpdate }) => (
+      <ColumnsEditor
+        block={block as ColumnsBlock}
+        ctx={{ ...ctx, renderChild: (child, onChildUpdate) => pageBlockRegistry.renderEditor(child, ctx, onChildUpdate) }}
+        onUpdate={onUpdate}
+      />
+    ),
   ),
   'people': entry('people', ({ block, ctx }) => <PeopleView block={block as PeopleBlock} projectId={ctx.projectId as string} />),
   'stat-cards': entry('stat-cards', ({ block, ctx }) => <StatCardsView block={block as StatCardsBlock} projectId={ctx.projectId as string} />),
