@@ -216,7 +216,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 16. Production Compose + DEPLOYMENT_MODE | v3.0 | 2/2 | Complete    | 2026-07-12 |
 | 17. Installer / First-Run Flow | v3.0 | 3/3 | Complete   | 2026-07-12 |
 | 18. Backend-side Local AI Provider | v3.0 | 1/1 | Complete   | 2026-07-12 |
-| 19. Release Versioning & Upgrade Docs | v3.0 | 3/3 | Complete   | 2026-07-13 |
+| 19. Release Versioning & Upgrade Docs | v3.0 | 3/3 | Complete    | 2026-07-13 |
 | 20. Deploy Hardening + Connectivity Doc | v3.0 | 0/TBD | Not started | - |
 
 ---

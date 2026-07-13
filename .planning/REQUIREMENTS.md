@@ -36,9 +36,9 @@ Requirements for the v3.0 On-Premise GA milestone. Each maps to a roadmap phase.
 
 ### Release & Upgrade
 
-- [ ] **REL-01**: One whole-release version (`VERSION` file + git tag), stamped into images and reported by `/health`
-- [ ] **REL-02**: `CHANGELOG.md` at repo root, one section per release, readable by the person running an upgrade; migration list generated from filenames
-- [ ] **REL-03**: The 5-step upgrade procedure replaces the manual per-file `psql` instructions in `docs/DEPLOYMENT.md`
+- [x] **REL-01**: One whole-release version (`VERSION` file + git tag), stamped into images and reported by `/health`
+- [x] **REL-02**: `CHANGELOG.md` at repo root, one section per release, readable by the person running an upgrade; migration list generated from filenames
+- [x] **REL-03**: The 5-step upgrade procedure replaces the manual per-file `psql` instructions in `docs/DEPLOYMENT.md`
 
 ### Deploy Hardening
 
@@ -94,9 +94,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INS-01 | Phase 17 | Pending |
 | INS-02 | Phase 17 | Pending |
 | AIL-01 | Phase 18 | Complete |
-| REL-01 | Phase 19 | Pending |
-| REL-02 | Phase 19 | Pending |
-| REL-03 | Phase 19 | Pending |
+| REL-01 | Phase 19 | Complete |
+| REL-02 | Phase 19 | Complete |
+| REL-03 | Phase 19 | Complete |
 | HRD-01 | Phase 20 | Pending |
 | HRD-02 | Phase 20 | Pending |
 | HRD-03 | Phase 20 | Pending |
