@@ -189,7 +189,17 @@ Plans:
   3. `GET /health` (or `/ready`) reports unhealthy when Postgres or Redis is actually unreachable, not just when the process is up.
   4. A customer-facing doc explains the reverse-proxy posture: only `/api/webhooks/*` and `/api/pod/*` need to be exposed inbound.
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+**Wave 1**
+
+- [ ] 20-01-PLAN.md — cors.ts getAllowedOrigins() helper + Express/Socket.IO wiring + integration test (HRD-01)
+- [ ] 20-02-PLAN.md — express-rate-limit install + authRateLimiter on 5 auth routes + integration test (HRD-02)
+- [ ] 20-04-PLAN.md — docs/DEPLOYMENT.md "Inbound connectivity" section (DOC-01)
+
+**Wave 2** *(blocked on 20-01 completion — both edit server.ts)*
+
+- [ ] 20-03-PLAN.md — health.service.ts checkDependencyHealth() + /health wiring + server.health.test.ts update (HRD-03)
 
 ## Progress
 
@@ -217,7 +227,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 17. Installer / First-Run Flow | v3.0 | 3/3 | Complete   | 2026-07-12 |
 | 18. Backend-side Local AI Provider | v3.0 | 1/1 | Complete   | 2026-07-12 |
 | 19. Release Versioning & Upgrade Docs | v3.0 | 3/3 | Complete    | 2026-07-13 |
-| 20. Deploy Hardening + Connectivity Doc | v3.0 | 0/TBD | Not started | - |
+| 20. Deploy Hardening + Connectivity Doc | v3.0 | 0/4 | Not started | - |
 
 ---
 *Roadmap created: 2026-07-05 · v1.0 archived: 2026-07-06 · v2.0 archived: 2026-07-12 · v3.0 phases 14-20 added: 2026-07-12*
