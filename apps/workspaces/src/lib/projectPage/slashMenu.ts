@@ -5,7 +5,7 @@
 // substring over title + keywords).
 
 import {
-  uid,
+  uid, pageBlockDef,
   type PageBlock, type PageBlockGroup, type PageBlockKind,
 } from './blocks';
 import { pageBlockRegistry } from './registry';
@@ -50,6 +50,9 @@ const EXTRA_KEYWORDS: Partial<Record<PageBlockKind, string[]>> = {
   'vat-matrix': ['vat', 'tax', 'reverse', 'charge', 'export', 'matrix', 'rate'],
   'invoices': ['invoices', 'billing', 'receivables', 'approve', 'paid', 'quote-to-cash', 'money'],
   'ltl-matches': ['ltl', 'matches', 'partial', 'consolidation', 'empty', 'space', 'detour', 'backhaul', 'optimize'],
+  'checklist': ['todo', 'checkbox', 'task', 'to-do'],
+  'quote': ['blockquote', 'citation'],
+  'code': ['snippet', 'syntax', 'programming', 'fenced'],
 };
 
 export function buildSlashMenuItems(): SlashMenuItem[] {
@@ -108,4 +111,9 @@ export function filterSlashMenuItems(items: SlashMenuItem[], query: string): Sla
 /** Content kinds may transform the current (empty) text block in place; widgets always insert below. */
 export function isContentItem(item: SlashMenuItem): boolean {
   return item.group === 'content';
+}
+
+/** Blocks insertable as a nested child of a toggle/columns block — reads PageBlockDef.nestable, not group. */
+export function isNestableItem(item: SlashMenuItem): boolean {
+  return pageBlockDef(item.kind)?.nestable === true;
 }

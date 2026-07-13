@@ -17,6 +17,9 @@ export type PageBlockKind =
   | 'divider'
   | 'callout'
   | 'list'
+  | 'checklist'
+  | 'quote'
+  | 'code'
   // Data widgets
   | 'people'
   | 'stat-cards'
@@ -90,6 +93,28 @@ export interface ListBlock extends PageBlockBase {
   style: 'bulleted' | 'numbered';
   /** Sanitised HTML (<ul>/<ol> with <li> items), same surface as rich-text. */
   html: string;
+}
+
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+export interface ChecklistBlock extends PageBlockBase {
+  kind: 'checklist';
+  items: ChecklistItem[];
+}
+
+export interface QuoteBlock extends PageBlockBase {
+  kind: 'quote';
+  text: string;
+}
+
+export interface CodeBlock extends PageBlockBase {
+  kind: 'code';
+  code: string;
+  language: string;
 }
 
 export interface PeopleBlock extends PageBlockBase {
@@ -269,6 +294,9 @@ export type PageBlock =
   | DividerBlock
   | CalloutBlock
   | ListBlock
+  | ChecklistBlock
+  | QuoteBlock
+  | CodeBlock
   | PeopleBlock
   | StatCardsBlock
   | KpiGridBlock
@@ -328,36 +356,53 @@ export interface PageBlockDef {
   icon: string;
   /** Whether this kind ships a working renderer yet (false = "coming soon" placeholder). */
   available: boolean;
+  /** Content-group blocks insertable as a nested child of a toggle/columns block (Phase 21). */
+  nestable?: boolean;
   create: () => PageBlock;
 }
 
 export const PAGE_BLOCK_REGISTRY: PageBlockDef[] = [
   {
     kind: 'heading', group: 'content', title: 'Heading', icon: 'Heading',
-    description: 'A section title.', available: true,
+    description: 'A section title.', available: true, nestable: true,
     create: () => ({ id: uid(), kind: 'heading', span: 'full', text: 'Section', level: 2 }),
   },
   {
     kind: 'rich-text', group: 'content', title: 'Text', icon: 'Type',
-    description: 'Rich text — notes, briefs, instructions.', available: true,
+    description: 'Rich text — notes, briefs, instructions.', available: true, nestable: true,
     // Empty on purpose: the canvas shows a "Type '/' for commands" placeholder,
     // and the slash trigger only fires at block start / after whitespace.
     create: () => ({ id: uid(), kind: 'rich-text', span: 'full', html: '' }),
   },
   {
     kind: 'list', group: 'content', title: 'Bulleted list', icon: 'List',
-    description: 'A simple bulleted or numbered list.', available: true,
+    description: 'A simple bulleted or numbered list.', available: true, nestable: true,
     create: () => ({ id: uid(), kind: 'list', span: 'full', style: 'bulleted', html: '<ul><li></li></ul>' }),
   },
   {
     kind: 'divider', group: 'content', title: 'Divider', icon: 'Minus',
-    description: 'A horizontal rule to separate sections.', available: true,
+    description: 'A horizontal rule to separate sections.', available: true, nestable: true,
     create: () => ({ id: uid(), kind: 'divider', span: 'full' }),
   },
   {
     kind: 'callout', group: 'content', title: 'Callout', icon: 'MessagesSquare',
-    description: 'A highlighted note or tip.', available: true,
+    description: 'A highlighted note or tip.', available: true, nestable: true,
     create: () => ({ id: uid(), kind: 'callout', span: 'full', text: '' }),
+  },
+  {
+    kind: 'checklist', group: 'content', title: 'To-do list', icon: 'CheckSquare',
+    description: 'A checklist with checkable items.', available: true, nestable: true,
+    create: () => ({ id: uid(), kind: 'checklist', span: 'full', items: [] }),
+  },
+  {
+    kind: 'quote', group: 'content', title: 'Quote', icon: 'Quote',
+    description: 'A quoted passage.', available: true, nestable: true,
+    create: () => ({ id: uid(), kind: 'quote', span: 'full', text: '' }),
+  },
+  {
+    kind: 'code', group: 'content', title: 'Code', icon: 'Code2',
+    description: 'A fenced code block with a language label.', available: true, nestable: true,
+    create: () => ({ id: uid(), kind: 'code', span: 'full', code: '', language: 'Plain text' }),
   },
   {
     kind: 'people', group: 'widget', title: 'People', icon: 'Users',

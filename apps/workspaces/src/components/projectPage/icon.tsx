@@ -8,7 +8,8 @@ import {
   Calendar, Mail, LayoutDashboard, BookText, FileText, Square,
   Heading1, Heading2, Heading3, List, ListOrdered, Play, Kanban,
   Truck, Calculator, Radar, MessagesSquare, ScanText, ClipboardCheck,
-  Warehouse, TrainTrack, PackageCheck, Building2, Percent, Receipt, Sparkles, type LucideIcon,
+  Warehouse, TrainTrack, PackageCheck, Building2, Percent, Receipt, Sparkles,
+  CheckSquare, Quote, Code2, type LucideIcon,
 } from 'lucide-react';
 
 const MAP: Record<string, LucideIcon> = {
@@ -17,6 +18,7 @@ const MAP: Record<string, LucideIcon> = {
   Heading1, Heading2, Heading3, List, ListOrdered, Play, Kanban,
   Truck, Calculator, Radar, MessagesSquare, ScanText, ClipboardCheck,
   Warehouse, TrainTrack, PackageCheck, Building2, Percent, Receipt, Sparkles,
+  CheckSquare, Quote, Code2,
 };
 
 export function PageBlockIcon({ name, className }: { name?: string; className?: string }) {
