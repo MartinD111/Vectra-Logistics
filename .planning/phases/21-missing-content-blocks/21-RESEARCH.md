@@ -491,7 +491,7 @@ is explicitly Phase 24 per `.planning/ROADMAP.md`, not this phase).
 | A3 | Fixed 2-column layout (not flexible add/remove lanes) is the cheapest columns implementation satisfying CONT-07 (D-04 discretion) | Architecture Patterns / Pattern 2 | Low risk — if 3-column or flexible is later wanted, `columns: PageBlock[][]` shape already generalizes; only the settings UI would need to change |
 | A4 | No drag-reorder inside toggle/column nested children (up/down buttons or none) is acceptable given D-01's "simple to render/edit" bar | Pitfall 3 | Low risk — explicitly aligned with the user's stated preference for the cheapest option; if reorder is later requested, it's an additive UI enhancement, not a rearchitecture |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`@page` mention search scope**
    - What we know: `projectsApi.listPages(projectId)` exists and is project-scoped; no
@@ -500,6 +500,9 @@ is explicitly Phase 24 per `.planning/ROADMAP.md`, not this phase).
    - Recommendation: Default to current-project-only (zero new backend work); note this
      limitation in the plan's task description so the planner can decide explicitly rather
      than by omission.
+   - RESOLVED: Plan 21-02 adopts current-project-only scope — `buildMentionItems` only
+     queries `projectsApi.listPages(ctx.projectId)` when `ctx.projectId` is present, and
+     returns zero page items otherwise (e.g., on the client detail canvas).
 
 2. **Real uploads vs. URL-only for media blocks (D-05)**
    - What we know: URL-only requires zero backend changes; real uploads require a new
@@ -511,6 +514,9 @@ is explicitly Phase 24 per `.planning/ROADMAP.md`, not this phase).
      phase unless the planner/user pushes back — it fully satisfies CONT-05's literal
      wording ("User can insert ... image/file/video/bookmark/embed media blocks") without
      implying upload is mandatory.
+   - RESOLVED: Plan 21-03 ships URL-only media blocks (image/file/video/bookmark/embed via
+     pasted URL) — no file upload, no new migration, no `ALLOWED_SUBJECTS`/`DocumentSubject`
+     changes.
 
 ## Environment Availability
 
