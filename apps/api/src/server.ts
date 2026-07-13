@@ -22,19 +22,31 @@ import companyRoutes from "./routes/companyRoutes";
 import { configureSocket } from "./core/realtime/socket";
 import { validateSecretsOrExit, validateDeploymentModeOrExit } from "./core/config/secrets";
 import { getVersion } from "./core/config/version";
+import { getAllowedOrigins } from "./core/config/cors";
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = getAllowedOrigins();
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
   },
 });
 
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+  }),
+);
 app.use(express.json());
 
 // Domain routes (DDD) — new canonical URLs
