@@ -79,6 +79,8 @@ export interface PageCtx {
   /** Edit-mode only (used by the rich-text/list editors in Phase 9). */
   slashItems?: SlashMenuItem[];
   onSlashSelect?: (item: SlashMenuItem, ctx: SlashSelectContext) => void;
+  /** Content-group-only slash items — feeds the nested "+ Add block" menu inside toggle/columns (Phase 21). */
+  nestableSlashItems?: SlashMenuItem[];
 }
 
 type Renderer = ComponentType<BlockRenderProps<PageBlock, PageCtx>>;

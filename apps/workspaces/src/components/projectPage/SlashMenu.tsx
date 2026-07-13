@@ -96,16 +96,18 @@ export function SlashMenuPanel({
 
 /** Self-contained insert menu for "+" buttons: own search input + keyboard nav. */
 export function InsertBlockMenu({
-  anchor, onSelect, onClose,
+  anchor, onSelect, onClose, items: itemsOverride,
 }: {
   anchor: { x: number; y: number };
   onSelect: (item: SlashMenuItem) => void;
   onClose: () => void;
+  /** Pre-filtered item list (e.g. nestable-only, for nested insert contexts). Defaults to the full palette. */
+  items?: SlashMenuItem[];
 }) {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
-  const items = filterSlashMenuItems(buildSlashMenuItems(), query);
+  const items = filterSlashMenuItems(itemsOverride ?? buildSlashMenuItems(), query);
 
   const openUp = anchor.y + 380 > (typeof window !== 'undefined' ? window.innerHeight : 9999);
   const left = Math.min(anchor.x, (typeof window !== 'undefined' ? window.innerWidth : 9999) - 300);
