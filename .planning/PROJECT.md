@@ -6,6 +6,8 @@ A dedicated CRM module inside the Vectra workspaces app, replacing the never-bui
 
 Underneath the workspaces app, the Notion-like Project Pages and Mini Programs block systems now share one generic, plugin-driven `WorkspaceBlockRegistry` engine (shipped as v2.0) — "add a block = write one plugin entry, change nothing else." A third, demo-only automations WorkflowBuilder remains a separate, explicitly parked system for a future migration.
 
+The same codebase is now also a first-class On-Premise deployment target (shipped as v3.0): a customer or their IT partner can install it via a one-shot installer (secrets generation, migrations, first company + admin, optional local Gemma/Ollama config), run it fully offline (backend-side local AI dispatch, not just the browser path), and upgrade it with a documented 5-step procedure — all gated by one `DEPLOYMENT_MODE=cloud|on-prem` toggle, not a fork. Deploy-hardening (CORS allowlist, auth rate limiting, live `/health` checks) applies to both Cloud and On-Premise.
+
 ## Core Value
 
 Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
@@ -50,21 +52,22 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 - ✓ SEC-03: `017_seed_admin_user.sql` (`admin@admin.com`/`admin`) never runs in any customer-facing install — v3.0 (Phase 14)
 - ✓ DEP-01: `docker-compose.prod.yml` assembles all 5 production images (marketplace, workspaces, cmr, api, matching-engine) + Postgres + Redis, persistent volumes, no committed secret defaults (`${VAR:?required}` on every secret), no host ports on datastores — v3.0 (Phase 16)
 - ✓ DEP-02: `DEPLOYMENT_MODE=cloud|on-prem` boot-validated (hard-fail on unset/invalid) and cached in `secrets.ts`, read once via `getDeploymentMode()`; gates `signup()` with an unconditional 403 on `on-prem` — v3.0 (Phase 16)
+- ✓ MIG-01: `schema_migrations` tracking table + `npm run migrate` runner applies pending numbered migrations in order, idempotently, recording each — v3.0 (Phase 15)
+- ✓ MIG-02: First-run and upgrade use the same migration path; production stack drops the `docker-entrypoint-initdb.d` mounts — v3.0 (Phase 15 + 16)
+- ✓ INS-01: Installer/first-run flow generates `JWT_SECRET`+`ENCRYPTION_KEY`, creates one company + real admin, runs migrations, writes `DEPLOYMENT_MODE=on-prem` — v3.0 (Phase 17), including a re-run-safety guard (gap closure, plan 17-03) and a documented "Fresh install" walkthrough (added during the v3.0 milestone audit — the installer existed but was undiscoverable from shipped docs)
+- ✓ INS-02: Installer can optionally write a reachable local Gemma/Ollama endpoint into `company_ai_config` (`provider:'local'`) — v3.0 (Phase 17)
+- ✓ AIL-01: Backend can call a server-reachable `local` AI provider (not only the browser path) — v3.0 (Phase 18)
+- ✓ REL-01: One whole-release version (`VERSION` file + git tag), stamped into images and reported by `/health` — v3.0 (Phase 19)
+- ✓ REL-02: `CHANGELOG.md` at repo root, one section per release, migration list generated from filenames — v3.0 (Phase 19)
+- ✓ REL-03: The 5-step upgrade procedure replaces the manual per-file `psql` instructions in `docs/DEPLOYMENT.md` — v3.0 (Phase 19)
+- ✓ HRD-01: CORS + Socket.IO origins restricted to env-configured app origins (not `*`) — v3.0 (Phase 20); required a post-ship fix during the milestone audit — `docker-compose.prod.yml` never forwarded the allowlist env vars into the `api` container, so the allowlist resolved empty in the actual shipped production compose
+- ✓ HRD-02: Rate limiting on `/api/auth/*` at minimum — v3.0 (Phase 20); code review found + fixed a Critical issue in-phase (rate limiter 500s without `trust proxy` configured behind a reverse proxy), and the milestone audit found + fixed a second-order gap (the fix's env var also wasn't forwarded by `docker-compose.prod.yml`)
+- ✓ HRD-03: `/health` (or `/ready`) actually verifies Postgres + Redis reachability — v3.0 (Phase 20)
+- ✓ DOC-01: Customer-facing doc of the inbound-connectivity posture (reverse proxy exposing only `/api/webhooks/*` + `/api/pod/*`) — v3.0 (Phase 20)
 
 ### Active
 
-- [ ] MIG-01: A `schema_migrations` tracking table + `npm run migrate` runner applies pending numbered migrations in order, idempotently, recording each
-- [ ] MIG-02: First-run and upgrade use the same migration path; production stack drops the `docker-entrypoint-initdb.d` mounts
-- [ ] INS-01: An installer/first-run flow generates `JWT_SECRET`+`ENCRYPTION_KEY`, creates one company + real admin, runs migrations, writes `DEPLOYMENT_MODE=on-prem`
-- [ ] INS-02: Installer can optionally write a reachable local Gemma/Ollama endpoint into `company_ai_config` (`provider:'local'`)
-- [ ] AIL-01: Backend can call a server-reachable `local` AI provider (not only the browser path)
-- [ ] REL-01: One whole-release version (`VERSION` file + git tag), stamped into images and reported by `/health`
-- [ ] REL-02: `CHANGELOG.md` at repo root, one section per release, migration list generated from filenames
-- [ ] REL-03: The 5-step upgrade procedure replaces the manual per-file `psql` instructions in `docs/DEPLOYMENT.md`
-- [ ] HRD-01: CORS + Socket.IO origins restricted to env-configured app origins (not `*`)
-- [ ] HRD-02: Rate limiting on `/api/auth/*` at minimum
-- [ ] HRD-03: `/health` (or `/ready`) actually verifies Postgres + Redis reachability
-- [ ] DOC-01: Customer-facing doc of the inbound-connectivity posture (reverse proxy exposing only `/api/webhooks/*` + `/api/pod/*`)
+(None — v3.0 was the active milestone; all its requirements shipped. Next milestone not yet defined; run `/gsd:new-milestone` to scope one.)
 
 ### Out of Scope
 
@@ -106,8 +109,16 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 | Page registry entries are an explicit `Record<PageBlockKind, …>` literal | Compile-time exhaustiveness (ENG-03) — a missing kind fails `tsc`, not production | ✓ Good (v2.0) |
 | WorkflowBuilder explicitly parked/deferred rather than migrated onto the engine now | Demo-only, no persistence, out of tight v2.0 scope; documented in the ADR as a named future migration target instead of silently ignored | ✓ Good (v2.0) |
 | Boot-time secret validation rejects unset/empty/known-bad values only, not general secret strength | Roadmap Phase 14 success criteria are scoped to "no fallback secret is used," not entropy/length; a min-length/entropy check was flagged by code review as a follow-up hardening item, not a phase-goal gap | ✓ Good (v3.0, Phase 14) |
+| SEC-03 (no seed admin) and DEP-02 (registration gate) are two independent, non-overlapping safeguards, not one merged check | They target different attack surfaces (raw seed SQL vs. the signup API) — merging them into one gate would be a single point of failure for two distinct threats | ✓ Good (v3.0, Phases 14+16, confirmed non-conflicting by the milestone audit's integration check) |
+| Installer re-run safety (`isAlreadyInstalled`/`shouldBlockInstall`) added as a gap-closure plan, not folded into the original install.ts plan | Discovered as a real risk (re-running the installer against a live system could corrupt secrets/data) only during verification of the first pass — closed via `--force`-gated hard-stop rather than silently allowing re-runs | ✓ Good (v3.0, Phase 17, plan 17-03) |
+| `TRUST_PROXY_HOPS` defaults to unset/fail-closed rather than assuming 1 hop | A code-review-found bug (rate limiter 500s behind a reverse proxy without `trust proxy` set) could have been "fixed" by hardcoding `app.set('trust proxy', 1)`, but that would silently trust an arbitrary topology; requiring explicit operator configuration avoids trusting more hops than actually exist (which would let a client spoof `X-Forwarded-For` to bypass rate limiting) | ✓ Good (v3.0, Phase 20 code review + milestone audit) |
+| Milestone audit fixes gaps inline rather than only reporting them | The v3.0 audit found 2 real blockers (compose env-var passthrough, undocumented installer) that no single phase's own verification could catch, since each phase only tests its own module in isolation — fixing them immediately (with re-verification) avoided shipping a "passed" milestone that was actually broken in the real deployment artifact | ✓ Good (v3.0 milestone close) |
 
 **Note on v2.0 verification debt:** the `verify_phase_goal` step appears to have been skipped during execution of Phases 7-11 (no VERIFICATION.md written, REQUIREMENTS.md checkboxes left unchecked). The v2.0 milestone audit independently re-confirmed all affected requirements via direct code/git inspection before shipping, but the pattern is worth watching for in future milestones — an executor completing tasks and writing SUMMARY.md is not the same as a verifier confirming the phase goal.
+
+**The same pattern recurred once in v3.0:** Phase 18 was executed, marked complete in ROADMAP.md/REQUIREMENTS.md, and had a SUMMARY.md — but no VERIFICATION.md was ever created. Caught and closed during the v3.0 milestone audit (retroactively verified, 4/4 must-haves, no gaps). Two milestones in a row losing exactly one phase's verification step suggests this may be a recurring gap in the execute-phase flow worth a structural fix (e.g., a hard check that blocks phase-complete on a missing VERIFICATION.md), not just a one-off to re-catch at audit time.
+
+**v3.0 also surfaced a distinct class of gap: phase-level verification passing while the milestone as a whole was still broken.** Two blockers (docker-compose.prod.yml never forwarding new env vars into the `api` container; the installer being undocumented) existed entirely in the seams *between* correctly-verified phases — Phase 20's own tests passed because they test the CORS/rate-limit modules in isolation, not the actual shipped compose file wiring. The cross-phase integration check (spawned during `/gsd:audit-milestone`) is what caught both; per-phase verification structurally cannot.
 
 ## Current State
 
@@ -115,23 +126,19 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 
 **Shipped:** v2.0 Workspace Engine — Engine Unification (2026-07-12) — 7 phases, 8 plans, 10 tasks, all 14 requirements. Project Pages and Mini Programs now render through one shared, plugin-driven `WorkspaceBlockRegistry`; both hand-maintained `switch(block.kind)` dispatch paths are gone; extensibility proven end-to-end (native + manifest block added via one plugin entry each); `docs/ARCHITECTURE-WORKSPACE-ENGINE.md` documents the result; the automations `WorkflowBuilder.tsx` is explicitly parked, untouched, as a future migration target. Archived at `.planning/milestones/v2.0-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md`; phase directories archived at `.planning/milestones/v2.0-phases/`.
 
+**Shipped:** v3.0 On-Premise GA (2026-07-13) — 7 phases, 16 plans, 31 tasks, all 17 requirements. Vectra is now a first-class On-Premise deployment of the same codebase: boot-time secret/seed-admin hardening, an idempotent shared migration runner, a `docker-compose.prod.yml` + `DEPLOYMENT_MODE` toggle, a re-run-safe one-shot installer, backend-side local Gemma/Ollama AI dispatch, one-`VERSION` release/upgrade tooling, and deploy hardening (CORS allowlist, auth rate limiting, live `/health` checks). The milestone audit found and fixed 2 real blockers inline before shipping — see Key Decisions and STATE.md → Deferred Items. Archived at `.planning/milestones/v3.0-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md`; phase directories archived at `.planning/milestones/v3.0-phases/`.
+
 Deferred at v1.0 close: 7 pending human-UAT scenarios (Phase 02/03) + 2 verification sign-offs — manual checks on shipped features, tracked in STATE.md → Deferred Items.
 
 Deferred at v2.0 close (tech debt, no functional gaps — see `.planning/milestones/v2.0-MILESTONE-AUDIT.md`): Phases 7-11 are missing formal `VERIFICATION.md` (never run after execution; independently re-confirmed wired by the milestone audit's integration check via direct code inspection + fresh `tsc --noEmit`); REQUIREMENTS.md checkboxes were stale for 8/14 requirements as a result (now archived with corrected status in the audit report); a live pre/post diff of persisted page JSON (RND-03) and a live mini-program round-trip run (MPG-02) were only statically traced, not runtime-executed — recommend backfilling via `/gsd:validate-phase` per phase if the audit trail needs to be complete.
 
-## Current Milestone: v3.0 On-Premise GA
+Deferred at v3.0 close (tech debt, no functional gaps — see `.planning/milestones/v3.0-MILESTONE-AUDIT.md`): Phase 20's `/health` has no timeout on its Postgres/Redis probes (a hung, not refused, connection could hang the endpoint); its auth rate limiter shares one bucket across all 5 endpoints (a locked-out attacker could also lock a legit user out of `/forgot-password`); CORS origin normalization/doc-comment/duplication cleanup. Phase 16's live `docker compose config` validation against real secrets remains a manual check, never automated. Phase 18 was missing a formal `VERIFICATION.md` (same class of gap as v2.0's Phases 7-11) — closed retroactively during the audit.
 
-**Goal:** Make Vectra deployable and self-upgradeable at a customer's own site as a first-class configuration of the same codebase used for Cloud — not a fork, not a "lite" build.
+## Next Milestone Goals
 
-**Target features:**
-- Migration runner (`schema_migrations` + `npm run migrate`) shared by first-run and upgrade
-- Production compose (`docker-compose.prod.yml`) + `DEPLOYMENT_MODE=cloud|on-prem` toggle
-- Installer/first-run flow (secrets, one company + admin, migrations, optional local AI endpoint)
-- Backend-side local Gemma/Ollama AI provider (not just browser-path)
-- Release versioning (`VERSION` + tag), `CHANGELOG.md`, 5-step upgrade procedure
-- Security hardening: no committed secret fallbacks, no seeded default admin, CORS/rate-limit/health hardening
+Not yet defined — v3.0 was the active/current milestone and has now shipped. Run `/gsd:new-milestone` to scope the next one.
 
-Sourced from `docs/specs/deployment/{on-premise-deployment,cloud-deployment,release-and-migrations}.md`, `docs/specs/core/ai-integration.md` §6.1, `docs/specs/architecture-steering.md` §2. Full phase/requirement draft at [milestones/v3.0-on-premise-ga.md](milestones/v3.0-on-premise-ga.md).
+Candidates surfaced during v3.0 (not committed, just visible from Active/Out-of-Scope history and the platform vision below): v2 requirements already tracked in the archived `v3.0-REQUIREMENTS.md` (LIC-01 offline licensing/activation, SCALE-01/02 cloud multi-replica scaling, AIL-02 Vectra-hosted AI tier) — none were promoted to this milestone's Active scope; that's a decision for whoever scopes the next one, not a carry-forward default.
 
 ## Platform Vision & Architecture (North Star)
 
@@ -239,4 +246,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-12 — Phase 16 (Production Compose + DEPLOYMENT_MODE) complete: DEP-01/02 validated. Note: Phase 16 shipped ahead of its declared dependency, Phase 15 (Migration Runner) — the migrate-then-serve compose sequencing is wired against Phase 15's committed `npm run migrate` interface only, not yet runtime-verified end-to-end. Two Docker-daemon-dependent checks (`docker compose config` resolve/fail behavior) remain pending human verification — see `16-HUMAN-UAT.md`.*
+*Last updated: 2026-07-13 after v3.0 On-Premise GA milestone close — all 17 requirements shipped and validated; 2 cross-phase integration blockers (compose env-var passthrough, undocumented installer) found and fixed inline during the milestone audit before archiving.*
