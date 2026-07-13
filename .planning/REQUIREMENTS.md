@@ -87,22 +87,44 @@ Explicitly excluded from v4.0. Documented to prevent scope creep.
 
 ## Traceability
 
-Populated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONT-01..09 | TBD | Pending |
-| REC-01..04 | TBD | Pending |
-| CARD-01..04 | TBD | Pending |
-| BOARD-01..04 | TBD | Pending |
-| VIEWX-01..04 | TBD | Pending |
-| VIEW-01..05 | TBD | Pending |
+| CONT-01 | Phase 21 | Pending |
+| CONT-02 | Phase 21 | Pending |
+| CONT-03 | Phase 21 | Pending |
+| CONT-04 | Phase 21 | Pending |
+| CONT-05 | Phase 21 | Pending |
+| CONT-06 | Phase 21 | Pending |
+| CONT-07 | Phase 21 | Pending |
+| CONT-08 | Phase 21 | Pending |
+| CONT-09 | Phase 21 | Pending |
+| REC-01 | Phase 22 | Pending |
+| REC-02 | Phase 22 | Pending |
+| REC-03 | Phase 22 | Pending |
+| REC-04 | Phase 22 | Pending |
+| CARD-01 | Phase 23 | Pending |
+| CARD-02 | Phase 23 | Pending |
+| CARD-03 | Phase 23 | Pending |
+| CARD-04 | Phase 23 | Pending |
+| BOARD-01 | Phase 24 | Pending |
+| BOARD-02 | Phase 24 | Pending |
+| BOARD-03 | Phase 24 | Pending |
+| BOARD-04 | Phase 24 | Pending |
+| VIEWX-01 | Phase 25 | Pending |
+| VIEWX-02 | Phase 25 | Pending |
+| VIEWX-03 | Phase 25 | Pending |
+| VIEWX-04 | Phase 25 | Pending |
+| VIEW-01 | Phase 26 | Pending |
+| VIEW-02 | Phase 26 | Pending |
+| VIEW-03 | Phase 26 | Pending |
+| VIEW-04 | Phase 26 | Pending |
+| VIEW-05 | Phase 26 | Pending |
 
 **Coverage:**
 - v1 requirements: 30 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 30 ⚠️ (expected before roadmap creation)
+- Mapped to phases: 30/30 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-13*
-*Last updated: 2026-07-13 after initial definition*
+*Last updated: 2026-07-13 — ROADMAP.md created (Phases 21-26), full traceability populated*

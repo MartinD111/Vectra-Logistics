@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Workspace Records & Views
 status: planning
-last_updated: "2026-07-13T11:19:05.232Z"
+last_updated: "2026-07-13T12:00:00.000Z"
 last_activity: 2026-07-13
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Milestone complete
+**Current focus:** Elevate Kanban into a real Records+Views database engine (`data_collections`/`collection_records`/`collection_views`)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap approved, awaiting first `/gsd:plan-phase 21`)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-13 — Milestone v4.0 started
+Status: Roadmap ready
+Last activity: 2026-07-13 — v4.0 ROADMAP.md created (Phases 21-26, 30/30 requirements mapped)
 
 ## Performance Metrics
 
@@ -71,6 +71,14 @@ Recent decisions affecting current work:
 - Roadmap (v3.0): Phase 18 (Backend-side Local AI) depends on Phase 16 (`DEPLOYMENT_MODE`) so the new server-side local-AI dispatch path can be scoped to on-prem without touching Cloud's existing hard-throw behavior.
 - Roadmap (v3.0): Phase 20 (Deploy Hardening + Connectivity Doc) has no hard dependency on the installer/release track and is sequenced last only to keep every earlier phase independently shippable.
 - Phase 18: D-01/D-02 from 18-CONTEXT.md applied as specified — hasUsableProvider trusts stored config (no live ping), completeLocal uses a 180s timeout (vs 60s for cloud providers) for slower on-prem CPU inference.
+- Roadmap (v4.0): Phases 21 (content blocks) and 22 (Records+Views data model) have no dependency on each other — parallelization-safe, sequenced 21 then 22 only for numbering, not build order.
+- Roadmap (v4.0): Phase 23 (record detail page) depends on both 21 and 22 — it needs the full block palette for record bodies and the schema/records API to render against.
+- Roadmap (v4.0): Phase 24 (board view) sequenced after 23, not just 22, because BOARD-03's inline card creation opens straight into the same record-detail surface Phase 23 builds.
+- Roadmap (v4.0): Phase 24 explicitly reuses `@dnd-kit` (already a workspaces dependency, used elsewhere in the app) for drag-and-drop rather than adding a new library.
+- Roadmap (v4.0): Phases 25 (view UX parity) and 26 (additional view types) both depend only on Phase 24's `collection-view` scaffold and can run in parallel with each other.
+- Roadmap (v4.0): `callout` already exists as a native block (v2.0, Phase 12) and was deliberately excluded from Phase 21's CONT-01..09 scope — only genuinely missing kinds are in that phase.
+- Roadmap (v4.0): New schema work starts at migration `025_` (last existing is `024_kpi_target_client.sql`), following `009_project_pages.sql`'s conventions (company_id-scoped, UUID PK, JSONB with defaults, created_by/at/updated_at, composite index).
+- Roadmap (v4.0): Realtime record sync (`emitToRoom`) explicitly deferred to v2 Requirements (RTSYNC-01/02) — no phase created for it in this milestone.
 
 ### Pending Todos
 
@@ -117,4 +125,5 @@ Resume file: .planning/phases/20-deploy-hardening-connectivity-doc/20-CONTEXT.md
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Review and approve .planning/ROADMAP.md (Phases 21-26) and .planning/REQUIREMENTS.md
+- Once approved, start execution with /gsd:plan-phase 21
