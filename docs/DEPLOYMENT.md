@@ -42,13 +42,16 @@ npm run dev:workspaces # or dev:marketplace / dev:cmr / dev:api
 ## Production images
 
 Each app has its own multi-stage `Dockerfile` built **from the repo root**
-(required so `packages/*` are available), producing a Next.js standalone bundle:
+(required so `packages/*` are available), producing a Next.js standalone bundle.
+Pass the repo's `VERSION` file as a build arg so the image is stamped with the
+release it was built from:
 
 ```bash
-docker build -f apps/marketplace/Dockerfile -t vectra-marketplace .
-docker build -f apps/workspaces/Dockerfile  -t vectra-workspaces  .
-docker build -f apps/cmr/Dockerfile         -t vectra-cmr         .
-docker build -f apps/api/Dockerfile         -t vectra-api         ./apps/api
+export VERSION=$(cat VERSION)
+docker build -f apps/marketplace/Dockerfile --build-arg VERSION="$VERSION" -t vectra-marketplace .
+docker build -f apps/workspaces/Dockerfile  --build-arg VERSION="$VERSION" -t vectra-workspaces  .
+docker build -f apps/cmr/Dockerfile         --build-arg VERSION="$VERSION" -t vectra-cmr         .
+docker build -f apps/api/Dockerfile         --build-arg VERSION="$VERSION" -t vectra-api         ./apps/api
 ```
 
 Standalone output is monorepo-aware via `outputFileTracingRoot` in each app's
