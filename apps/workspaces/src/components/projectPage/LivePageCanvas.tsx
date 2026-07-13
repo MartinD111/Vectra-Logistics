@@ -19,7 +19,7 @@ import {
   SPAN_COLS, pageBlockDef, uid,
   type BlockSpan, type PageBlock, type PageConfig,
 } from '@/lib/projectPage/blocks';
-import { buildSlashMenuItems, isContentItem, type SlashMenuItem } from '@/lib/projectPage/slashMenu';
+import { buildSlashMenuItems, isContentItem, isNestableItem, type SlashMenuItem } from '@/lib/projectPage/slashMenu';
 import { pageBlockRegistry } from '@/lib/projectPage/registry';
 import { PageBlockView } from './PageBlockView';
 import { PageBlockSettings } from './PageBlockSettings';
@@ -37,6 +37,7 @@ export default function LivePageCanvas({
   const [insertMenu, setInsertMenu] = useState<{ anchor: { x: number; y: number }; index: number } | null>(null);
   const [focusId, setFocusId] = useState<string | null>(null);
   const slashItems = useMemo(buildSlashMenuItems, []);
+  const nestableSlashItems = useMemo(() => slashItems.filter(isNestableItem), [slashItems]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -131,6 +132,7 @@ export default function LivePageCanvas({
                 clientId={clientId}
                 pageId={pageId}
                 slashItems={slashItems}
+                nestableSlashItems={nestableSlashItems}
                 onUpdate={updateBlock}
                 onSlashSelect={(item, ctx) => handleSlashSelect(i, item, ctx)}
               />
@@ -307,20 +309,21 @@ function SettingsPopover({
 // ── Per-kind inline editors ──────────────────────────────────────────────────
 
 function BlockEditor({
-  block, projectId, clientId, pageId, slashItems, onUpdate, onSlashSelect,
+  block, projectId, clientId, pageId, slashItems, nestableSlashItems, onUpdate, onSlashSelect,
 }: {
   block: PageBlock;
   projectId?: string;
   clientId?: string;
   pageId?: string;
   slashItems: SlashMenuItem[];
+  nestableSlashItems: SlashMenuItem[];
   onUpdate: (b: PageBlock) => void;
   onSlashSelect: (item: SlashMenuItem, ctx: SlashSelectContext) => void;
 }) {
   // Edit-mode dispatch via the registry: kinds with an `editor` (rich-text,
   // list, heading, kanban) render it; everything else falls back to the read
   // renderer — exactly the old `default: <PageBlockView/>` behaviour.
-  return <>{pageBlockRegistry.renderEditor(block, { projectId, clientId, pageId, slashItems, onSlashSelect }, onUpdate)}</>;
+  return <>{pageBlockRegistry.renderEditor(block, { projectId, clientId, pageId, slashItems, nestableSlashItems, onSlashSelect }, onUpdate)}</>;
 }
 
 // ── Empty page ───────────────────────────────────────────────────────────────

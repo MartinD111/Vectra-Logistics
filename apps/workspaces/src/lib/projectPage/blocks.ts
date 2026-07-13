@@ -27,6 +27,8 @@ export type PageBlockKind =
   | 'bookmark'
   | 'embed'
   | 'sub-page'
+  | 'toggle'
+  | 'columns'
   // Data widgets
   | 'people'
   | 'stat-cards'
@@ -165,6 +167,19 @@ export interface SubPageBlock extends PageBlockBase {
   /** null = not yet created — the placeholder state before the create-on-mount side effect runs. */
   pageId: string | null;
   title: string;
+}
+
+export interface ToggleBlock extends PageBlockBase {
+  kind: 'toggle';
+  title: string;
+  collapsed: boolean;
+  children: PageBlock[];
+}
+
+export interface ColumnsBlock extends PageBlockBase {
+  kind: 'columns';
+  /** Fixed length 2 (D-04) — enforced by create(), not the type. */
+  columns: PageBlock[][];
 }
 
 export interface PeopleBlock extends PageBlockBase {
@@ -354,6 +369,8 @@ export type PageBlock =
   | BookmarkBlock
   | EmbedBlock
   | SubPageBlock
+  | ToggleBlock
+  | ColumnsBlock
   | PeopleBlock
   | StatCardsBlock
   | KpiGridBlock
@@ -495,6 +512,16 @@ export const PAGE_BLOCK_REGISTRY: PageBlockDef[] = [
     kind: 'sub-page', group: 'widget', title: 'Sub-page', icon: 'FileText',
     description: 'Link to a brand-new child page.', available: true, nestable: true,
     create: () => ({ id: uid(), kind: 'sub-page', span: 'full', pageId: null, title: 'Untitled' }),
+  },
+  {
+    kind: 'toggle', group: 'widget', title: 'Toggle list', icon: 'ChevronRight',
+    description: 'A collapsible section containing other blocks.', available: true,
+    create: () => ({ id: uid(), kind: 'toggle', span: 'full', title: '', collapsed: false, children: [] }),
+  },
+  {
+    kind: 'columns', group: 'widget', title: 'Columns', icon: 'Columns',
+    description: 'A 2-column layout for side-by-side blocks.', available: true,
+    create: () => ({ id: uid(), kind: 'columns', span: 'full', columns: [[], []] }),
   },
   {
     kind: 'people', group: 'widget', title: 'People', icon: 'Users',

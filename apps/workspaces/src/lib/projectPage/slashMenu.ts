@@ -60,6 +60,8 @@ const EXTRA_KEYWORDS: Partial<Record<PageBlockKind, string[]>> = {
   'bookmark': ['link', 'url', 'card'],
   'embed': ['iframe', 'external'],
   'sub-page': ['page', 'child', 'nested', 'link'],
+  'toggle': ['collapse', 'expand', 'accordion', 'section'],
+  'columns': ['layout', 'side-by-side', 'lanes', 'grid'],
 };
 
 export function buildSlashMenuItems(): SlashMenuItem[] {
