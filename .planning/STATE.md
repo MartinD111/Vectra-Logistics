@@ -4,8 +4,8 @@ milestone: v3.0
 milestone_name: On-Premise GA
 status: executing
 stopped_at: Phase 20 context gathered
-last_updated: "2026-07-13T06:32:39.874Z"
-last_activity: 2026-07-13 -- Phase 20 planning complete
+last_updated: "2026-07-13T06:38:39.759Z"
+last_activity: 2026-07-13 -- Phase 20 execution started
 progress:
   total_phases: 7
   completed_phases: 6
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Phase 20 — deploy hardening + connectivity doc
+**Current focus:** Phase 20 — deploy-hardening-connectivity-doc
 
 ## Current Position
 
-Phase: 20
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-13 -- Phase 20 planning complete
+Phase: 20 (deploy-hardening-connectivity-doc) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 20
+Last activity: 2026-07-13 -- Phase 20 execution started
 
 ## Performance Metrics
 
