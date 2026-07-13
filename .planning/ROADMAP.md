@@ -53,7 +53,8 @@ Milestone audit: [milestones/v2.0-MILESTONE-AUDIT.md](milestones/v2.0-MILESTONE-
 
 - [x] **Phase 16: Production Compose + DEPLOYMENT_MODE** - `docker-compose.prod.yml` + boot-time cloud/on-prem mode toggle gating seed data and registration (completed 2026-07-12)
 - [x] **Phase 17: Installer / First-Run Flow** - One-shot installer generates secrets, creates the single company + admin, runs migrations, optionally wires local AI (completed 2026-07-12)
-- [x] **Phase 18: Backend-side Local AI Provider** - Server can call a local Gemma/Ollama endpoint directly, not only via the browser path (completed 2026-07-12)
+- [x] **Phase 18: Backend-side Local AI Provider** - Server can call a local Gemma/Ollama endpoint directly, not only via the browser path
+ (completed 2026-07-12)
 - [ ] **Phase 19: Release Versioning & Upgrade Docs** - One `VERSION` + git tag stamped into images/`/health`, `CHANGELOG.md`, 5-step upgrade procedure
 - [ ] **Phase 20: Deploy Hardening + Connectivity Doc** - CORS/Socket.IO origin allowlist, auth rate limiting, real `/health` dependency checks, inbound-connectivity doc
 
@@ -165,7 +166,16 @@ Plans:
   2. `CHANGELOG.md` exists at repo root with one section per release, including a migration list generated from the release's migration filenames.
   3. `docs/DEPLOYMENT.md`'s upgrade section is a 5-step procedure (pull → migrate → restart, etc.) that fully replaces the old manual per-file `psql` instructions.
 
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+**Wave 1**
+
+- [ ] 19-01-PLAN.md — VERSION file + version.ts resolver + GET /health version field (REL-01)
+- [ ] 19-03-PLAN.md — CHANGELOG.md + migration-list generator script + docs/DEPLOYMENT.md 5-step upgrade procedure (REL-02, REL-03)
+
+**Wave 2** *(blocked on 19-01 completion)*
+
+- [ ] 19-02-PLAN.md — ARG VERSION in all 4 Dockerfiles + docker-compose.prod.yml build args (REL-01)
 
 ### Phase 20: Deploy Hardening + Connectivity Doc
 
