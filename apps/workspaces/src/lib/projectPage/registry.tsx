@@ -68,6 +68,10 @@ export interface PageCtx {
   projectId?: string;
   /** Set only on the client detail page (/records/[clientId]) canvas. */
   clientId?: string;
+  /** The current page's own id — needed as parent_page_id for sub-page creation.
+   *  Undefined on the client-detail canvas (/records/[clientId]), which has no
+   *  project_pages row to be a parent of. */
+  pageId?: string;
   /** Present on the live canvas — lets interactive widgets write back to config. */
   onChange?: (block: PageBlock) => void;
   /** Edit-mode only (used by the rich-text/list editors in Phase 9). */
