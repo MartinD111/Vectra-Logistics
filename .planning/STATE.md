@@ -2,11 +2,12 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Workspace Records & Views
-status: planning
-last_updated: "2026-07-13T12:00:00.000Z"
-last_activity: 2026-07-13
+status: Roadmap ready
+stopped_at: Phase 21 context gathered
+last_updated: "2026-07-13T12:28:26.602Z"
+last_activity: 2026-07-13 — v4.0 ROADMAP.md created (Phases 21-26, 30/30 requirements mapped)
 progress:
-  total_phases: 6
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -119,9 +120,9 @@ No functional gaps — all 14/14 v2.0 requirements independently re-confirmed sa
 
 ## Session Continuity
 
-Last session: 2026-07-13T06:11:48.788Z
-Stopped at: Phase 20 context gathered
-Resume file: .planning/phases/20-deploy-hardening-connectivity-doc/20-CONTEXT.md
+Last session: 2026-07-13T12:28:26.593Z
+Stopped at: Phase 21 context gathered
+Resume file: .planning/phases/21-missing-content-blocks/21-CONTEXT.md
 
 ## Operator Next Steps
 
