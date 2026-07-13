@@ -23,6 +23,7 @@ import { configureSocket } from "./core/realtime/socket";
 import { validateSecretsOrExit, validateDeploymentModeOrExit } from "./core/config/secrets";
 import { getVersion } from "./core/config/version";
 import { getAllowedOrigins } from "./core/config/cors";
+import { checkDependencyHealth } from "./core/health/health.service";
 
 dotenv.config();
 
@@ -68,9 +69,20 @@ app.use("/api/ratings", ratingsRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/uploads", express.static("uploads"));
 
-// Health check
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK", message: "VECTRA backend running", version: getVersion() });
+// Health check — live per-request Postgres/Redis reachability probe (HRD-03,
+// D-01/D-02/D-03). No caching: every request re-checks both dependencies.
+app.get("/health", async (req, res) => {
+  const dependencies = await checkDependencyHealth({
+    queryPostgres: () => db.query("SELECT 1"),
+    pingRedis: () => redisClient.ping(),
+  });
+  const allOk = dependencies.postgres === "ok" && dependencies.redis === "ok";
+  res.status(allOk ? 200 : 503).json({
+    status: allOk ? "OK" : "unhealthy",
+    message: "VECTRA backend running",
+    version: getVersion(),
+    dependencies,
+  });
 });
 
 // Global error handler — must be last
