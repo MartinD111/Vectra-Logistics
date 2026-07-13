@@ -27,8 +27,8 @@ Requirements for the v3.0 On-Premise GA milestone. Each maps to a roadmap phase.
 
 ### Installer
 
-- [ ] **INS-01**: An installer/first-run flow generates `JWT_SECRET`+`ENCRYPTION_KEY`, creates one company + real admin, runs migrations, writes `DEPLOYMENT_MODE=on-prem`
-- [ ] **INS-02**: Installer can optionally write a reachable local Gemma/Ollama endpoint into `company_ai_config` (`provider:'local'`)
+- [x] **INS-01**: An installer/first-run flow generates `JWT_SECRET`+`ENCRYPTION_KEY`, creates one company + real admin, runs migrations, writes `DEPLOYMENT_MODE=on-prem`
+- [x] **INS-02**: Installer can optionally write a reachable local Gemma/Ollama endpoint into `company_ai_config` (`provider:'local'`)
 
 ### AI Integration
 
@@ -91,8 +91,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MIG-02 | Phase 15 + 16 | Complete |
 | DEP-01 | Phase 16 | Complete |
 | DEP-02 | Phase 16 | Complete |
-| INS-01 | Phase 17 | Pending |
-| INS-02 | Phase 17 | Pending |
+| INS-01 | Phase 17 | Complete |
+| INS-02 | Phase 17 | Complete |
 | AIL-01 | Phase 18 | Complete |
 | REL-01 | Phase 19 | Complete |
 | REL-02 | Phase 19 | Complete |
