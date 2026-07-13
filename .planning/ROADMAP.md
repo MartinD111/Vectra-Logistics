@@ -170,8 +170,8 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 19-01-PLAN.md — VERSION file + version.ts resolver + GET /health version field (REL-01)
-- [ ] 19-03-PLAN.md — CHANGELOG.md + migration-list generator script + docs/DEPLOYMENT.md 5-step upgrade procedure (REL-02, REL-03)
+- [x] 19-01-PLAN.md — VERSION file + version.ts resolver + GET /health version field (REL-01)
+- [x] 19-03-PLAN.md — CHANGELOG.md + migration-list generator script + docs/DEPLOYMENT.md 5-step upgrade procedure (REL-02, REL-03)
 
 **Wave 2** *(blocked on 19-01 completion)*
 
@@ -216,7 +216,7 @@ Phases execute in numeric order: 14 → 15 → 16 → 17 → 18 → 19 → 20
 | 16. Production Compose + DEPLOYMENT_MODE | v3.0 | 2/2 | Complete    | 2026-07-12 |
 | 17. Installer / First-Run Flow | v3.0 | 3/3 | Complete   | 2026-07-12 |
 | 18. Backend-side Local AI Provider | v3.0 | 1/1 | Complete   | 2026-07-12 |
-| 19. Release Versioning & Upgrade Docs | v3.0 | 0/TBD | Not started | - |
+| 19. Release Versioning & Upgrade Docs | v3.0 | 2/3 | In Progress|  |
 | 20. Deploy Hardening + Connectivity Doc | v3.0 | 0/TBD | Not started | - |
 
 ---
