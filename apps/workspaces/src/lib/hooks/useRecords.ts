@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
 import {
   recordsApi, type CollectionPropertyDef, type UpdateRecordInput, type CreateRecordInput,
-  type CollectionRecord, type CreateCollectionInput, type CreateViewInput,
+  type CollectionRecord, type CreateCollectionInput, type CreateViewInput, type UpdateViewInput,
 } from '@/lib/api/records.api';
 
 const qk = {
@@ -93,6 +93,14 @@ export function useView(id: string) {
     queryKey: qk.view(id),
     queryFn: () => recordsApi.getView(id),
     enabled: !!user?.company_id && !!id,
+  });
+}
+
+export function useUpdateView(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: UpdateViewInput) => recordsApi.updateView(id, data),
+    onSuccess: (view) => qc.setQueryData(qk.view(id), view),
   });
 }
 
