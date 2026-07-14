@@ -175,7 +175,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 24-01-PLAN.md — Data layer: records.api.ts + useRecords.ts extensions, createRecord bug fix (BOARD-01, BOARD-02, BOARD-03)
+- [x] 24-01-PLAN.md — Data layer: records.api.ts + useRecords.ts extensions, createRecord bug fix (BOARD-01, BOARD-02, BOARD-03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -247,7 +247,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 21. Missing Content Blocks | v4.0 | 5/5 | Complete   | 2026-07-13 |
 | 22. Records + Views Data Model | v4.0 | 4/4 | Complete   | 2026-07-14 |
 | 23. Record Detail Page | v4.0 | 2/2 | Complete   | 2026-07-14 |
-| 24. Board View & Legacy Kanban Migration | v4.0 | 0/3 | Not started | - |
+| 24. Board View & Legacy Kanban Migration | v4.0 | 1/3 | In Progress|  |
 | 25. View UX Parity | v4.0 | 0/TBD | Not started | - |
 | 26. Additional View Types | v4.0 | 0/TBD | Not started | - |
 
