@@ -20,6 +20,7 @@ import podRouter from './pod/pod.routes';
 import billingRouter from './billing/billing.routes';
 import crmRouter from './crm/crm.routes';
 import ltlRouter from './ltl/ltl.routes';
+import recordsRouter from './records/records.routes';
 
 const router = Router();
 
@@ -44,6 +45,7 @@ router.use('/pod', podRouter);
 router.use('/billing', billingRouter);
 router.use('/crm', crmRouter);
 router.use('/ltl', ltlRouter);
+router.use('/records', recordsRouter);
 
 // Future domains mount here:
 // router.use('/routes', routesDomainRouter);
