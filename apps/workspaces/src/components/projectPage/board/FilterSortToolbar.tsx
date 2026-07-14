@@ -113,14 +113,30 @@ function FilterPopover({
                   <select
                     className="saas-input !py-1.5 text-xs flex-shrink-0 w-24"
                     value={condition.operator}
-                    onChange={(e) => updateCondition(idx, { operator: e.target.value })}
+                    onChange={(e) => {
+                      const nextOperator = e.target.value;
+                      // Switching to/from 'between' changes the shape
+                      // condition.value must have ([min, max] vs. a scalar) —
+                      // reset it so a stale value from the prior operator
+                      // can't leak in as a mismatched shape (CR-03).
+                      const nextValue = nextOperator === 'between'
+                        ? ['', '']
+                        : defaultConditionValue(property?.type ?? 'text');
+                      updateCondition(idx, { operator: nextOperator, value: nextValue });
+                    }}
                   >
                     {operators.map((op) => (
                       <option key={op.value} value={op.value}>{op.label}</option>
                     ))}
                   </select>
                   <div className="flex-1 min-w-0">
-                    {property && (
+                    {property && condition.operator === 'between' ? (
+                      <BetweenField
+                        property={property}
+                        value={condition.value}
+                        onCommit={(v) => updateCondition(idx, { value: v })}
+                      />
+                    ) : property && (
                       <PropertyField
                         property={property}
                         value={condition.value}
@@ -150,6 +166,44 @@ function FilterPopover({
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+// CR-03: the 'between' operator needs a min/max pair, not the single-value
+// PropertyField control. Renders two number/date inputs and commits
+// [min, max] as an array, matching evaluateCondition's between branch.
+function BetweenField({
+  property, value, onCommit,
+}: {
+  property: CollectionPropertyDef;
+  value: unknown;
+  onCommit: (value: unknown) => void;
+}) {
+  const [min, max] = Array.isArray(value) ? value : ['', ''];
+  const inputType = property.type === 'date' ? 'date' : 'number';
+
+  const commit = (nextMin: unknown, nextMax: unknown) => {
+    onCommit([nextMin, nextMax]);
+  };
+
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        type={inputType}
+        className="saas-input !py-1.5 text-xs w-full min-w-0"
+        placeholder="Min"
+        value={typeof min === 'string' || typeof min === 'number' ? min : ''}
+        onChange={(e) => commit(e.target.value, max)}
+      />
+      <span className="text-xs text-gray-400 flex-shrink-0">–</span>
+      <input
+        type={inputType}
+        className="saas-input !py-1.5 text-xs w-full min-w-0"
+        placeholder="Max"
+        value={typeof max === 'string' || typeof max === 'number' ? max : ''}
+        onChange={(e) => commit(min, e.target.value)}
+      />
     </div>
   );
 }
