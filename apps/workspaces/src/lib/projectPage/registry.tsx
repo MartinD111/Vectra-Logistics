@@ -18,7 +18,7 @@ import type {
   SubPageBlock,
   ToggleBlock, ColumnsBlock,
   PeopleBlock, StatCardsBlock, KpiGridBlock,
-  ChartBlock, ActivityTimelineBlock, ProgramLinkBlock, MiniProgramBlock, KanbanBlock,
+  ChartBlock, ActivityTimelineBlock, ProgramLinkBlock, MiniProgramBlock, KanbanBlock, CollectionViewBlock,
   FleetTelematicsBlock, SpotQuoteBlock, ExceptionRadarBlock, OmniChatBlock, SmartInboxBlock,
   DraftsKanbanBlock, YardMapBlock, RailwayTerminalBlock, PodTrackerBlock, OmniDocsBlock,
   CrmClientsBlock, VatMatrixBlock, InvoicesBlock, LtlMatchesBlock,
@@ -51,6 +51,7 @@ import {
 } from '@/components/projectPage/pageBlockViews';
 import { EmailCampaignView } from '@/components/projectPage/EmailCampaignBlock';
 import { KanbanBoardView } from '@/components/projectPage/KanbanBlock';
+import { BoardBlock } from '@/components/projectPage/BoardBlock';
 import { FleetTelematicsView } from '@/components/projectPage/FleetTelematicsBlock';
 import { SpotQuoteView } from '@/components/projectPage/SpotQuoteBlock';
 import { ExceptionRadarView } from '@/components/projectPage/ExceptionRadarBlock';
@@ -241,6 +242,10 @@ const entries: Record<PageBlockKind, WorkspaceBlockPlugin<PageBlock, PageCtx>> =
   'kanban': entry('kanban',
     ({ block, ctx }) => <KanbanBoardView block={block as KanbanBlock} onChange={ctx.onChange} />,
     ({ block, onUpdate }) => <KanbanBoardView block={block as KanbanBlock} onChange={onUpdate} />,
+  ),
+  'collection-view': entry('collection-view',
+    ({ block, ctx }) => <BoardBlock block={block as CollectionViewBlock} onChange={ctx.onChange} />,
+    ({ block, onUpdate }) => <BoardBlock block={block as CollectionViewBlock} onChange={onUpdate} />,
   ),
   'fleet-telematics': entry('fleet-telematics', ({ block }) => <FleetTelematicsView block={block as FleetTelematicsBlock} />),
   'spot-quote': entry('spot-quote', ({ block }) => <SpotQuoteView block={block as SpotQuoteBlock} />),

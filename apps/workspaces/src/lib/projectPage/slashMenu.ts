@@ -26,6 +26,7 @@ export interface SlashMenuItem {
 const EXTRA_KEYWORDS: Partial<Record<PageBlockKind, string[]>> = {
   'rich-text': ['text', 'paragraph', 'note', 'write'],
   'kanban': ['board', 'columns', 'cards', 'tasks'],
+  'collection-view': ['board', 'columns', 'cards', 'view', 'database'],
   'mini-program': ['program', 'embed', 'app', 'tool'],
   'kpi-grid': ['kpi', 'live', 'metrics', 'targets'],
   'stat-cards': ['stats', 'counters', 'numbers'],

@@ -38,6 +38,7 @@ export type PageBlockKind =
   | 'program-link'
   | 'mini-program'
   | 'kanban'
+  | 'collection-view'
   // Dispatcher widgets (Phase 2)
   | 'fleet-telematics'
   | 'spot-quote'
@@ -243,6 +244,17 @@ export interface KanbanBlock extends PageBlockBase {
   columns: KanbanColumn[];
 }
 
+// Phase 24: a real drag-and-drop board backed by a data_collection/collection_views
+// row, replacing the config-local `kanban` block above. `collectionId`/`viewId` are
+// `null` in the placeholder state before the D-04 auto-provisioning effect runs,
+// mirroring SubPageBlock.pageId's create-on-mount convention exactly.
+export interface CollectionViewBlock extends PageBlockBase {
+  kind: 'collection-view';
+  title?: string;
+  collectionId: string | null;
+  viewId: string | null;
+}
+
 // ── Dispatcher widgets (Phase 2) ─────────────────────────────────────────────
 
 export interface FleetTelematicsBlock extends PageBlockBase {
@@ -379,6 +391,7 @@ export type PageBlock =
   | ProgramLinkBlock
   | MiniProgramBlock
   | KanbanBlock
+  | CollectionViewBlock
   | FleetTelematicsBlock
   | SpotQuoteBlock
   | ExceptionRadarBlock
@@ -560,7 +573,7 @@ export const PAGE_BLOCK_REGISTRY: PageBlockDef[] = [
   },
   {
     kind: 'kanban', group: 'widget', title: 'Kanban board', icon: 'Kanban',
-    description: 'A simple board with columns and cards, stored on this page.', available: true,
+    description: 'A simple board with columns and cards, stored on this page.', available: false, // hidden — legacy, kept registered so already-inserted blocks keep rendering/migrating
     create: () => ({
       id: uid(), kind: 'kanban', span: 'full', title: 'Board',
       columns: [
@@ -569,6 +582,11 @@ export const PAGE_BLOCK_REGISTRY: PageBlockDef[] = [
         { id: uid(), title: 'Done', cards: [] },
       ],
     }),
+  },
+  {
+    kind: 'collection-view', group: 'widget', title: 'Board', icon: 'Kanban',
+    description: 'A drag-and-drop board grouped by a select property, backed by a real data collection.', available: true,
+    create: () => ({ id: uid(), kind: 'collection-view', span: 'full', title: 'Board', collectionId: null, viewId: null }),
   },
   {
     kind: 'fleet-telematics', group: 'widget', title: 'My fleet', icon: 'Truck',
