@@ -9,11 +9,16 @@
 
 import { useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
 import { uid, type CollectionViewBlock } from '@/lib/projectPage/blocks';
 import type { CollectionPropertyDef, CollectionRecord } from '@/lib/api/records.api';
 import {
-  useCollection, useView, useRecords, useCreateCollection, useCreateView,
+  useCollection, useView, useRecords, useCreateCollection, useCreateView, useUpdateAnyRecord,
 } from '@/lib/hooks/useRecords';
+import { BoardColumn } from './board/BoardColumn';
 
 /** Groups records into board columns from the live option values of the
  *  groupBy select property — never hand-authored (BOARD-01). */
@@ -97,6 +102,8 @@ export function BoardBlock({
   const collectionQuery = useCollection(block.collectionId ?? '');
   const viewQuery = useView(block.viewId ?? '');
   const recordsQuery = useRecords(block.collectionId ?? '');
+  const updateRecord = useUpdateAnyRecord(block.collectionId ?? '');
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   if (block.collectionId === null || block.viewId === null) {
     return <BoardShellLoading />;
@@ -114,33 +121,49 @@ export function BoardBlock({
   const view = viewQuery.data;
   const records = recordsQuery.data;
   const groupByPropId = String(view.config.groupBy ?? '');
-  const titlePropId = collection.schema[0]?.id;
+  const titlePropId = collection.schema[0]?.id ?? '';
   const columns = groupRecordsByColumn(records, collection.schema, groupByPropId);
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    const activeRecord = records.find((r) => r.id === activeId);
+    if (!activeRecord) return;
+
+    // Column-level drop (over.id matches a column.id directly) — the ONLY
+    // path when the target column has zero cards, since an empty
+    // SortableContext registers no sortable card to hit-test against.
+    const overIsColumn = columns.some((c) => c.id === overId);
+    let targetColumnId: string;
+    let targetIndex: number;
+    if (overIsColumn) {
+      targetColumnId = overId;
+      targetIndex = 0;
+    } else {
+      const targetColumn = columns.find((c) => c.cards.some((card) => card.id === overId));
+      if (!targetColumn) return;
+      targetColumnId = targetColumn.id;
+      targetIndex = targetColumn.cards.findIndex((card) => card.id === overId);
+    }
+
+    updateRecord.mutate({
+      id: activeId,
+      data: { props: { ...activeRecord.props, [groupByPropId]: targetColumnId }, sort_order: targetIndex },
+    });
+  }
 
   return (
     <div className="saas-card !p-4">
       {block.title && <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">{block.title}</h3>}
-      <div className="flex gap-3 overflow-x-auto pb-1">
-        {columns.map((col) => (
-          <div key={col.id} className="w-56 flex-shrink-0 rounded-lg bg-gray-50 dark:bg-slate-800/60 p-2">
-            <div className="flex items-center justify-between px-1 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{col.title}</span>
-              <span className="text-[10px] text-gray-400">{col.cards.length}</span>
-            </div>
-            <div className="space-y-1.5">
-              {col.cards.map((record) => (
-                <div
-                  key={record.id}
-                  onClick={() => window.open(`/collections/${block.collectionId}/records/${record.id}`, '_blank', 'noopener,noreferrer')}
-                  className="rounded-md bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 px-2.5 py-2 text-sm shadow-sm cursor-pointer"
-                >
-                  {titlePropId ? String(record.props[titlePropId] ?? 'Untitled') || 'Untitled' : 'Untitled'}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <div className="flex gap-3 overflow-x-auto pb-1">
+          {columns.map((col) => (
+            <BoardColumn key={col.id} column={col} titlePropId={titlePropId} collectionId={block.collectionId as string} />
+          ))}
+        </div>
+      </DndContext>
     </div>
   );
 }
