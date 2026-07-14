@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Workspace Records & Views
-status: completed
-stopped_at: Phase 25 context gathered
-last_updated: "2026-07-14T14:25:30.911Z"
-last_activity: 2026-07-14
+status: executing
+stopped_at: Phase 25 UI-SPEC approved
+last_updated: "2026-07-14T16:03:01.041Z"
+last_activity: 2026-07-14 -- Phase 25 planning complete
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 15
+  total_plans: 19
   completed_plans: 15
-  percent: 80
+  percent: 79
 ---
 
 # Project State
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-07-12)
 
 Phase: 24
 Plan: Not started
-Status: Milestone complete
-Last activity: 2026-07-14
+Status: Ready to execute
+Last activity: 2026-07-14 -- Phase 25 planning complete
 
 **Decision coverage override (2026-07-13):** Decision Coverage Gate flagged D-01, D-04, D-05, D-06, D-07, D-08, D-09, D-11, D-13 as not literally cited by ID in any 21-*-PLAN.md. User reviewed and chose "Proceed anyway" — gsd-plan-checker's independent Dimension 7 review already confirmed all 9 are substantively implemented (nesting mechanism in 21-05, media decisions in 21-03, mention scope in 21-02, sub-page preview in 21-04); the gap is citation-format only, not a missing feature. If verify-phase re-surfaces this, treat it as already reviewed and accepted.
 
@@ -123,9 +123,9 @@ No functional gaps — all 14/14 v2.0 requirements independently re-confirmed sa
 
 ## Session Continuity
 
-Last session: 2026-07-14T14:25:30.892Z
-Stopped at: Phase 25 context gathered
-Resume file: .planning/phases/25-view-ux-parity/25-CONTEXT.md
+Last session: 2026-07-14T14:43:54.789Z
+Stopped at: Phase 25 UI-SPEC approved
+Resume file: .planning/phases/25-view-ux-parity/25-UI-SPEC.md
 
 ## Operator Next Steps
 
