@@ -1,9 +1,9 @@
 ---
 phase: 22
 slug: records-views-data-model
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: final
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-07-14
 ---
 
@@ -38,12 +38,12 @@ created: 2026-07-14
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 22-01-01 | 01 | 0 | REC-01 | V4 | company_id scoping on collection create | unit | `node --require ts-node/register --test src/domains/records/records.service.test.ts` | ❌ W0 | ⬜ pending |
-| 22-01-02 | 01 | 0 | REC-02 | V5 | props/body validated before write | unit | `node --require ts-node/register --test src/domains/records/records.service.test.ts` | ❌ W0 | ⬜ pending |
-| 22-01-03 | 01 | 0 | REC-03 | V4 | view config round-trips unchanged, company-scoped | unit | `node --require ts-node/register --test src/domains/records/records.service.test.ts` | ❌ W0 | ⬜ pending |
-| 22-01-04 | 01 | 0 | REC-04 | V4 | parent/child query scoped to company | unit | `node --require ts-node/register --test src/domains/records/records.repository.test.ts` | ❌ W0 | ⬜ pending |
-| 22-01-05 | 01 | 0 | REC-02 (D-02) | V5 | prop-type mismatch rejected with 400 | unit | `records.service.test.ts` | ❌ W0 | ⬜ pending |
-| 22-01-06 | 01 | 0 | REC-01 (D-03) | — | collection create auto-creates default table view | unit | `records.service.test.ts` | ❌ W0 | ⬜ pending |
+| 22-02-01 (RED) | 02 | 2 | REC-04 | V4 | parent/child query scoped to company | unit | `node --require ts-node/register --test src/domains/records/records.repository.test.ts` | ✅ created in-task | ⬜ pending |
+| 22-02-02 (GREEN) | 02 | 2 | REC-01, REC-04, D-03 | V4 | atomic collection+default-view create (BEGIN/COMMIT/ROLLBACK) | unit | `node --require ts-node/register --test src/domains/records/records.repository.test.ts` | ✅ | ⬜ pending |
+| 22-03-01 (RED) | 03 | 3 | REC-01, REC-02, REC-03 | V5 | prop-type mismatch rejected with 400 | unit | `node --require ts-node/register --test src/domains/records/records.service.test.ts` | ✅ created in-task | ⬜ pending |
+| 22-03-02 (GREEN) | 03 | 3 | REC-02 (D-02), REC-03 | V5 | validateProps switch-based type check; view config round-trip | unit | `node --require ts-node/register --test src/domains/records/records.service.test.ts` | ✅ | ⬜ pending |
+| 22-04-01 | 04 | 4 | REC-01..04 | V2, V4 | controller/routes wired behind `authenticateToken` + company scoping | behavior | `npm --prefix apps/api test` | ✅ | ⬜ pending |
+| 22-04-02 | 04 | 4 | REC-01..04 | — | domain registered in `domains/index.ts`, server boots | CLI | `npm --prefix apps/api run build` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,9 +51,7 @@ created: 2026-07-14
 
 ## Wave 0 Requirements
 
-- [ ] `apps/api/src/domains/records/records.service.test.ts` — stubs for REC-01, REC-02, REC-03, D-02, D-03
-- [ ] `apps/api/src/domains/records/records.repository.test.ts` — stubs for REC-04 (parent/child queries); decide DB-mocking vs. live-DB strategy for repository-level tests (no existing repository-test convention found in the codebase — this is a new pattern for this phase)
-- [ ] Framework install: none — `node --test` + `ts-node` already present and used elsewhere
+*None — this phase uses TDD RED/GREEN task pairs (Plans 22-02 and 22-03), which create and verify their own test files inline rather than relying on a separate Wave 0 plan. Existing infrastructure (`node --test` + `ts-node`) covers all phase requirements.*
 
 ---
 

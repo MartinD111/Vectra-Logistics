@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Workspace Records & Views
-status: completed
+status: executing
 stopped_at: Phase 22 context gathered
-last_updated: "2026-07-13T18:07:12.341Z"
-last_activity: 2026-07-13 -- Phase 21 execution started
+last_updated: "2026-07-14T05:48:06.912Z"
+last_activity: 2026-07-14 -- Phase 22 planning complete
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 5
+  total_plans: 9
   completed_plans: 5
   percent: 50
 ---
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-07-12)
 
 Phase: 21 (missing-content-blocks) — VERIFIED (human_needed)
 Plan: 5 of 5
-Status: All plans executed; live-browser smoke test recommended before marking phase complete
-Last activity: 2026-07-13 -- Phase 21 execution started
+Status: Ready to execute
+Last activity: 2026-07-14 -- Phase 22 planning complete
 
 **Decision coverage override (2026-07-13):** Decision Coverage Gate flagged D-01, D-04, D-05, D-06, D-07, D-08, D-09, D-11, D-13 as not literally cited by ID in any 21-*-PLAN.md. User reviewed and chose "Proceed anyway" — gsd-plan-checker's independent Dimension 7 review already confirmed all 9 are substantively implemented (nesting mechanism in 21-05, media decisions in 21-03, mention scope in 21-02, sub-page preview in 21-04); the gap is citation-format only, not a missing feature. If verify-phase re-surfaces this, treat it as already reviewed and accepted.
 

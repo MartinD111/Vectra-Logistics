@@ -387,17 +387,19 @@ happens in Phases 23-24, not this phase.
 | A3 | `person` property values are stored as a single string user id (not an array) in `props` | Code Examples (Pattern 3) | Low — spec §3.1 says `person (→ users)` without specifying single/multi; REC-01/REC-02 don't require multi-person support, and this is analogous to the `relation` array-of-ids default the user already blessed as "simplest storage" — if wrong, a later phase can widen `person` to accept an array with a minor validator change |
 | A4 | Mount path for the new domain router is `/records` (e.g. `/api/v1/records/collections`), not `/collections` or `/data-collections` | Recommended Project Structure | Low — explicitly Claude's discretion per CONTEXT.md; any reasonable naming works since no frontend consumes this API yet in this phase |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does `core/db` expose a transaction/client-checkout helper for D-03's atomic collection+default-view create?**
    - What we know: Every repository read this session (`projects.repository.ts`, `crm.repository.ts`) uses only `db.query()` per statement, no visible transaction wrapping.
    - What's unclear: Whether `apps/api/src/core/db/index.ts` (not read this session) exports a pool client / `withTransaction` helper.
    - Recommendation: Planner should read `apps/api/src/core/db/index.ts` directly before writing the create-collection service method; if no transaction helper exists, either add a minimal one (`BEGIN`/`COMMIT`/`ROLLBACK` via `pool.connect()`) or accept two sequential inserts as a documented, low-risk gap (crash window is a single INSERT/INSERT sequence with no external side effects).
+   - **RESOLVED:** `apps/api/src/core/db/index.ts` confirmed to be a raw `pg.Pool` with no transaction helper (verified via grep during pattern mapping and plan-checker cross-check). Plan 22-02 implements a first-party `db.connect()`-based `BEGIN`/`COMMIT`/`ROLLBACK` wrapper for the atomic collection+default-view create.
 
 2. **Exact validation message format for D-02 type mismatches**
    - What we know: The convention is `AppError(400, parsed.error.issues[0].message)` for Zod failures, but D-02's prop-type check is not itself a Zod schema (it's dynamic per-collection).
    - What's unclear: Whether to construct a Zod schema dynamically per-collection (more consistent with codebase style) vs. the illustrative switch-function approach shown above (simpler, no Zod dependency for this specific check).
    - Recommendation: Either is acceptable; CONTEXT.md explicitly defers "exact validation error shape/messages" to Claude's discretion. A dynamic Zod object built from the schema (`z.object(Object.fromEntries(schema.map(p => [p.id, zodSchemaForType(p.type)])))`) would be more idiomatic given the codebase's heavy Zod usage — planner should pick one and note it as a plan-level decision, not re-research.
+   - **RESOLVED:** Plan 22-03 implements a switch-based `validateProps` function (per-type case) rather than a dynamically-built Zod object, surfaced through `AppError(400, ...)` on mismatch and wired into `records.controller.ts` error handling in Plan 22-04.
 
 ## Environment Availability
 
