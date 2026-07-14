@@ -49,16 +49,20 @@ Exceptions:
 
 ## Typography
 
-Matches the existing sibling page (`ClientDetailPage`) and `DynamicBlockSettings` exactly — no new sizes introduced.
+Matches the existing sibling page (`ClientDetailPage`) and `DynamicBlockSettings` sizes exactly — no new sizes introduced. Weights are consolidated to exactly **2** to satisfy the design-contract limit (see decision note below).
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 |
-| Label | 10px (`text-[10px]`, uppercase, `tracking-wider`) | 700 (bold) | 1.5 |
-| Heading (record title) | 20px (`text-xl`) | 600 (semibold) | 1.2 |
+| Label | 10px (`text-[10px]`, uppercase, `tracking-wider`) | 700 (bold — Tailwind `font-bold`) | 1.5 |
+| Heading (record title) | 20px (`text-xl`) | 700 (bold — Tailwind `font-bold`) | 1.2 |
 | Display | not used in this phase — no display-scale text on the record detail page |
 
-Note: this is 3 declared sizes (14/10/20), 2 declared weights (400/700 for label; 600 for heading — treat 600/semibold as the second weight, 700 on labels is an existing exception already baked into the sibling page's `font-bold` label convention and is carried forward unchanged rather than introducing a fourth weight).
+**Weight decision (fixes checker BLOCK):** The prior draft declared three distinct weights (400 body / 700 label / 600 heading). Consolidated to exactly 2: **400 (regular, body)** and **700 (bold, label + heading)**. Label and heading are differentiated by size (10px vs 20px) and case/tracking (uppercase + letter-spacing on labels) rather than by weight.
+
+Rationale for which side to change: the label's `.label-xs` utility class (`apps/workspaces/src/app/globals.css` line 53) bakes in `font-bold` (700) and is reused pervasively across the codebase (`records/[clientId]/page.tsx`, `DynamicBlockSettings.tsx`, and others) — overriding it for this one phase would fragment a shared, widely-used convention. The heading, by contrast, is a single one-off `<h1>` on one sibling page (`records/[clientId]/page.tsx:155`, `text-xl font-semibold`) with no other consumers. Changing the heading's weight from 600→700 is the lower-risk, more localized deviation.
+
+**Explicit divergence flag:** This phase's record-title heading (`text-xl font-bold`) intentionally diverges from `ClientDetailPage`'s own `<h1>` (`text-xl font-semibold`, 600). Do not copy that class verbatim — implement the record title as `text-xl font-bold` per this contract, not `text-xl font-semibold`. Everything else about the title (color, `mb-4`, `truncate`) still mirrors the sibling exactly.
 
 ---
 
@@ -94,7 +98,7 @@ Accent reserved for: the "+ Add property" button/link, focus-visible ring on the
 | Add-property modal — submit button | "Add property" |
 | Loading state | "Loading…" with spinner (exact existing pattern, `Loader2` icon + text) |
 
-**Title source decision (blocks Pitfall 2 from RESEARCH.md):** Per RESEARCH.md's recommendation and Notion's own behavior, the record's title is sourced from the collection's **first schema property** (by array order), rendered as the `text-xl font-semibold` heading at the top of the page — not a new database column. This property should render as an inline-editable heading (reusing the `EditableTitle`-style uncontrolled contentEditable pattern from `PageHeader.tsx`, not a plain `<input>`), consistent with how every other page title in this app behaves. If the first schema property's value is empty, show "Untitled" as a placeholder (italic, greyed), matching `InlineTextField`'s existing placeholder treatment.
+**Title source decision (blocks Pitfall 2 from RESEARCH.md):** Per RESEARCH.md's recommendation and Notion's own behavior, the record's title is sourced from the collection's **first schema property** (by array order), rendered as the `text-xl font-bold` heading at the top of the page — not a new database column. This property should render as an inline-editable heading (reusing the `EditableTitle`-style uncontrolled contentEditable pattern from `PageHeader.tsx`, not a plain `<input>`), consistent with how every other page title in this app behaves. If the first schema property's value is empty, show "Untitled" as a placeholder (italic, greyed), matching `InlineTextField`'s existing placeholder treatment.
 
 ---
 
@@ -113,12 +117,14 @@ No component registries are used. All UI is hand-authored Tailwind + existing in
 
 (Supplemental section beyond the template's base contract — captures the composition decisions RESEARCH.md flagged as needing to be locked before planning.)
 
+**Primary visual anchor:** The inline-editable record title heading (`text-xl font-bold`, top of the property panel — see Copywriting Contract) is the primary focal point of the page. It is the first element a user reads, the only large/bold text on the page, and the sole in-place-editable element rendered above the fold at page load.
+
 | Element | Contract |
 |---------|----------|
 | Route | `/collections/[collectionId]/records/[recordId]` — new path, does NOT reuse `/records/[clientId]` (route collision per RESEARCH.md Pitfall 3) |
 | Page shape | Full page only (not a side-peek modal) this phase — matches `ClientDetailPage`'s exact two-column layout: `max-w-6xl mx-auto px-4 lg:px-8 py-8 flex gap-6 items-start` |
 | Property panel | Left column, `w-80 flex-shrink-0`, wrapped in `.saas-card`, `dark:bg-slate-800` — exact clone of `ClientSidebar`'s shell |
-| Property panel structure (top to bottom) | 1) Title (inline-editable heading, `text-xl font-semibold`), 2) schema-driven property list (each row: 10px uppercase label + type-appropriate editor, mirroring `DynamicBlockSettings`'s `label-xs` + input pattern), 3) "+ Add property" link-button at the bottom (`text-sm font-semibold text-primary-600`, same visual weight as "Attach project") |
+| Property panel structure (top to bottom) | 1) Title (inline-editable heading, `text-xl font-bold` — see Typography weight decision above), 2) schema-driven property list (each row: 10px uppercase label + type-appropriate editor, mirroring `DynamicBlockSettings`'s `label-xs` + input pattern), 3) "+ Add property" link-button at the bottom (`text-sm font-semibold text-primary-600`, same visual weight as "Attach project") |
 | Record body | Right column, `flex-1 min-w-0`, `<LivePageCanvas config={record.body} onChange={setBody} />` with zero additional props (per CARD-04 and RESEARCH.md Pattern 3) — no `clientId`/`projectId` context passed since records have neither |
 | Property type → editor mapping | checkbox → native `<input type="checkbox">`; date → native `<input type="date">`; select → native `<select>` populated from `property.options`; multi-select → checkbox list or multi-chip toggle (implementation discretion, but must show all selected values, not truncate silently); person → clone `EmployeeOverrideField`'s dropdown pattern (`useTeam()`); text/number/url/email/phone → plain `<input>` with matching `type` attribute for browser-native validation UX only (not the source of truth) |
 | Field save trigger | Blur-commit + 800ms debounce-while-typing for text fields (exact `InlineTextField` pattern); immediate commit on change for checkbox/select/date/person (no debounce needed — discrete value change) |
