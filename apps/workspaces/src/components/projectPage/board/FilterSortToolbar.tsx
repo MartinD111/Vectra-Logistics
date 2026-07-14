@@ -17,6 +17,14 @@ function firstPropType(collection: DataCollection): CollectionPropertyDef['type'
   return collection.schema[0]?.type ?? 'text';
 }
 
+// CR-02: a checkbox condition's underlying value must be a real boolean —
+// seeding it with '' (the default for every other property type) renders as
+// visually unchecked but never strictly-equals a record's true/false value,
+// so the filter silently matches zero records until the user toggles it.
+function defaultConditionValue(type: CollectionPropertyDef['type']): unknown {
+  return type === 'checkbox' ? false : '';
+}
+
 export function FilterSortToolbar({
   collection, view,
 }: {
@@ -56,7 +64,7 @@ function FilterPopover({
     const prop = collection.schema[0];
     const type = firstPropType(collection);
     const operator = FILTER_OPERATORS[type][0]?.value ?? 'equals';
-    onChange([...filters, { propId: prop?.id ?? '', operator, value: '' }]);
+    onChange([...filters, { propId: prop?.id ?? '', operator, value: defaultConditionValue(type) }]);
   };
 
   const updateCondition = (idx: number, patch: Partial<FilterCondition>) => {
@@ -94,7 +102,8 @@ function FilterPopover({
                     onChange={(e) => {
                       const nextProp = collection.schema.find((p) => p.id === e.target.value);
                       const nextOperator = nextProp ? FILTER_OPERATORS[nextProp.type][0]?.value ?? 'equals' : condition.operator;
-                      updateCondition(idx, { propId: e.target.value, operator: nextOperator, value: '' });
+                      const nextValue = defaultConditionValue(nextProp?.type ?? 'text');
+                      updateCondition(idx, { propId: e.target.value, operator: nextOperator, value: nextValue });
                     }}
                   >
                     {collection.schema.map((p) => (
