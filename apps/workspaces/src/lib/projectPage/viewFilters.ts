@@ -87,6 +87,10 @@ export function evaluateCondition(
   switch (condition.operator) {
     case 'equals': {
       if (property.type === 'number') {
+        // An unset/not-yet-typed value ('' or null) is "not configured yet" —
+        // fail open rather than coercing Number('') to 0 and actively
+        // matching every zero-valued record (WR-05).
+        if (condition.value === '' || condition.value == null) return true;
         return Number(recordValue) === Number(condition.value);
       }
       return String(recordValue ?? '') === String(condition.value ?? '');
@@ -107,8 +111,10 @@ export function evaluateCondition(
       return condition.operator === 'contains' ? matches : !matches;
     }
     case 'gt':
+      if (condition.value === '' || condition.value == null) return true;
       return Number(recordValue) > Number(condition.value);
     case 'lt':
+      if (condition.value === '' || condition.value == null) return true;
       return Number(recordValue) < Number(condition.value);
     case 'between': {
       if (!Array.isArray(condition.value) || condition.value.length !== 2) return true;
