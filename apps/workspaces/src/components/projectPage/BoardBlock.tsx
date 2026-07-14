@@ -14,9 +14,9 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core';
 import { uid, type CollectionViewBlock } from '@/lib/projectPage/blocks';
-import type { CollectionPropertyDef, CollectionRecord } from '@/lib/api/records.api';
+import { recordsApi, type CollectionPropertyDef, type CollectionRecord } from '@/lib/api/records.api';
 import {
-  useCollection, useView, useRecords, useCreateCollection, useCreateView, useUpdateAnyRecord,
+  useCollection, useView, useRecords, useCreateCollection, useUpdateAnyRecord,
 } from '@/lib/hooks/useRecords';
 import { BoardColumn } from './board/BoardColumn';
 import { AddColumnControl } from './board/AddColumnControl';
@@ -66,12 +66,13 @@ export function BoardBlock({
   onChange?: (block: CollectionViewBlock) => void;
 }) {
   // Hooks are constructed unconditionally (Rules of Hooks) — the useEffect
-  // below only sequences their .mutateAsync(...) calls, never calls the
-  // hooks themselves conditionally. useCreateView's collectionId fallback
-  // ('') is only used for its own construction-time cache-invalidation key
-  // while block.collectionId is still null — nothing subscribes to that key.
+  // below only sequences createCollection's .mutateAsync(...) call. The
+  // board view is created via a direct recordsApi.createView(collection.id, ...)
+  // call inside the effect's .then chain (not a hook) so it always receives
+  // the real, just-resolved collection id at call time — never a stale
+  // hook-construction-time closure over block.collectionId (which is null
+  // on first insert).
   const createCollection = useCreateCollection();
-  const createView = useCreateView(block.collectionId ?? '');
 
   const creatingRef = useRef(false);
   useEffect(() => {
@@ -94,7 +95,7 @@ export function BoardBlock({
         },
       ],
     }).then(({ collection }) =>
-      createView.mutateAsync({ name: 'Board', type: 'board', config: { groupBy: statusId } })
+      recordsApi.createView(collection.id, { name: 'Board', type: 'board', config: { groupBy: statusId } })
         .then((view) => onChange?.({ ...block, collectionId: collection.id, viewId: view.id })))
       .catch((err) => console.error('Failed to provision board:', err));
     // eslint-disable-next-line react-hooks/exhaustive-deps
