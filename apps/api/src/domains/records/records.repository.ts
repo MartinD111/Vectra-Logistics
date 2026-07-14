@@ -1,0 +1,162 @@
+import { db } from '../../core/db';
+import { CollectionPropertyDef, DataCollectionRow, CollectionRecordRow, CollectionViewRow } from './records.types';
+
+class RecordsRepository {
+  // ── Collections ──
+  async createCollectionWithDefaultView(companyId: string, d: {
+    name: string; schema: CollectionPropertyDef[]; projectId?: string | null; createdBy: string | null;
+  }): Promise<{ collection: DataCollectionRow; view: CollectionViewRow }> {
+    const client = await db.connect();
+    try {
+      await client.query('BEGIN');
+
+      const collectionResult = await client.query<DataCollectionRow>(
+        `INSERT INTO data_collections (company_id, project_id, name, schema, created_by)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [companyId, d.projectId ?? null, d.name, JSON.stringify(d.schema ?? []), d.createdBy]);
+      const collection = collectionResult.rows[0];
+
+      const viewResult = await client.query<CollectionViewRow>(
+        `INSERT INTO collection_views (company_id, collection_id, name, type, config)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [companyId, collection.id, 'Table', 'table', JSON.stringify({})]);
+      const view = viewResult.rows[0];
+
+      await client.query('COMMIT');
+      return { collection, view };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  async findCollection(id: string, companyId: string): Promise<DataCollectionRow | null> {
+    const { rows } = await db.query<DataCollectionRow>(
+      `SELECT * FROM data_collections WHERE id = $1 AND company_id = $2`, [id, companyId]);
+    return rows[0] ?? null;
+  }
+
+  async listCollections(companyId: string): Promise<DataCollectionRow[]> {
+    const { rows } = await db.query<DataCollectionRow>(
+      `SELECT * FROM data_collections WHERE company_id = $1 ORDER BY created_at ASC`, [companyId]);
+    return rows;
+  }
+
+  async updateCollection(id: string, companyId: string, patch: Partial<{
+    name: string; schema: CollectionPropertyDef[]; project_id: string | null;
+  }>): Promise<DataCollectionRow | null> {
+    const sets: string[] = [];
+    const params: unknown[] = [id, companyId];
+    for (const [col, val] of Object.entries(patch)) {
+      if (val === undefined) continue;
+      params.push(col === 'schema' ? JSON.stringify(val) : val);
+      sets.push(`${col} = $${params.length}`);
+    }
+    if (sets.length === 0) return this.findCollection(id, companyId);
+    sets.push('updated_at = NOW()');
+    const { rows } = await db.query<DataCollectionRow>(
+      `UPDATE data_collections SET ${sets.join(', ')} WHERE id = $1 AND company_id = $2 RETURNING *`, params);
+    return rows[0] ?? null;
+  }
+
+  // ── Records ──
+  async createRecord(companyId: string, d: {
+    collectionId: string; parentRecordId: string | null;
+    props?: Record<string, unknown>; body?: Record<string, unknown>; createdBy: string | null;
+  }): Promise<CollectionRecordRow> {
+    const { rows } = await db.query<CollectionRecordRow>(
+      `INSERT INTO collection_records (company_id, collection_id, parent_record_id, props, body, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [
+        companyId, d.collectionId, d.parentRecordId ?? null,
+        JSON.stringify(d.props ?? {}),
+        JSON.stringify(d.body ?? { version: 1, blocks: [] }),
+        d.createdBy,
+      ]);
+    return rows[0];
+  }
+
+  async findRecord(id: string, companyId: string): Promise<CollectionRecordRow | null> {
+    const { rows } = await db.query<CollectionRecordRow>(
+      `SELECT * FROM collection_records WHERE id = $1 AND company_id = $2`, [id, companyId]);
+    return rows[0] ?? null;
+  }
+
+  async listRecords(collectionId: string, companyId: string): Promise<CollectionRecordRow[]> {
+    const { rows } = await db.query<CollectionRecordRow>(
+      `SELECT * FROM collection_records WHERE collection_id = $1 AND company_id = $2
+       ORDER BY sort_order ASC, created_at ASC`,
+      [collectionId, companyId]);
+    return rows;
+  }
+
+  async updateRecord(id: string, companyId: string, patch: Partial<{
+    props: Record<string, unknown>; body: Record<string, unknown>;
+    parent_record_id: string | null; sort_order: number;
+  }>): Promise<CollectionRecordRow | null> {
+    const sets: string[] = [];
+    const params: unknown[] = [id, companyId];
+    for (const [col, val] of Object.entries(patch)) {
+      if (val === undefined) continue;
+      params.push(col === 'props' || col === 'body' ? JSON.stringify(val) : val);
+      sets.push(`${col} = $${params.length}`);
+    }
+    if (sets.length === 0) return this.findRecord(id, companyId);
+    sets.push('updated_at = NOW()');
+    const { rows } = await db.query<CollectionRecordRow>(
+      `UPDATE collection_records SET ${sets.join(', ')} WHERE id = $1 AND company_id = $2 RETURNING *`, params);
+    return rows[0] ?? null;
+  }
+
+  async listChildren(parentRecordId: string, companyId: string): Promise<CollectionRecordRow[]> {
+    const { rows } = await db.query<CollectionRecordRow>(
+      `SELECT * FROM collection_records WHERE parent_record_id = $1 AND company_id = $2
+       ORDER BY sort_order ASC, created_at ASC`,
+      [parentRecordId, companyId]);
+    return rows;
+  }
+
+  // ── Views ──
+  async createView(companyId: string, d: {
+    collectionId: string; name: string; type: string; config?: Record<string, unknown>;
+  }): Promise<CollectionViewRow> {
+    const { rows } = await db.query<CollectionViewRow>(
+      `INSERT INTO collection_views (company_id, collection_id, name, type, config)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [companyId, d.collectionId, d.name, d.type, JSON.stringify(d.config ?? {})]);
+    return rows[0];
+  }
+
+  async findView(id: string, companyId: string): Promise<CollectionViewRow | null> {
+    const { rows } = await db.query<CollectionViewRow>(
+      `SELECT * FROM collection_views WHERE id = $1 AND company_id = $2`, [id, companyId]);
+    return rows[0] ?? null;
+  }
+
+  async listViews(collectionId: string, companyId: string): Promise<CollectionViewRow[]> {
+    const { rows } = await db.query<CollectionViewRow>(
+      `SELECT * FROM collection_views WHERE collection_id = $1 AND company_id = $2 ORDER BY sort_order ASC`,
+      [collectionId, companyId]);
+    return rows;
+  }
+
+  async updateView(id: string, companyId: string, patch: Partial<{
+    name: string; type: string; config: Record<string, unknown>; sort_order: number;
+  }>): Promise<CollectionViewRow | null> {
+    const sets: string[] = [];
+    const params: unknown[] = [id, companyId];
+    for (const [col, val] of Object.entries(patch)) {
+      if (val === undefined) continue;
+      params.push(col === 'config' ? JSON.stringify(val) : val);
+      sets.push(`${col} = $${params.length}`);
+    }
+    if (sets.length === 0) return this.findView(id, companyId);
+    const { rows } = await db.query<CollectionViewRow>(
+      `UPDATE collection_views SET ${sets.join(', ')} WHERE id = $1 AND company_id = $2 RETURNING *`, params);
+    return rows[0] ?? null;
+  }
+}
+
+export const recordsRepository = new RecordsRepository();
