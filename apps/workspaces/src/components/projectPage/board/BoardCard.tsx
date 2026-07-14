@@ -8,8 +8,30 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import type { CollectionRecord } from '@/lib/api/records.api';
+import type { CollectionPropertyDef, CollectionRecord } from '@/lib/api/records.api';
 import { useUpdateAnyRecord } from '@/lib/hooks/useRecords';
+
+// Card-face property values are READ-ONLY previews (D-03) -- the card's
+// onClick (opening the record detail page in a new tab) remains the sole
+// edit path. No PropertyField/onCommit wiring here on purpose.
+function formatCardPropertyValue(value: unknown, property: CollectionPropertyDef): string {
+  switch (property.type) {
+    case 'checkbox':
+      return value ? 'Yes' : 'No';
+    case 'select':
+    case 'person': {
+      const options = (property.options ?? []) as { id: string; label: string }[];
+      const match = options.find((o) => o.id === value);
+      return match ? match.label : (typeof value === 'string' ? value : '');
+    }
+    case 'multi-select':
+    case 'files':
+    case 'relation':
+      return Array.isArray(value) ? value.join(', ') : '';
+    default:
+      return value == null ? '' : String(value);
+  }
+}
 
 export function BoardCard({
   record,
@@ -17,12 +39,14 @@ export function BoardCard({
   collectionId,
   autoFocusEdit = false,
   onExitEdit,
+  cardProperties,
 }: {
   record: CollectionRecord;
   titlePropId: string;
   collectionId: string;
   autoFocusEdit?: boolean;
   onExitEdit?: () => void;
+  cardProperties?: CollectionPropertyDef[];
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: record.id });
   const updateRecord = useUpdateAnyRecord(collectionId);
@@ -98,6 +122,15 @@ export function BoardCard({
       <span className={title ? 'text-gray-800 dark:text-gray-200' : 'text-gray-400 italic'}>
         {title || 'Untitled'}
       </span>
+      {(cardProperties ?? []).length > 0 && (
+        <div className="mt-1.5 space-y-1">
+          {cardProperties!.map((property) => (
+            <div key={property.id} className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              {formatCardPropertyValue(record.props[property.id], property)}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
