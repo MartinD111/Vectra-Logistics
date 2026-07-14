@@ -147,7 +147,16 @@ Plans:
   3. Adding a new property from the record detail panel adds it to the collection's schema, and it appears on other records of that collection
   4. User can edit the record body with the full existing page editor (slash menu, headings, checklists, and all Phase 21 blocks) — no bespoke record-body editor code
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+
+- [ ] 23-01-PLAN.md — Frontend data layer (records.api.ts, useRecords.ts) + schema-driven PropertyField editor, all 12 property types (CARD-02, CARD-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 23-02-PLAN.md — PropertyPanel + AddPropertyModal + record detail page route wiring LivePageCanvas body (CARD-01, CARD-02, CARD-03, CARD-04)
+
 **UI hint**: yes
 
 ### Phase 24: Board View & Legacy Kanban Migration
@@ -224,7 +233,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 20. Deploy Hardening + Connectivity Doc | v3.0 | 4/4 | Complete    | 2026-07-13 |
 | 21. Missing Content Blocks | v4.0 | 5/5 | Complete   | 2026-07-13 |
 | 22. Records + Views Data Model | v4.0 | 4/4 | Complete   | 2026-07-14 |
-| 23. Record Detail Page | v4.0 | 0/TBD | Not started | - |
+| 23. Record Detail Page | v4.0 | 0/2 | Not started | - |
 | 24. Board View & Legacy Kanban Migration | v4.0 | 0/TBD | Not started | - |
 | 25. View UX Parity | v4.0 | 0/TBD | Not started | - |
 | 26. Additional View Types | v4.0 | 0/TBD | Not started | - |
