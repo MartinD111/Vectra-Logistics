@@ -37,10 +37,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Board View
 
-- [ ] **BOARD-01**: A `collection-view` page block renders a board grouped by any select-type property (columns are the property's values, never hand-authored)
-- [ ] **BOARD-02**: User can drag-and-drop a card between columns (updates the `groupBy` property) and reorder within a column (updates `sort_order`)
-- [ ] **BOARD-03**: User can create a new card inline within a column, pre-set to that column's `groupBy` value
-- [ ] **BOARD-04**: Legacy `kanban` blocks auto-migrate to `collection-view`/board on first edit with zero data loss
+- [x] **BOARD-01**: A `collection-view` page block renders a board grouped by any select-type property (columns are the property's values, never hand-authored)
+- [x] **BOARD-02**: User can drag-and-drop a card between columns (updates the `groupBy` property) and reorder within a column (updates `sort_order`)
+- [x] **BOARD-03**: User can create a new card inline within a column, pre-set to that column's `groupBy` value
+- [x] **BOARD-04**: Legacy `kanban` blocks auto-migrate to `collection-view`/board on first edit with zero data loss
 
 ### View UX Parity
 
@@ -106,10 +106,10 @@ Explicitly excluded from v4.0. Documented to prevent scope creep.
 | CARD-02 | Phase 23 | Complete (code-verified; human verification pending) |
 | CARD-03 | Phase 23 | Complete (code-verified; human verification pending) |
 | CARD-04 | Phase 23 | Complete (code-verified; human verification pending) |
-| BOARD-01 | Phase 24 | Pending |
-| BOARD-02 | Phase 24 | Pending |
-| BOARD-03 | Phase 24 | Pending |
-| BOARD-04 | Phase 24 | Pending |
+| BOARD-01 | Phase 24 | Complete |
+| BOARD-02 | Phase 24 | Complete |
+| BOARD-03 | Phase 24 | Complete |
+| BOARD-04 | Phase 24 | Complete |
 | VIEWX-01 | Phase 25 | Pending |
 | VIEWX-02 | Phase 25 | Pending |
 | VIEWX-03 | Phase 25 | Pending |
