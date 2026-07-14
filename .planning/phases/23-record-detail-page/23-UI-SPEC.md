@@ -126,8 +126,8 @@ No component registries are used. All UI is hand-authored Tailwind + existing in
 | Property panel | Left column, `w-80 flex-shrink-0`, wrapped in `.saas-card`, `dark:bg-slate-800` — exact clone of `ClientSidebar`'s shell |
 | Property panel structure (top to bottom) | 1) Title (inline-editable heading, `text-xl font-bold` — see Typography weight decision above), 2) schema-driven property list (each row: 10px uppercase label + type-appropriate editor, mirroring `DynamicBlockSettings`'s `label-xs` + input pattern), 3) "+ Add property" link-button at the bottom (`text-sm font-semibold text-primary-600`, same visual weight as "Attach project") |
 | Record body | Right column, `flex-1 min-w-0`, `<LivePageCanvas config={record.body} onChange={setBody} />` with zero additional props (per CARD-04 and RESEARCH.md Pattern 3) — no `clientId`/`projectId` context passed since records have neither |
-| Property type → editor mapping | checkbox → native `<input type="checkbox">`; date → native `<input type="date">`; select → native `<select>` populated from `property.options`; multi-select → checkbox list or multi-chip toggle (implementation discretion, but must show all selected values, not truncate silently); person → clone `EmployeeOverrideField`'s dropdown pattern (`useTeam()`); text/number/url/email/phone → plain `<input>` with matching `type` attribute for browser-native validation UX only (not the source of truth) |
-| Field save trigger | Blur-commit + 800ms debounce-while-typing for text fields (exact `InlineTextField` pattern); immediate commit on change for checkbox/select/date/person (no debounce needed — discrete value change) |
+| Property type → editor mapping | checkbox → native `<input type="checkbox">`; date → native `<input type="date">`; select → native `<select>` populated from `property.options`; multi-select → multi-chip toggle (D-01/D-02 locked in CONTEXT.md); files/relation → free-text tag-input chip list (`string[]`, no predefined options — see PLAN.md `StringArrayChips`), reusing the same chip visual language as multi-select, must show all selected values, not truncate silently; person → clone `EmployeeOverrideField`'s dropdown pattern (`useTeam()`); text/number/url/email/phone → plain `<input>` with matching `type` attribute for browser-native validation UX only (not the source of truth) |
+| Field save trigger | Blur-commit + 800ms debounce-while-typing for text fields (exact `InlineTextField` pattern); immediate commit on change for checkbox/select/date/person/multi-select/files/relation (no debounce needed — discrete value change) |
 | Body save trigger | 1500ms debounce after edit, seed-once on first load, flush-on-unmount (exact `ClientDetailPage`/`projects/[id]/pages/[pageId]` pattern) — no new autosave mechanism |
 | Add-property flow | Two sequential requests, never combined (RESEARCH.md Pitfall 1): (1) `PATCH /collections/:id` with updated `schema` array, awaited; (2) only on success, `PATCH /records/:id` setting the new prop's initial value. Modal/inline form collects: property name (required, text input), property type (required, select of the 12 supported types), and if type is `select`/`multi-select`, an inline "add option" list builder writing `{id, label}[]` into `options` |
 | Cross-tenant / not-found | 404 (record not found or wrong company) renders the exact same two-line error shell as `ClientDetailPage`'s `clientError` block — never assume any URL-supplied ID is valid |
@@ -137,11 +137,11 @@ No component registries are used. All UI is hand-authored Tailwind + existing in
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved
