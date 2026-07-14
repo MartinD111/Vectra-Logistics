@@ -171,7 +171,20 @@ Plans:
   3. User can create a new card inline within a column, pre-set to that column's `groupBy` value
   4. Opening a page with a legacy `kanban` block and making any edit auto-migrates it to a `collection-view`/board with all existing cards and data intact
 
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+**Wave 1**
+
+- [ ] 24-01-PLAN.md — Data layer: records.api.ts + useRecords.ts extensions, createRecord bug fix (BOARD-01, BOARD-02, BOARD-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 24-02-PLAN.md — collection-view block kind, board rendering, drag-and-drop, column/card management (BOARD-01, BOARD-02, BOARD-03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 24-03-PLAN.md — Legacy kanban migration transform + gate + toast (BOARD-04)
+
 **UI hint**: yes
 
 ### Phase 25: View UX Parity
@@ -234,7 +247,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 21. Missing Content Blocks | v4.0 | 5/5 | Complete   | 2026-07-13 |
 | 22. Records + Views Data Model | v4.0 | 4/4 | Complete   | 2026-07-14 |
 | 23. Record Detail Page | v4.0 | 2/2 | Complete   | 2026-07-14 |
-| 24. Board View & Legacy Kanban Migration | v4.0 | 0/TBD | Not started | - |
+| 24. Board View & Legacy Kanban Migration | v4.0 | 0/3 | Not started | - |
 | 25. View UX Parity | v4.0 | 0/TBD | Not started | - |
 | 26. Additional View Types | v4.0 | 0/TBD | Not started | - |
 
