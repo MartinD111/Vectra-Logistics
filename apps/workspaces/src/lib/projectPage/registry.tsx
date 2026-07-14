@@ -51,6 +51,7 @@ import {
 } from '@/components/projectPage/pageBlockViews';
 import { EmailCampaignView } from '@/components/projectPage/EmailCampaignBlock';
 import { KanbanBoardView } from '@/components/projectPage/KanbanBlock';
+import { KanbanMigrationGate } from '@/components/projectPage/KanbanMigrationGate';
 import { BoardBlock } from '@/components/projectPage/BoardBlock';
 import { FleetTelematicsView } from '@/components/projectPage/FleetTelematicsBlock';
 import { SpotQuoteView } from '@/components/projectPage/SpotQuoteBlock';
@@ -241,7 +242,7 @@ const entries: Record<PageBlockKind, WorkspaceBlockPlugin<PageBlock, PageCtx>> =
   'mini-program': entry('mini-program', ({ block }) => <MiniProgramEmbedView block={block as MiniProgramBlock} />),
   'kanban': entry('kanban',
     ({ block, ctx }) => <KanbanBoardView block={block as KanbanBlock} onChange={ctx.onChange} />,
-    ({ block, onUpdate }) => <KanbanBoardView block={block as KanbanBlock} onChange={onUpdate} />,
+    ({ block, onUpdate }) => <KanbanMigrationGate block={block as KanbanBlock} onUpdate={onUpdate} />,
   ),
   'collection-view': entry('collection-view',
     ({ block, ctx }) => <BoardBlock block={block as CollectionViewBlock} onChange={ctx.onChange} />,
