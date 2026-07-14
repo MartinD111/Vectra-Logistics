@@ -51,8 +51,12 @@ export function useUpdateRecord(id: string) {
 }
 
 export function useCreateRecord(collectionId: string) {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateRecordInput) => recordsApi.createRecord(collectionId, data),
+    onSuccess: (created) =>
+      qc.setQueryData(qk.records(collectionId), (prev: CollectionRecord[] | undefined) =>
+        prev ? [...prev, created] : [created]),
   });
 }
 
