@@ -115,7 +115,25 @@ Plans:
   3. A view can be saved against a collection with `type`/`groupBy`/`subGroupBy`/`filters`/`sorts`/`cardProperties` config and later retrieved unchanged
   4. A record can reference another record as its parent via `parent_record_id`, and children can be queried for a given parent
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+**Wave 1**
+
+- [ ] 22-01-PLAN.md — Migration 025 + records.types.ts + DTOs (REC-01, REC-02, REC-03, REC-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 22-02-PLAN.md — Repository layer: CRUD + D-03 transaction + REC-04 parent/child query (REC-01, REC-02, REC-03, REC-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 22-03-PLAN.md — Service layer: Zod validation, D-02 prop-type checking, D-03 default-view wiring (REC-01, REC-02, REC-03)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 22-04-PLAN.md — Controller + routes + domain registration (REC-01, REC-02, REC-03, REC-04)
+
+**UI hint**: no
 
 ### Phase 23: Record Detail Page
 
@@ -205,7 +223,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 19. Release Versioning & Upgrade Docs | v3.0 | 3/3 | Complete    | 2026-07-13 |
 | 20. Deploy Hardening + Connectivity Doc | v3.0 | 4/4 | Complete    | 2026-07-13 |
 | 21. Missing Content Blocks | v4.0 | 5/5 | Complete   | 2026-07-13 |
-| 22. Records + Views Data Model | v4.0 | 0/TBD | Not started | - |
+| 22. Records + Views Data Model | v4.0 | 0/4 | Planned | - |
 | 23. Record Detail Page | v4.0 | 0/TBD | Not started | - |
 | 24. Board View & Legacy Kanban Migration | v4.0 | 0/TBD | Not started | - |
 | 25. View UX Parity | v4.0 | 0/TBD | Not started | - |
