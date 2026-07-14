@@ -106,6 +106,10 @@ None - no external service configuration required.
 - All D-02/D-03/REC-01/REC-02/REC-03 behaviors are verified by automated tests against the real `recordsRepository` contract on disk (Plan 22-02), not a stale interface description — future plans building the controller layer can trust this service's method signatures as accurate.
 - No blockers identified.
 
+## Self-Check: PASSED
+
+All created files verified present (records.service.ts, records.service.test.ts, dto/update-view.dto.ts, this SUMMARY.md). All 3 commit hashes (dc9dbd2, ecd6860, df465d3) verified in git log.
+
 ---
 *Phase: 22-records-views-data-model*
 *Completed: 2026-07-14*
