@@ -30,10 +30,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Record Detail Page
 
-- [ ] **CARD-01**: User can open a record as a detail page/panel showing title + property panel + body
-- [ ] **CARD-02**: User can edit a record's properties via schema-driven inline editors (select, person, date, checkbox, etc.)
-- [ ] **CARD-03**: Adding a new property from the record detail panel adds it to the collection's schema
-- [ ] **CARD-04**: User can edit the record body using the full existing page editor (slash menu, headings, checklists, etc.) — zero new editor code
+- [x] **CARD-01**: User can open a record as a detail page/panel showing title + property panel + body
+- [x] **CARD-02**: User can edit a record's properties via schema-driven inline editors (select, person, date, checkbox, etc.)
+- [x] **CARD-03**: Adding a new property from the record detail panel adds it to the collection's schema
+- [x] **CARD-04**: User can edit the record body using the full existing page editor (slash menu, headings, checklists, etc.) — zero new editor code
 
 ### Board View
 
@@ -102,10 +102,10 @@ Explicitly excluded from v4.0. Documented to prevent scope creep.
 | REC-02 | Phase 22 | Complete |
 | REC-03 | Phase 22 | Complete |
 | REC-04 | Phase 22 | Complete |
-| CARD-01 | Phase 23 | Pending |
-| CARD-02 | Phase 23 | Pending |
-| CARD-03 | Phase 23 | Pending |
-| CARD-04 | Phase 23 | Pending |
+| CARD-01 | Phase 23 | Complete (code-verified; human verification pending) |
+| CARD-02 | Phase 23 | Complete (code-verified; human verification pending) |
+| CARD-03 | Phase 23 | Complete (code-verified; human verification pending) |
+| CARD-04 | Phase 23 | Complete (code-verified; human verification pending) |
 | BOARD-01 | Phase 24 | Pending |
 | BOARD-02 | Phase 24 | Pending |
 | BOARD-03 | Phase 24 | Pending |
