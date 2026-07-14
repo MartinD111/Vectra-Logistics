@@ -41,11 +41,33 @@ export interface UpdateCollectionInput {
 export interface UpdateRecordInput {
   props?: Record<string, unknown>;
   body?: Record<string, unknown>;
+  sort_order?: number;
 }
 
 export interface CreateRecordInput {
   props?: Record<string, unknown>;
   body?: Record<string, unknown>;
+}
+
+export interface CollectionView {
+  id: string;
+  collection_id: string;
+  name: string;
+  type: string;
+  config: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateCollectionInput {
+  name: string;
+  schema: CollectionPropertyDef[];
+}
+
+export interface CreateViewInput {
+  name: string;
+  type: string;
+  config: Record<string, unknown>;
 }
 
 const BASE = '/api/v1/records';
@@ -60,5 +82,17 @@ export const recordsApi = {
   updateRecord: (id: string, data: UpdateRecordInput) =>
     apiFetch<{ record: CollectionRecord }>(`${BASE}/records/${id}`, 'PATCH', data).then((r) => r.record),
   createRecord: (collectionId: string, data: CreateRecordInput) =>
-    apiFetch<{ record: CollectionRecord }>(`${BASE}/collections/${collectionId}/records`, 'POST', data).then((r) => r.record),
+    apiFetch<{ record: CollectionRecord }>(`${BASE}/collections/${collectionId}/records`, 'POST', { ...data, collection_id: collectionId }).then((r) => r.record),
+  listCollections: () =>
+    apiFetch<{ collections: DataCollection[] }>(`${BASE}/collections`).then((r) => r.collections),
+  createCollection: (data: CreateCollectionInput) =>
+    apiFetch<{ collection: DataCollection; view: CollectionView }>(`${BASE}/collections`, 'POST', data),
+  listRecords: (collectionId: string) =>
+    apiFetch<{ records: CollectionRecord[] }>(`${BASE}/collections/${collectionId}/records`).then((r) => r.records),
+  listViews: (collectionId: string) =>
+    apiFetch<{ views: CollectionView[] }>(`${BASE}/collections/${collectionId}/views`).then((r) => r.views),
+  createView: (collectionId: string, data: CreateViewInput) =>
+    apiFetch<{ view: CollectionView }>(`${BASE}/collections/${collectionId}/views`, 'POST', data).then((r) => r.view),
+  getView: (id: string) =>
+    apiFetch<{ view: CollectionView }>(`${BASE}/views/${id}`).then((r) => r.view),
 };
