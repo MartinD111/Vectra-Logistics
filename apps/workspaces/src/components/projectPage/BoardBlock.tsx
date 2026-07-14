@@ -25,6 +25,8 @@ import { BoardColumn } from './board/BoardColumn';
 import { AddColumnControl } from './board/AddColumnControl';
 import { FilterSortToolbar } from './board/FilterSortToolbar';
 import { ViewSettingsMenu } from './board/ViewSettingsMenu';
+import { ViewSwitcher } from './board/ViewSwitcher';
+import { CollectionTableView } from './collectionTable/CollectionTableView';
 
 /** Groups records into board columns from the live option values of the
  *  groupBy select property — never hand-authored (BOARD-01). */
@@ -181,10 +183,19 @@ export function BoardBlock({
     <div className="saas-card !p-4">
       {block.title && <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2">{block.title}</h3>}
       <div className="flex items-center justify-between gap-2 mb-3">
-        <FilterSortToolbar collection={collection} view={view} />
+        <div className="flex items-center gap-2">
+          <ViewSwitcher
+            collectionId={block.collectionId as string}
+            currentView={view}
+            onSwitch={(viewId) => onChange?.({ ...block, viewId })}
+          />
+          <FilterSortToolbar collection={collection} view={view} />
+        </div>
         <ViewSettingsMenu collection={collection} view={view} />
       </div>
-      {isFilteredEmpty ? (
+      {view.type === 'table' ? (
+        <CollectionTableView collection={collection} records={sorted} updateRecord={updateRecord} />
+      ) : isFilteredEmpty ? (
         <BoardEmptyFilterState />
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
