@@ -260,12 +260,19 @@ function DebouncedTextField({
   const flush = (next: string) => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     if (next === lastCommittedRef.current) return;
-    lastCommittedRef.current = next;
     if (property.type === 'number') {
-      onCommit(next === '' ? null : Number(next));
-    } else {
-      onCommit(next);
+      // Backend validatePropValue requires typeof value === 'number' — an
+      // empty/non-numeric draft has nothing valid to send, so skip the PATCH
+      // rather than commit null and trigger a 400.
+      if (next === '') return;
+      const parsed = Number(next);
+      if (Number.isNaN(parsed)) return;
+      lastCommittedRef.current = next;
+      onCommit(parsed);
+      return;
     }
+    lastCommittedRef.current = next;
+    onCommit(next);
   };
 
   const handleChange = (next: string) => {
