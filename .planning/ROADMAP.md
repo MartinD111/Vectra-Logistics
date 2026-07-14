@@ -203,7 +203,24 @@ Plans:
   3. User can see column aggregations on a board (count, and sum/avg for a chosen number property)
   4. User can switch a `collection-view` block between view types on the same collection without creating duplicate records
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+**Wave 1**
+
+- [ ] 25-01-PLAN.md — Data-layer foundation: updateView API/hook + viewFilters.ts pure filter/sort/aggregate logic (VIEWX-01, VIEWX-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 25-02-PLAN.md — FilterSortToolbar + BoardBlock wiring (VIEWX-01)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 25-03-PLAN.md — ViewSettingsMenu (card-face picker + aggregation config) + ColumnAggregation footer + BoardCard/BoardColumn/BoardBlock wiring (VIEWX-02, VIEWX-03)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 25-04-PLAN.md — CollectionTableView + ViewSwitcher + BoardBlock view-type branching (VIEWX-04)
+
 **UI hint**: yes
 
 ### Phase 26: Additional View Types
@@ -252,7 +269,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 22. Records + Views Data Model | v4.0 | 4/4 | Complete   | 2026-07-14 |
 | 23. Record Detail Page | v4.0 | 2/2 | Complete   | 2026-07-14 |
 | 24. Board View & Legacy Kanban Migration | v4.0 | 4/4 | Complete    | 2026-07-14 |
-| 25. View UX Parity | v4.0 | 0/TBD | Not started | - |
+| 25. View UX Parity | v4.0 | 0/4 | Planned | - |
 | 26. Additional View Types | v4.0 | 0/TBD | Not started | - |
 
 ---
