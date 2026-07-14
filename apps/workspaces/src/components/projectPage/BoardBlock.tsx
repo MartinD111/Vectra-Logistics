@@ -18,8 +18,10 @@ import { recordsApi, type CollectionPropertyDef, type CollectionRecord } from '@
 import {
   useCollection, useView, useRecords, useCreateCollection, useUpdateAnyRecord,
 } from '@/lib/hooks/useRecords';
+import { applyFilters, applySorts, type FilterCondition, type SortCondition } from '@/lib/projectPage/viewFilters';
 import { BoardColumn } from './board/BoardColumn';
 import { AddColumnControl } from './board/AddColumnControl';
+import { FilterSortToolbar } from './board/FilterSortToolbar';
 
 /** Groups records into board columns from the live option values of the
  *  groupBy select property — never hand-authored (BOARD-01). */
@@ -54,6 +56,15 @@ function BoardShellError() {
     <div className="saas-card !p-4">
       <p className="text-sm text-gray-700 dark:text-gray-300">Couldn&apos;t load this board.</p>
       <p className="text-xs text-gray-400">Check your connection and try again.</p>
+    </div>
+  );
+}
+
+function BoardEmptyFilterState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-10 text-center">
+      <p className="text-sm text-gray-700 dark:text-gray-300">No records match these filters</p>
+      <p className="text-xs text-gray-400">Try removing a filter condition or adjusting a value to see more records.</p>
     </div>
   );
 }
@@ -124,7 +135,11 @@ export function BoardBlock({
   const records = recordsQuery.data;
   const groupByPropId = String(view.config.groupBy ?? '');
   const titlePropId = collection.schema[0]?.id ?? '';
-  const columns = groupRecordsByColumn(records, collection.schema, groupByPropId);
+  const activeFilters = (view.config.filters as FilterCondition[]) ?? [];
+  const filtered = applyFilters(records, activeFilters, collection.schema);
+  const sorted = applySorts(filtered, (view.config.sorts as SortCondition[]) ?? [], collection.schema);
+  const columns = groupRecordsByColumn(sorted, collection.schema, groupByPropId);
+  const isFilteredEmpty = filtered.length === 0 && activeFilters.length > 0;
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -158,22 +173,29 @@ export function BoardBlock({
 
   return (
     <div className="saas-card !p-4">
-      {block.title && <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">{block.title}</h3>}
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <div className="flex gap-3 overflow-x-auto pb-1">
-          {columns.map((col) => (
-            <BoardColumn
-              key={col.id}
-              column={col}
-              titlePropId={titlePropId}
-              collectionId={block.collectionId as string}
-              collection={collection}
-              groupByPropId={groupByPropId}
-            />
-          ))}
-          <AddColumnControl collection={collection} groupByPropId={groupByPropId} />
-        </div>
-      </DndContext>
+      {block.title && <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2">{block.title}</h3>}
+      <div className="flex items-center gap-2 mb-3">
+        <FilterSortToolbar collection={collection} view={view} />
+      </div>
+      {isFilteredEmpty ? (
+        <BoardEmptyFilterState />
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {columns.map((col) => (
+              <BoardColumn
+                key={col.id}
+                column={col}
+                titlePropId={titlePropId}
+                collectionId={block.collectionId as string}
+                collection={collection}
+                groupByPropId={groupByPropId}
+              />
+            ))}
+            <AddColumnControl collection={collection} groupByPropId={groupByPropId} />
+          </div>
+        </DndContext>
+      )}
     </div>
   );
 }
