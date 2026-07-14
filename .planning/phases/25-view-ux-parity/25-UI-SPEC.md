@@ -24,6 +24,12 @@ created: 2026-07-14
 
 ---
 
+## Primary Visual Anchor
+
+Board view: the card grid/columns are the primary visual anchor — the toolbar (Filter/Sort/•••/view-switch) is secondary chrome that must not compete visually (no fills, no borders-as-boxes; icon-only or text-only buttons per the Copywriting Contract below). Table view: the data table (rows/columns) is the primary visual anchor for the same reason. In both views, the accent color (`primary-600`) is reserved exclusively for active/selected states as declared in the Color contract — never used to decorate the toolbar by default — so the eye lands on records/data first, not on controls.
+
+---
+
 ## Spacing Scale
 
 Declared values (must be multiples of 4), matching the scale already in use across `BoardColumn.tsx`/`AddColumnControl.tsx`/`PropertyField.tsx`:
@@ -50,10 +56,10 @@ Matches the exact type scale already in use in `BoardColumn.tsx`, `AddColumnCont
 |------|------|--------|-------------|
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 — card-face property values, table cell values, filter/sort condition row labels |
 | Label | 12px (`text-xs`) | 600 (semibold) | 1.2 — column headers (`uppercase tracking-wider`), toolbar button labels, aggregation footer text |
-| Heading | 12px (`text-xs`) | 700 (bold) | 1.2 — "Add column"-style control labels; reused for toolbar trigger buttons ("Filter", "Sort", view-switch labels) per existing `font-bold` convention in `AddColumnControl.tsx` |
+| Heading | 12px (`text-xs`) | 600 (semibold) | 1.2 — "Add column"-style control labels; reused for toolbar trigger buttons ("Filter records", "Sort records", view-switch labels). Use `font-semibold`, not `font-bold`, for this phase's new controls — any pre-existing `font-bold` usage on adjacent Phase 24 controls is out of scope and unchanged. |
 | Display | 16px (`text-base`) | 600 (semibold) | 1.2 — record/card titles (existing, unchanged from Phase 24) |
 
-Only 2 weights declared (400 regular, 600/700 treated as one "emphasis" tier per existing codebase convention which mixes `font-semibold`/`font-bold` interchangeably for emphasis — do not introduce a third distinct weight).
+Exactly 2 weights declared this phase: 400 (regular, body text) and 600 (semibold, all emphasis/label/heading/display tiers). No 700/bold weight is introduced by this phase's new components.
 
 ---
 
@@ -76,7 +82,7 @@ Accent reserved for: active-state indicators only (applied filter/sort badge, se
 
 | Element | Copy |
 |---------|------|
-| Primary CTA | Toolbar buttons: **"Filter"** (opens filter builder), **"Sort"** (opens sort builder) — plain verb-as-label per existing terse toolbar convention (`"Add column"` precedent). No new CTA beyond these two plus the icon-only "•••" view-settings trigger and the Board/Table switch control (icon + label, e.g. "Board" / "Table"). |
+| Primary CTA | Toolbar buttons: **"Filter records"** (opens filter builder), **"Sort records"** (opens sort builder) — noun-inclusive labels, consistent with the existing `"Add column"` precedent. No new CTA beyond these two plus the icon-only "•••" view-settings trigger (must declare `aria-label="View settings"` since it carries no visible text label — see Interaction Contract) and the Board/Table switch control (icon + label, e.g. "Board" / "Table"). |
 | Empty state heading | "No records match these filters" — shown when `applyFilters` returns zero records for the current view |
 | Empty state body | "Try removing a filter condition or adjusting a value to see more records." |
 | Error state | "Couldn't update this view." / "Check your connection and try again." — mirrors the existing `BoardShellError` copy pattern exactly (`"Couldn't load this board."` / `"Check your connection and try again."`) for consistency when a `useUpdateView` mutation fails |
@@ -99,8 +105,8 @@ These supplement the standard sections above with the concrete component-level d
 
 | Surface | Behavior |
 |---------|----------|
-| Filter/Sort toolbar (D-01, D-02) | Two buttons ("Filter", "Sort") above the board/table content, each opening a popover with the existing hand-rolled convention (`fixed inset-0 z-20` backdrop + `absolute z-30` panel, matching `PersonField`/`AddColumnControl`). Filter popover: stacked condition rows (property dropdown + operator dropdown + value input via `PropertyField`'s per-type control), a "+ Add condition" row, AND-only (no OR toggle — do not build one). Sort popover: stacked rows (property dropdown + asc/desc toggle). Both persist via the new `useUpdateView` mutation on blur/change, not on a separate "Apply" button — matches the codebase's existing autosave-on-blur convention (`AddColumnControl`, `BoardCard` title editing). |
-| View settings "•••" (D-03) | Icon-only `MoreHorizontal` trigger, 32px touch target, opens a popover listing every `collection.schema` property as a row with a checkbox — checked = shown on card face below the title. No search/filter within the checklist needed (schemas are small, per Phase 22/23 precedent). Persists to `view.config.cardProperties[]` via `useUpdateView` on each toggle (instant, no separate save button). |
+| Filter/Sort toolbar (D-01, D-02) | Two buttons ("Filter records", "Sort records") above the board/table content, each opening a popover with the existing hand-rolled convention (`fixed inset-0 z-20` backdrop + `absolute z-30` panel, matching `PersonField`/`AddColumnControl`). Filter popover: stacked condition rows (property dropdown + operator dropdown + value input via `PropertyField`'s per-type control), a "+ Add condition" row, AND-only (no OR toggle — do not build one). Sort popover: stacked rows (property dropdown + asc/desc toggle). Both persist via the new `useUpdateView` mutation on blur/change, not on a separate "Apply" button — matches the codebase's existing autosave-on-blur convention (`AddColumnControl`, `BoardCard` title editing). |
+| View settings "•••" (D-03) | Icon-only `MoreHorizontal` trigger, 32px touch target, `aria-label="View settings"` (no visible text label, so the accessible name comes entirely from this attribute). Opens a popover listing every `collection.schema` property as a row with a checkbox — checked = shown on card face below the title. No search/filter within the checklist needed (schemas are small, per Phase 22/23 precedent). Persists to `view.config.cardProperties[]` via `useUpdateView` on each toggle (instant, no separate save button). |
 | Card face rendering (VIEWX-02) | `BoardCard` renders `cardProperties[]` below the existing title, each via `<PropertyField property={...} value={...} />` in **read-only mode** (no inline edit on the card face — clicking a card-face property value does not open an editor; the only edit path is opening the full record detail page, consistent with 25-CONTEXT.md's explicit "click-through to record detail remains the edit path" note). |
 | Column aggregation footer (D-04) | View-wide (not per-column) aggregation setting per 25-RESEARCH.md's Open Question 2 recommendation: one picker (accessible from the same "•••" view-settings popover or a small footer control) sets `{ type: 'count' | 'sum' | 'avg', propId?: string }` applied uniformly to every column's footer. Footer text: `"Count: {n}"` when type is count; `"{Sum|Avg}: {value}"` when type is sum/avg (format numbers with existing `toLocaleString()` convention if one exists elsewhere in the codebase, otherwise plain `String()`). Only `number`-typed schema properties are offered in the sum/avg property picker (filter `collection.schema` by `type === 'number'` — see 25-RESEARCH.md Pitfall 3). |
 | View switcher (D-05) | Small segmented control (two buttons: "Board" / "Table", `LayoutGrid`/`Table2` icons) on the block chrome, next to the Filter/Sort/••• toolbar. Selected state uses the `primary-600` accent per the Color contract above. Switching creates-once-then-remembers the sibling view (per 25-RESEARCH.md's Open Question 1 recommendation: on first switch, `POST` a new `type: 'table'` view against the same `collectionId`; on later switches, look up the existing sibling view by type via `listViews(collectionId)` rather than creating a new row each toggle). Filters/sorts/cardProperties do NOT carry over automatically between Board and Table views — this is expected per-view-independent-config behavior (25-RESEARCH.md Pitfall 4), not a bug; no UI copy needed to explain this unless user testing surfaces confusion. |
