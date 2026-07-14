@@ -23,10 +23,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Records + Views Data Model
 
-- [ ] **REC-01**: A collection has a company-scoped, ordered schema of generic properties (text, number, date, select, multi-select, checkbox, person, url, email, phone, files, relation)
-- [ ] **REC-02**: A record stores property values (`props`) and a body (block document) in the same shape as a page's `PageConfig`
-- [ ] **REC-03**: A view is a saved lens (board/table/list/calendar/gallery/timeline) with `groupBy`/`subGroupBy`/`filters`/`sorts`/`cardProperties` config
-- [ ] **REC-04**: Records support sub-items (nested records via `parent_record_id`)
+- [x] **REC-01**: A collection has a company-scoped, ordered schema of generic properties (text, number, date, select, multi-select, checkbox, person, url, email, phone, files, relation)
+- [x] **REC-02**: A record stores property values (`props`) and a body (block document) in the same shape as a page's `PageConfig`
+- [x] **REC-03**: A view is a saved lens (board/table/list/calendar/gallery/timeline) with `groupBy`/`subGroupBy`/`filters`/`sorts`/`cardProperties` config
+- [x] **REC-04**: Records support sub-items (nested records via `parent_record_id`)
 
 ### Record Detail Page
 
@@ -98,10 +98,10 @@ Explicitly excluded from v4.0. Documented to prevent scope creep.
 | CONT-07 | Phase 21 | Done |
 | CONT-08 | Phase 21 | Done |
 | CONT-09 | Phase 21 | Done |
-| REC-01 | Phase 22 | Pending |
-| REC-02 | Phase 22 | Pending |
-| REC-03 | Phase 22 | Pending |
-| REC-04 | Phase 22 | Pending |
+| REC-01 | Phase 22 | Complete |
+| REC-02 | Phase 22 | Complete |
+| REC-03 | Phase 22 | Complete |
+| REC-04 | Phase 22 | Complete |
 | CARD-01 | Phase 23 | Pending |
 | CARD-02 | Phase 23 | Pending |
 | CARD-03 | Phase 23 | Pending |
