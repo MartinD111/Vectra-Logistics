@@ -219,7 +219,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 25-04-PLAN.md — CollectionTableView + ViewSwitcher + BoardBlock view-type branching (VIEWX-04)
+- [x] 25-04-PLAN.md — CollectionTableView + ViewSwitcher + BoardBlock view-type branching (VIEWX-04)
 
 **UI hint**: yes
 
@@ -269,7 +269,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 22. Records + Views Data Model | v4.0 | 4/4 | Complete   | 2026-07-14 |
 | 23. Record Detail Page | v4.0 | 2/2 | Complete   | 2026-07-14 |
 | 24. Board View & Legacy Kanban Migration | v4.0 | 4/4 | Complete    | 2026-07-14 |
-| 25. View UX Parity | v4.0 | 3/4 | In Progress|  |
+| 25. View UX Parity | v4.0 | 4/4 | Complete   | 2026-07-14 |
 | 26. Additional View Types | v4.0 | 0/TBD | Not started | - |
 
 ---
