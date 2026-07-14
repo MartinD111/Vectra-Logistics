@@ -4,12 +4,12 @@ milestone: v4.0
 milestone_name: Workspace Records & Views
 status: executing
 stopped_at: Phase 23 context gathered
-last_updated: "2026-07-14T06:44:56.713Z"
-last_activity: 2026-07-14 -- Phase 22 execution started
+last_updated: "2026-07-14T07:10:52.051Z"
+last_activity: 2026-07-14 -- Phase 23 execution started
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 9
+  total_plans: 11
   completed_plans: 9
   percent: 67
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Phase 22 — records-views-data-model
+**Current focus:** Phase 23 — record-detail-page
 
 ## Current Position
 
-Phase: 22 (records-views-data-model) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 22
-Last activity: 2026-07-14 -- Phase 22 execution started
+Phase: 23 (record-detail-page) — EXECUTING
+Plan: 1 of 2
+Status: Executing Phase 23
+Last activity: 2026-07-14 -- Phase 23 execution started
 
 **Decision coverage override (2026-07-13):** Decision Coverage Gate flagged D-01, D-04, D-05, D-06, D-07, D-08, D-09, D-11, D-13 as not literally cited by ID in any 21-*-PLAN.md. User reviewed and chose "Proceed anyway" — gsd-plan-checker's independent Dimension 7 review already confirmed all 9 are substantively implemented (nesting mechanism in 21-05, media decisions in 21-03, mention scope in 21-02, sub-page preview in 21-04); the gap is citation-format only, not a missing feature. If verify-phase re-surfaces this, treat it as already reviewed and accepted.
 

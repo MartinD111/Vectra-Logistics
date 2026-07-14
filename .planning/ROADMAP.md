@@ -151,7 +151,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 23-01-PLAN.md — Frontend data layer (records.api.ts, useRecords.ts) + schema-driven PropertyField editor, all 12 property types (CARD-02, CARD-03)
+- [x] 23-01-PLAN.md — Frontend data layer (records.api.ts, useRecords.ts) + schema-driven PropertyField editor, all 12 property types (CARD-02, CARD-03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -233,7 +233,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 20. Deploy Hardening + Connectivity Doc | v3.0 | 4/4 | Complete    | 2026-07-13 |
 | 21. Missing Content Blocks | v4.0 | 5/5 | Complete   | 2026-07-13 |
 | 22. Records + Views Data Model | v4.0 | 4/4 | Complete   | 2026-07-14 |
-| 23. Record Detail Page | v4.0 | 0/2 | Not started | - |
+| 23. Record Detail Page | v4.0 | 1/2 | In Progress|  |
 | 24. Board View & Legacy Kanban Migration | v4.0 | 0/TBD | Not started | - |
 | 25. View UX Parity | v4.0 | 0/TBD | Not started | - |
 | 26. Additional View Types | v4.0 | 0/TBD | Not started | - |
