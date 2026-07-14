@@ -95,7 +95,12 @@ export function evaluateCondition(
     case 'not_contains': {
       let matches: boolean;
       if (ARRAY_TYPES.has(property.type)) {
-        matches = Array.isArray(recordValue) && recordValue.includes(condition.value);
+        // condition.value for array-typed properties is itself an array (the
+        // full selection from MultiSelectChips/StringArrayChips), not a single
+        // scalar — test intersection against recordValue rather than a
+        // reference-equality includes() (CR-01).
+        const targets = Array.isArray(condition.value) ? condition.value : [condition.value];
+        matches = Array.isArray(recordValue) && targets.some((t) => recordValue.includes(t));
       } else {
         matches = String(recordValue ?? '').toLowerCase().includes(String(condition.value ?? '').toLowerCase());
       }
