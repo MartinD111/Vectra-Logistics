@@ -4,7 +4,7 @@ import { recordsService } from './records.service';
 import { recordsRepository } from './records.repository';
 import { DataCollectionRow, CollectionRecordRow, CollectionViewRow } from './records.types';
 
-const COLLECTION_ID = '11111111-1111-1111-1111-111111111111';
+const COLLECTION_ID = '11111111-1111-4111-8111-111111111111';
 
 function makeCollection(overrides: Partial<DataCollectionRow> = {}): DataCollectionRow {
   return {
@@ -122,7 +122,7 @@ test('createRecord throws 404 before running prop validation when the collection
   const createRecordMock = mock.method(recordsRepository, 'createRecord', async () => makeRecord());
 
   await assert.rejects(
-    recordsService.createRecord('company-1', { collection_id: '11111111-1111-1111-1111-111111111111', props: { notInSchema: 'x' } }),
+    recordsService.createRecord('company-1', { collection_id: '11111111-1111-4111-8111-111111111111', props: { notInSchema: 'x' } }),
     (err: unknown) => {
       assert.ok(err instanceof Error);
       assert.equal((err as { status?: number }).status, 404);
