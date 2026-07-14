@@ -18,10 +18,13 @@ import { recordsApi, type CollectionPropertyDef, type CollectionRecord } from '@
 import {
   useCollection, useView, useRecords, useCreateCollection, useUpdateAnyRecord,
 } from '@/lib/hooks/useRecords';
-import { applyFilters, applySorts, type FilterCondition, type SortCondition } from '@/lib/projectPage/viewFilters';
+import {
+  applyFilters, applySorts, type FilterCondition, type SortCondition, type AggregationConfig,
+} from '@/lib/projectPage/viewFilters';
 import { BoardColumn } from './board/BoardColumn';
 import { AddColumnControl } from './board/AddColumnControl';
 import { FilterSortToolbar } from './board/FilterSortToolbar';
+import { ViewSettingsMenu } from './board/ViewSettingsMenu';
 
 /** Groups records into board columns from the live option values of the
  *  groupBy select property — never hand-authored (BOARD-01). */
@@ -140,6 +143,9 @@ export function BoardBlock({
   const sorted = applySorts(filtered, (view.config.sorts as SortCondition[]) ?? [], collection.schema);
   const columns = groupRecordsByColumn(sorted, collection.schema, groupByPropId);
   const isFilteredEmpty = filtered.length === 0 && activeFilters.length > 0;
+  const cardProperties = collection.schema.filter((p) =>
+    ((view.config.cardProperties as string[]) ?? []).includes(p.id));
+  const aggregation = view.config.columnAggregation as AggregationConfig | undefined;
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -174,8 +180,9 @@ export function BoardBlock({
   return (
     <div className="saas-card !p-4">
       {block.title && <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2">{block.title}</h3>}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center justify-between gap-2 mb-3">
         <FilterSortToolbar collection={collection} view={view} />
+        <ViewSettingsMenu collection={collection} view={view} />
       </div>
       {isFilteredEmpty ? (
         <BoardEmptyFilterState />
@@ -190,6 +197,8 @@ export function BoardBlock({
                 collectionId={block.collectionId as string}
                 collection={collection}
                 groupByPropId={groupByPropId}
+                cardProperties={cardProperties}
+                aggregation={aggregation}
               />
             ))}
             <AddColumnControl collection={collection} groupByPropId={groupByPropId} />
