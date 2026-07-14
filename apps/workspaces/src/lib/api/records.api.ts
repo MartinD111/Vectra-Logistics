@@ -70,6 +70,12 @@ export interface CreateViewInput {
   config: Record<string, unknown>;
 }
 
+export interface UpdateViewInput {
+  name?: string;
+  type?: string;
+  config?: Record<string, unknown>;
+}
+
 const BASE = '/api/v1/records';
 
 export const recordsApi = {
@@ -95,4 +101,6 @@ export const recordsApi = {
     apiFetch<{ view: CollectionView }>(`${BASE}/collections/${collectionId}/views`, 'POST', data).then((r) => r.view),
   getView: (id: string) =>
     apiFetch<{ view: CollectionView }>(`${BASE}/views/${id}`).then((r) => r.view),
+  updateView: (id: string, data: UpdateViewInput) =>
+    apiFetch<{ view: CollectionView }>(`${BASE}/views/${id}`, 'PATCH', data).then((r) => r.view),
 };
