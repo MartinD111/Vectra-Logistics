@@ -19,6 +19,7 @@ import {
   useCollection, useView, useRecords, useCreateCollection, useCreateView, useUpdateAnyRecord,
 } from '@/lib/hooks/useRecords';
 import { BoardColumn } from './board/BoardColumn';
+import { AddColumnControl } from './board/AddColumnControl';
 
 /** Groups records into board columns from the live option values of the
  *  groupBy select property — never hand-authored (BOARD-01). */
@@ -160,8 +161,16 @@ export function BoardBlock({
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <div className="flex gap-3 overflow-x-auto pb-1">
           {columns.map((col) => (
-            <BoardColumn key={col.id} column={col} titlePropId={titlePropId} collectionId={block.collectionId as string} />
+            <BoardColumn
+              key={col.id}
+              column={col}
+              titlePropId={titlePropId}
+              collectionId={block.collectionId as string}
+              collection={collection}
+              groupByPropId={groupByPropId}
+            />
           ))}
+          <AddColumnControl collection={collection} groupByPropId={groupByPropId} />
         </div>
       </DndContext>
     </div>
