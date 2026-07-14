@@ -10,9 +10,11 @@ import { useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Plus, Trash2 } from 'lucide-react';
-import type { CollectionRecord, DataCollection } from '@/lib/api/records.api';
+import type { CollectionPropertyDef, CollectionRecord, DataCollection } from '@/lib/api/records.api';
 import { useCreateRecord, useUpdateCollectionSchema } from '@/lib/hooks/useRecords';
+import type { AggregationConfig } from '@/lib/projectPage/viewFilters';
 import { BoardCard } from './BoardCard';
+import { ColumnAggregation } from './ColumnAggregation';
 
 export interface BoardColumnData {
   id: string;
@@ -26,12 +28,16 @@ export function BoardColumn({
   collectionId,
   collection,
   groupByPropId,
+  cardProperties,
+  aggregation,
 }: {
   column: BoardColumnData;
   titlePropId: string;
   collectionId: string;
   collection: DataCollection;
   groupByPropId: string;
+  cardProperties?: CollectionPropertyDef[];
+  aggregation?: AggregationConfig;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
   const updateSchema = useUpdateCollectionSchema(collection.id);
@@ -134,10 +140,13 @@ export function BoardColumn({
               collectionId={collectionId}
               autoFocusEdit={editingNewCardId === card.id}
               onExitEdit={() => setEditingNewCardId((cur) => (cur === card.id ? null : cur))}
+              cardProperties={cardProperties}
             />
           ))}
         </SortableContext>
       </div>
+
+      <ColumnAggregation records={column.cards} schema={collection.schema} aggregation={aggregation} />
 
       <button
         type="button"
