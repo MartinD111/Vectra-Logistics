@@ -53,9 +53,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [x] **VIEW-01**: User can view a collection as a table (rows/columns, sortable/filterable) — delivered by Phase 25 plan 25-04 (`CollectionTableView.tsx`)
 - [x] **VIEW-02**: User can view a collection as a flat list
-- [ ] **VIEW-03**: User can view a collection as a calendar, plotted by a date property
+- [x] **VIEW-03**: User can view a collection as a calendar, plotted by a date property
 - [x] **VIEW-04**: User can view a collection as a gallery (card grid with optional cover image)
-- [ ] **VIEW-05**: User can view a collection as a timeline/Gantt, plotted by a date-range property
+- [x] **VIEW-05**: User can view a collection as a timeline/Gantt, plotted by a date-range property
 
 ## v2 Requirements
 
@@ -116,9 +116,9 @@ Explicitly excluded from v4.0. Documented to prevent scope creep.
 | VIEWX-04 | Phase 25 | Complete |
 | VIEW-01 | Phase 25 | Complete |
 | VIEW-02 | Phase 26 | Complete |
-| VIEW-03 | Phase 26 | Pending |
+| VIEW-03 | Phase 26 | Complete |
 | VIEW-04 | Phase 26 | Complete |
-| VIEW-05 | Phase 26 | Pending |
+| VIEW-05 | Phase 26 | Complete |
 
 **Coverage:**
 - v1 requirements: 30 total

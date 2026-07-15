@@ -285,7 +285,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 23. Record Detail Page | v4.0 | 2/2 | Complete   | 2026-07-14 |
 | 24. Board View & Legacy Kanban Migration | v4.0 | 4/4 | Complete    | 2026-07-14 |
 | 25. View UX Parity | v4.0 | 4/4 | Complete    | 2026-07-15 |
-| 26. Additional View Types | v4.0 | 5/5 | Complete   | 2026-07-15 |
+| 26. Additional View Types | v4.0 | 5/5 | Complete    | 2026-07-15 |
 
 ---
 *Roadmap created: 2026-07-05 · v1.0 archived: 2026-07-06 · v2.0 archived: 2026-07-12 · v3.0 archived: 2026-07-13 · v4.0 roadmap added: 2026-07-13*
