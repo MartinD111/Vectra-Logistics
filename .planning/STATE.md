@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Platform Foundation & Durable Execution
-status: milestone_complete
-stopped_at: Milestone complete (Phase 29 was final phase)
-last_updated: 2026-07-15T19:51:53.669Z
-last_activity: 2026-07-15
+status: executing
+stopped_at: Phase 30 planned; ready to execute
+last_updated: "2026-07-15T20:01:07.033Z"
+last_activity: 2026-07-15 -- Phase 30 planning complete
 progress:
-  total_phases: 9
+  total_phases: 10
   completed_phases: 9
-  total_plans: 31
+  total_plans: 32
   completed_plans: 31
-  percent: 100
+  percent: 90
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history - the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Milestone complete
+**Current focus:** Phase 30 - Workflow MVP Persistence & Manual Trigger
 
 ## Current Position
 
-Phase: 29
+Phase: 30
 Plan: Not started
-Status: Milestone complete
-Last activity: 2026-07-15
+Status: Ready to execute
+Last activity: 2026-07-15 -- Phase 30 planning complete
 
 **v5.0 kickoff note:** The imported roadmap is not being restarted at Phase 0. v1-v4 shipped work is preserved; v5 starts at Phase 27 and focuses on baseline truth, security/tenancy/capabilities, durable event/outbox, and workflow persistence. Agent workstreams are assigned in `.planning/AGENT-WORKSTREAMS.md`.
 
@@ -97,10 +97,10 @@ Items acknowledged and deferred at v4.0 close on 2026-07-15:
 
 ## Session Continuity
 
-Last session: 2026-07-15T19:49:40.468Z
-Stopped at: Completed 29-02-PLAN.md
+Last session: 2026-07-15T20:01:07.033Z
+Stopped at: Phase 30 planned; ready to execute
 Resume file: None
 
 ## Operator Next Steps
 
-- Execute the planned work with `/gsd:execute-phase 29`
+- Execute the planned work with `/gsd:execute-phase 30`
