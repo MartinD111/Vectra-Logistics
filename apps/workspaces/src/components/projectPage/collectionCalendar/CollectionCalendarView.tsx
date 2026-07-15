@@ -6,10 +6,11 @@
 // so nothing silently disappears (D-02). Not wired into BoardBlock.tsx yet
 // (Plan 26-05 wires the view.type branch).
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatCardPropertyValue } from '../board/BoardCard';
 import { useTeam } from '@/lib/hooks/useTeam';
+import { useCreateRecord, useUpdateAnyRecord } from '@/lib/hooks/useRecords';
 import type { DataCollection, CollectionRecord, CollectionPropertyDef } from '@/lib/api/records.api';
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -54,23 +55,90 @@ function CalendarEmptyState() {
   );
 }
 
-// Read-only chip body -- title + first cardProperties[] entry, truncated.
-// Click-through opens the record detail page, same pattern as BoardCard.
+// Chip body -- title + first cardProperties[] entry, truncated. Click-through
+// opens the record detail page (same pattern as BoardCard) when not editing.
+// When `autoFocusEdit` is true (set by the day-cell click-to-create handler),
+// renders an inline-editable title input instead, replicating BoardCard.tsx's
+// editing/draft/debounceTimer/lastCommittedRef/flush/handleChange/commitAndExit
+// state machine verbatim (D-03 mirrors Phase 24's D-07 inline "+ New" pattern).
 function CalendarChip({
   record,
   titlePropId,
   collectionId,
   cardProperties,
   personNames,
+  autoFocusEdit = false,
+  onExitEdit,
+  updateRecord,
 }: {
   record: CollectionRecord;
   titlePropId: string;
   collectionId: string;
   cardProperties: CollectionPropertyDef[];
   personNames: Map<string, string>;
+  autoFocusEdit?: boolean;
+  onExitEdit?: () => void;
+  updateRecord: ReturnType<typeof useUpdateAnyRecord>;
 }) {
   const title = String(record.props[titlePropId] ?? '');
   const firstProperty = cardProperties[0];
+
+  const [editing, setEditing] = useState(autoFocusEdit);
+  const [draft, setDraft] = useState(title);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastCommittedRef = useRef(title);
+
+  useEffect(() => {
+    setEditing(autoFocusEdit);
+    setDraft(title);
+    lastCommittedRef.current = title;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFocusEdit, record.id]);
+
+  const flush = (next: string) => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    if (next !== lastCommittedRef.current) {
+      lastCommittedRef.current = next;
+      updateRecord.mutate({ id: record.id, data: { props: { ...record.props, [titlePropId]: next } } });
+    }
+  };
+
+  const handleChange = (next: string) => {
+    setDraft(next);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => flush(next), 800);
+  };
+
+  const commitAndExit = () => {
+    flush(draft);
+    setEditing(false);
+    onExitEdit?.();
+  };
+
+  if (editing) {
+    return (
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="rounded-md bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 px-1.5 py-1 text-xs shadow-sm"
+      >
+        <input
+          autoFocus
+          type="text"
+          value={draft}
+          placeholder="Untitled"
+          onChange={(e) => handleChange(e.target.value)}
+          onBlur={commitAndExit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') { e.preventDefault(); commitAndExit(); }
+            // Escape exits edit mode WITHOUT deleting the already-persisted
+            // record -- leaves it "Untitled" until edited again (D-07).
+            if (e.key === 'Escape') { setDraft(lastCommittedRef.current); setEditing(false); onExitEdit?.(); }
+          }}
+          className="w-full bg-transparent focus:outline-none focus:ring-1 focus:ring-primary-500 rounded-sm text-xs text-gray-800 dark:text-gray-200"
+        />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -109,6 +177,10 @@ export function CollectionCalendarView({
 }) {
   const { data: team = [] } = useTeam();
   const personNames = new Map(team.map((m) => [m.id, `${m.first_name} ${m.last_name}`.trim()]));
+
+  const createRecord = useCreateRecord(collectionId);
+  const updateRecord = useUpdateAnyRecord(collectionId);
+  const [autoFocusId, setAutoFocusId] = useState<string | null>(null);
 
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
 
@@ -186,7 +258,13 @@ export function CollectionCalendarView({
             return (
               <div
                 key={dayKey}
-                className={`min-h-[96px] border border-gray-200 dark:border-slate-700 p-1 space-y-1 ${isCurrentMonth ? '' : 'bg-gray-50 dark:bg-slate-800/40'}`}
+                onClick={() => {
+                  createRecord
+                    .mutateAsync({ props: { [titlePropId]: '', [calendarDateProperty]: dayKey } })
+                    .then((created) => setAutoFocusId(created.id))
+                    .catch((err) => console.error('Failed to create calendar record:', err));
+                }}
+                className={`min-h-[96px] border border-gray-200 dark:border-slate-700 p-1 space-y-1 cursor-pointer ${isCurrentMonth ? '' : 'bg-gray-50 dark:bg-slate-800/40'}`}
               >
                 {isToday ? (
                   <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-600 text-white text-xs font-semibold">
@@ -203,6 +281,9 @@ export function CollectionCalendarView({
                     collectionId={collectionId}
                     cardProperties={cardProperties}
                     personNames={personNames}
+                    updateRecord={updateRecord}
+                    autoFocusEdit={record.id === autoFocusId}
+                    onExitEdit={() => setAutoFocusId(null)}
                   />
                 ))}
               </div>
@@ -225,6 +306,7 @@ export function CollectionCalendarView({
                 collectionId={collectionId}
                 cardProperties={cardProperties}
                 personNames={personNames}
+                updateRecord={updateRecord}
               />
             ))}
           </div>
