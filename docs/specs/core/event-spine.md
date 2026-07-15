@@ -5,6 +5,11 @@ canonical durable publication contract for workflow/integration consumers.
 `activity_events` remains the append-only analytics/history projection that
 statistics and KPIs read.
 
+Phase 30 adds the first workflow MVP run contract. Persisted manual workflow
+runs reuse the event spine vocabulary for `correlation_id` and `event_id`, but
+the durable run/step inspection source is `workflow_runs` and
+`workflow_run_steps`, not browser state or `activity_events`.
+
 Referenced by code comments as **CLAUDE.md §3** and **§4**. Keep those section
 references intact.
 
@@ -281,6 +286,8 @@ ad-hoc counters. Detail of the KPI layer belongs in `kpi-engine.md`, not here.
 
 **Do**
 - Use `event_outbox` for durable workflow/integration publication contracts.
+- Use `workflow_runs` / `workflow_run_steps` for Phase 30 manual workflow
+  execution logs, idempotency, attempts, timestamps, and step output.
 - Write every meaningful business action via `recordEvent` from the service layer.
 - Set `tenant_id` always, `project_id` whenever project-scoped.
 - Put sliceable detail in `payload`, generously.
@@ -288,6 +295,8 @@ ad-hoc counters. Detail of the KPI layer belongs in `kpi-engine.md`, not here.
 
 **Don't**
 - Don't treat `activity_events` as the durable source for Phase 30 workflows.
+- Don't treat Phase 30 as a full scheduler/connector workflow platform; the
+  supported MVP graph is `trigger.manual -> action.notification.create`.
 - Don't add domain-specific columns — use `payload`.
 - Don't maintain parallel counters or cached totals for anything derivable here.
 - Don't let `recordEvent` throw or roll back the real action.

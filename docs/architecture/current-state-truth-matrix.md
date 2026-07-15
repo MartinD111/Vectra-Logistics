@@ -11,7 +11,7 @@
 | Surface | Repo truth | Current status |
 |---------|------------|----------------|
 | `apps/api` | Shared Express backend. Canonical DDD surface mounted at `/api/v1`, plus legacy `/api/auth`, `/api/profile`, `/api/documents`, `/api/shipments`, `/api/capacity`, `/api/integrations`, `/api/ratings`, `/api/companies`, `/api/webhooks`, `/api/pod`, `/uploads`, and `/health`. Phase 29 adds the durable `event_outbox` publication path and event dispatcher. | Partial: real backend surface, but legacy and canonical routes coexist, and some legacy public edges still need tenancy/security normalization. |
-| `apps/workspaces` | Main Next.js workspace app with records, projects, programs, automations, CRM-adjacent UI, and vertical operational surfaces. | Shipped for current v1-v4 spine, with known lint debt and demo/stub caveats in some downstream features. |
+| `apps/workspaces` | Main Next.js workspace app with records, projects, programs, automations, CRM-adjacent UI, and vertical operational surfaces. | Shipped for current v1-v4 spine, with known lint debt and demo/stub caveats in some downstream features. Phase 30 backs the automations dashboard/builder with persisted workflow drafts and manual run inspection for the narrow notification-action MVP. |
 | `apps/cmr` | Separate Next.js CMR/POD-facing app. | Partial: real production build exists, but broader lifecycle unification remains incomplete. |
 | `apps/marketplace` | Separate Next.js marketplace/LTL app. | Partial: real production build exists, but shipment/capacity lifecycle remains fragmented and partially demo/stub-backed. |
 
@@ -95,8 +95,8 @@ Repo truth: this is the canonical DDD API surface. It is real and substantial, b
 
 | Surface | Repo truth | Current status |
 |---------|------------|----------------|
-| `database/migrations/` | Visible migration range is `002_realtime_and_documents.sql` through `026_event_outbox.sql`. There is no visible `001_*` file in the repo. | Partial baseline: real migration trail exists, but Phase 27 must treat missing early numbering and code/schema drift as truth, not assume completeness. |
-| Latest visible schema surface | Latest migration is `026_event_outbox.sql`. | Shipped for v5 Phase 29 durable event outbox baseline. |
+| `database/migrations/` | Visible migration range is `002_realtime_and_documents.sql` through `027_workflows.sql`. There is no visible `001_*` file in the repo. | Partial baseline: real migration trail exists, but Phase 27 must treat missing early numbering and code/schema drift as truth, not assume completeness. |
+| Latest visible schema surface | Latest migration is `027_workflows.sql`. | Shipped for v5 Phase 30 workflow MVP persistence on top of the Phase 29 durable event outbox baseline. |
 | Schema-truth caveat | Code still references `integration_credentials`, `api_credentials`, `internal_api_keys`, `vehicle_locations`, and `assignment_scores` without a complete visible migration trail proven in this repo. | Partial/risky: must be resolved as part of the v5 schema-truth ADR gap before architecture-changing work builds on these tables. |
 
 ### Operational entrypoints
@@ -173,7 +173,7 @@ Repo truth: development boot and migration truth are not a single path today. Th
 
 - Tenant isolation is implemented by convention in many domains, but lacks a shared cross-tenant test harness.
 - `event_outbox` now exists for the records collection-created pilot, but most legacy `recordEvent()` call sites are not yet backed by durable publication.
-- Automations are still a UI/demo surface rather than a persisted workflow runtime.
+- Automations now have a narrow persisted Phase 30 MVP for drafts, publish, manual notification runs, idempotency, and step logs; connector actions, event subscriptions, scheduling, and full orchestration remain deferred.
 - Public/integration endpoints need a unified signed/keyed framework before more connectors are added.
 - Demo/stub behavior needs a single explicit capability/demo-mode story so production cannot synthesize operational data silently.
 - Legacy `/api/shipments` and `/api/capacity` appear unauthenticated and accept caller-supplied `user_id`; Phase 28 should quarantine or migrate them.
@@ -193,7 +193,7 @@ Status note: Phase 28 now codifies the shipped request/capability/public-trust c
 | Demo-mode vs production-mode capability policy | Several surfaces have demo/stub behavior today. The platform needs one explicit rule for when synthetic behavior is allowed, surfaced, and denied. | Blocks Phase 28 and protects Phase 30 from building on silent demo fallbacks. |
 | Schema-truth ADR for credential/runtime tables | Code references runtime and credential tables without a complete visible migration trail. The team needs one canonical answer on whether these are missing migrations, external/manual tables, or dead references. | Blocks Phase 28 and Phase 29 schema work. |
 | Event envelope and durable outbox contract | Phase 29 now defines the v1 outbox envelope and records pilot catalog. Additional domains still need explicit catalog entries before workflow consumers rely on them. | Phase 30 can consume the records pilot; broader integration events remain deferred. |
-| Workflow persistence and run contract | Current automation UI is not backed by durable drafts, runs, steps, or idempotency rules. | Blocks Phase 30. |
+| Workflow persistence and run contract | Phase 30 defines the first durable workflow MVP contract: persisted drafts, active publish state, manual trigger, notification action, idempotent `workflow_runs`, and step logs. Broader connector/scheduler orchestration remains an ADR gap for later phases. | Unblocks the Phase 30 MVP; still gates future full automation work. |
 | Matching-engine/service contract reconciliation | Node worker assumptions and FastAPI route contracts are not visibly aligned. Durable queue/event work should not inherit that ambiguity. | Blocks Phase 29 event work and future routing vertical execution. |
 | Migration/bootstrap contract for local and production environments | Development Compose boot and the migration runner are not one unified path today. The repo needs one operator-truth ADR for how schema state is established and upgraded in each environment. | Blocks Phase 29 schema changes and future operator hardening. |
 

@@ -80,3 +80,36 @@ database transaction that inserts `data_collections` and `collection_views`.
 Phase 29 intentionally does not add a general outbox inspection API/UI, and it
 does not migrate all legacy `recordEvent()` call sites. New durable events
 should be added one domain fact at a time with an explicit catalog entry.
+
+## Event: `workflow.manual_triggered`
+
+| Property | Value |
+|----------|-------|
+| Event name | `workflow.manual_triggered` |
+| Object type | `workflow` |
+| Envelope version | `1` |
+| Payload version | `1` |
+| Primary consumer | Workflow run persistence and operator run-detail UI |
+| Derived projection | None in the Phase 30 MVP |
+
+### Business Fact
+
+A user manually requested execution of a persisted workflow draft that has been
+published as active. Phase 30 uses this vocabulary for run correlation and step
+inspection, while the run itself is persisted in `workflow_runs` and
+`workflow_run_steps`.
+
+### Payload v1
+
+```json
+{
+  "workflow_id": "uuid",
+  "workflow_version": 1,
+  "idempotency_key": "manual-workflow-uuid-or-client-key"
+}
+```
+
+Manual trigger duplicate protection is enforced by the workflow schema with a
+unique `(tenant_id, workflow_id, idempotency_key)` constraint. Repeated requests
+with the same key return the original run instead of creating a second
+notification side effect.
