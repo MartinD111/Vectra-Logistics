@@ -38,7 +38,15 @@ function formatCardPropertyValue(
       const match = options.find((o) => o.id === value);
       return match ? match.label : (typeof value === 'string' ? value : '');
     }
-    case 'multi-select':
+    case 'multi-select': {
+      // Unlike files/relation, multi-select values are option ids backed by
+      // property.options (same as select) — resolve labels rather than
+      // joining raw ids (WR-02).
+      const options = (property.options ?? []) as { id: string; label: string }[];
+      return Array.isArray(value)
+        ? value.map((v) => options.find((o) => o.id === v)?.label ?? String(v)).join(', ')
+        : '';
+    }
     case 'files':
     case 'relation':
       return Array.isArray(value) ? value.join(', ') : '';
