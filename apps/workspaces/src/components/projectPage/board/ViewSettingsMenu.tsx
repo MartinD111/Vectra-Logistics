@@ -8,7 +8,7 @@
 // useUpdateView, no separate "Save" button, matching FilterSortToolbar's
 // established instant-persist convention (Plan 25-02).
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 import type { DataCollection, CollectionView } from '@/lib/api/records.api';
 import { useUpdateView } from '@/lib/hooks/useRecords';
@@ -23,8 +23,28 @@ export function ViewSettingsMenu({
   const [editing, setEditing] = useState(false);
   const updateView = useUpdateView(view.id);
 
-  const cardProperties = (view.config.cardProperties as string[]) ?? [];
-  const aggregation = view.config.columnAggregation as AggregationConfig | undefined;
+  // WR-04: cardProperties/aggregation are buffered in local state instead of
+  // read straight off the view.config prop each render, so two rapid edits
+  // (e.g. toggling two card-face-property checkboxes back-to-back) compute
+  // their "next" value from the immediately-preceding local edit rather than
+  // the same stale view.config snapshot — otherwise whichever PATCH response
+  // lands last silently drops the other edit. Re-synced only when the view
+  // itself changes (switching views).
+  const [localCardProperties, setLocalCardProperties] = useState<string[]>(
+    () => (view.config.cardProperties as string[]) ?? [],
+  );
+  const [localAggregation, setLocalAggregation] = useState<AggregationConfig | undefined>(
+    () => view.config.columnAggregation as AggregationConfig | undefined,
+  );
+
+  useEffect(() => {
+    setLocalCardProperties((view.config.cardProperties as string[]) ?? []);
+    setLocalAggregation(view.config.columnAggregation as AggregationConfig | undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view.id]);
+
+  const cardProperties = localCardProperties;
+  const aggregation = localAggregation;
   const aggType = aggregation?.type ?? 'count';
   const numberProperties = collection.schema.filter((p) => p.type === 'number');
 
@@ -32,19 +52,20 @@ export function ViewSettingsMenu({
     const next = cardProperties.includes(propId)
       ? cardProperties.filter((id) => id !== propId)
       : [...cardProperties, propId];
+    setLocalCardProperties(next);
     updateView.mutate({ config: { ...view.config, cardProperties: next } });
   };
 
   const setAggregationType = (nextType: AggregationConfig['type']) => {
-    updateView.mutate({
-      config: { ...view.config, columnAggregation: { type: nextType, propId: aggregation?.propId } },
-    });
+    const next = { type: nextType, propId: aggregation?.propId };
+    setLocalAggregation(next);
+    updateView.mutate({ config: { ...view.config, columnAggregation: next } });
   };
 
   const setAggregationProp = (nextPropId: string) => {
-    updateView.mutate({
-      config: { ...view.config, columnAggregation: { type: aggType, propId: nextPropId } },
-    });
+    const next = { type: aggType, propId: nextPropId };
+    setLocalAggregation(next);
+    updateView.mutate({ config: { ...view.config, columnAggregation: next } });
   };
 
   return (

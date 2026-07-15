@@ -6,7 +6,7 @@
 // pattern. AND-only (no OR toggle), autosave-on-change via useUpdateView —
 // no separate "Apply"/"Save" button.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Filter, ArrowUpDown } from 'lucide-react';
 import { PropertyField } from '@/components/records/PropertyField';
 import type { DataCollection, CollectionView, CollectionPropertyDef } from '@/lib/api/records.api';
@@ -32,20 +32,42 @@ export function FilterSortToolbar({
   view: CollectionView;
 }) {
   const updateView = useUpdateView(view.id);
-  const filters = ((view.config.filters as FilterCondition[]) ?? []);
-  const sorts = ((view.config.sorts as SortCondition[]) ?? []);
+
+  // WR-04: filters/sorts are buffered in local state (rather than read
+  // straight off the view.config prop each render) so two rapid edits in a
+  // row compute their "next" array from the immediately-preceding local edit,
+  // not from the same stale view.config snapshot. Without this, two
+  // back-to-back mutations both base themselves on the pre-edit config and
+  // whichever PATCH response lands last silently overwrites the other's
+  // change. Re-synced only when the view itself changes (switching views),
+  // not on every parent re-render, so it doesn't clobber an in-flight local
+  // edit with a stale prop value.
+  const [localFilters, setLocalFilters] = useState<FilterCondition[]>(
+    () => (view.config.filters as FilterCondition[]) ?? [],
+  );
+  const [localSorts, setLocalSorts] = useState<SortCondition[]>(
+    () => (view.config.sorts as SortCondition[]) ?? [],
+  );
+
+  useEffect(() => {
+    setLocalFilters((view.config.filters as FilterCondition[]) ?? []);
+    setLocalSorts((view.config.sorts as SortCondition[]) ?? []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view.id]);
 
   const saveFilters = (next: FilterCondition[]) => {
+    setLocalFilters(next);
     updateView.mutate({ config: { ...view.config, filters: next } });
   };
   const saveSorts = (next: SortCondition[]) => {
+    setLocalSorts(next);
     updateView.mutate({ config: { ...view.config, sorts: next } });
   };
 
   return (
     <div className="flex items-center gap-2">
-      <FilterPopover collection={collection} filters={filters} onChange={saveFilters} />
-      <SortPopover collection={collection} sorts={sorts} onChange={saveSorts} />
+      <FilterPopover collection={collection} filters={localFilters} onChange={saveFilters} />
+      <SortPopover collection={collection} sorts={localSorts} onChange={saveSorts} />
     </div>
   );
 }
