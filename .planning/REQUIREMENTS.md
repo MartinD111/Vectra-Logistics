@@ -18,11 +18,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Security & Tenancy
 
-- [ ] **SECCTX-01**: API handlers can consume one typed `RequestContext` carrying user, company, roles, workspace, request id, deployment mode, and deployment capabilities.
-- [ ] **SECCTX-02**: A reusable permission/capability service can answer workspace, page, record, program, workflow, integration, and module-level capability checks.
-- [ ] **SECCTX-03**: Cross-tenant negative tests exist for pilot read/write paths in folders, projects/pages/programs, records/views, CRM, marketplace/POD, and integrations.
-- [ ] **SECCTX-04**: Public or integration-facing endpoints use a documented signed token/API-key/HMAC pattern, not unsigned tenant-identifying payloads.
-- [ ] **SECCTX-05**: Production/demo behavior is capability-gated so production paths never silently synthesize operational demo data.
+- [x] **SECCTX-01**: API handlers can consume one typed `RequestContext` carrying user, company, roles, workspace, request id, deployment mode, and deployment capabilities.
+- [x] **SECCTX-02**: A reusable permission/capability service can answer workspace, page, record, program, workflow, integration, and module-level capability checks.
+- [x] **SECCTX-03**: Cross-tenant negative tests exist for pilot read/write paths in folders, projects/pages/programs, records/views, CRM, marketplace/POD, and integrations.
+- [x] **SECCTX-04**: Public or integration-facing endpoints use a documented signed token/API-key/HMAC pattern, not unsigned tenant-identifying payloads.
+- [x] **SECCTX-05**: Production/demo behavior is capability-gated so production paths never silently synthesize operational demo data.
 
 ### Event Spine & Outbox
 
@@ -77,11 +77,11 @@ Deferred to future milestones, tracked to keep dependency order visible.
 | BASE-02 | Phase 27 | Complete |
 | BASE-03 | Phase 27 | Complete |
 | BASE-04 | Phase 27 | Complete |
-| SECCTX-01 | Phase 28 | Pending |
-| SECCTX-02 | Phase 28 | Pending |
-| SECCTX-03 | Phase 28 | Pending |
-| SECCTX-04 | Phase 28 | Pending |
-| SECCTX-05 | Phase 28 | Pending |
+| SECCTX-01 | Phase 28 | Complete |
+| SECCTX-02 | Phase 28 | Complete |
+| SECCTX-03 | Phase 28 | Complete |
+| SECCTX-04 | Phase 28 | Complete |
+| SECCTX-05 | Phase 28 | Complete |
 | EVENT-01 | Phase 29 | Complete |
 | EVENT-02 | Phase 29 | Complete |
 | EVENT-03 | Phase 29 | Complete |
