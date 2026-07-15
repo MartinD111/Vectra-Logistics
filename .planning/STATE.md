@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Platform Foundation & Durable Execution
-status: planning
-stopped_at: Phase 27 complete
-last_updated: "2026-07-15T15:04:51.393Z"
-last_activity: 2026-07-15 -- Phase 27 completed; Phase 28 ready for discuss/plan
+status: Ready for discuss/plan
+stopped_at: Phase 28 context gathered
+last_updated: "2026-07-15T15:21:54.077Z"
+last_activity: 2026-07-15 -- Phase 27 completed
 progress:
-  total_phases: 7
-  completed_phases: 6
+  total_phases: 8
+  completed_phases: 7
   total_plans: 25
   completed_plans: 25
-  percent: 86
+  percent: 88
 ---
 
 # Project State
@@ -97,9 +97,9 @@ Items acknowledged and deferred at v4.0 close on 2026-07-15:
 
 ## Session Continuity
 
-Last session: 2026-07-15T15:04:51.393Z
-Stopped at: Phase 27 complete
-Resume file: .planning/ROADMAP.md
+Last session: 2026-07-15T15:21:54.058Z
+Stopped at: Phase 28 context gathered
+Resume file: .planning/phases/28-security-tenancy-capabilities-foundation/28-CONTEXT.md
 
 ## Operator Next Steps
 
