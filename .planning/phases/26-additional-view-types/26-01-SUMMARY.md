@@ -107,3 +107,7 @@ Wave 2 plans (26-02 List view, 26-03 Calendar/Gallery view, 26-04 Timeline view)
 ---
 *Phase: 26-additional-view-types*
 *Completed: 2026-07-15*
+
+## Self-Check: PASSED
+
+All created/modified files and all four task/summary commit hashes (7c0fef8, 809dd91, a26b995, 7e67074) were verified present in the worktree and git log.
