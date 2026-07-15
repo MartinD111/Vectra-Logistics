@@ -92,6 +92,12 @@ Milestone audit: [milestones/v4.0-MILESTONE-AUDIT.md](milestones/v4.0-MILESTONE-
 
 **Agent owner:** Backend Security Agent with QA/Release Agent.
 
+**Planned execution:**
+- Wave 1 `28-01` - Shared RequestContext and capability spine in core auth/config code.
+- Wave 2 `28-02` - Roll the shared request/capability contract through projects, folders, records, CRM, integrations, and authenticated POD-adjacent surfaces.
+- Wave 2 `28-03` - Normalize gate/provider public trust and introduce explicit production-vs-demo capability policy plus migration docs for remaining token routes.
+- Wave 3 `28-04` - Add cross-tenant negative tests and publish the durable Phase 28 contract docs.
+
 ### Phase 29: Event Spine & Durable Outbox
 
 **Goal:** Meaningful service mutations can emit durable, versioned events without depending on best-effort UI calls.
@@ -107,6 +113,10 @@ Milestone audit: [milestones/v4.0-MILESTONE-AUDIT.md](milestones/v4.0-MILESTONE-
 5. Event catalog documentation lists the pilot event and expected consumer contract.
 
 **Agent owner:** Data/Event Agent with Backend Security Agent.
+
+**Planned execution:**
+- Wave 1 `29-01` - Define the durable envelope and outbox schema, then convert records collection creation into one transactional state-plus-event pilot.
+- Wave 2 `29-02` - Add the dispatcher lifecycle, derived analytics projection, workflow-facing event catalog, and retry/idempotency regression coverage.
 
 ### Phase 30: Workflow MVP Persistence & Manual Trigger
 
@@ -136,8 +146,8 @@ Milestone audit: [milestones/v4.0-MILESTONE-AUDIT.md](milestones/v4.0-MILESTONE-
 | 25. View UX Parity | v4.0 | 4/4 | Complete | 2026-07-15 |
 | 26. Additional View Types | v4.0 | 5/5 | Complete | 2026-07-15 |
 | 27. Baseline Truth & Roadmap Reconciliation | v5.0 | 1/1 | Complete    | 2026-07-15 |
-| 28. Security, Tenancy & Capabilities Foundation | v5.0 | 0/1 | Not started | - |
-| 29. Event Spine & Durable Outbox | v5.0 | 0/1 | Not started | - |
+| 28. Security, Tenancy & Capabilities Foundation | v5.0 | 0/4 | Planned | - |
+| 29. Event Spine & Durable Outbox | v5.0 | 2/2 | Complete   | 2026-07-15 |
 | 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 0/1 | Not started | - |
 
 ---

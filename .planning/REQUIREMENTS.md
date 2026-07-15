@@ -26,11 +26,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Event Spine & Outbox
 
-- [ ] **EVENT-01**: A versioned event envelope is defined with tenant, actor, object type/id, project id when applicable, causation id, correlation id, payload version, and payload.
-- [ ] **EVENT-02**: A durable outbox migration exists and is idempotent, tenant-aware, indexed, and compatible with cloud and on-prem deployments.
-- [ ] **EVENT-03**: At least one service mutation writes domain state and outbox event in one transaction.
-- [ ] **EVENT-04**: A dispatcher/worker can publish pending outbox events with retry, duplicate protection, and observable failure state.
-- [ ] **EVENT-05**: Event catalog documentation explains emitted events, payload versions, and expected consumers.
+- [x] **EVENT-01**: A versioned event envelope is defined with tenant, actor, object type/id, project id when applicable, causation id, correlation id, payload version, and payload.
+- [x] **EVENT-02**: A durable outbox migration exists and is idempotent, tenant-aware, indexed, and compatible with cloud and on-prem deployments.
+- [x] **EVENT-03**: At least one service mutation writes domain state and outbox event in one transaction.
+- [x] **EVENT-04**: A dispatcher/worker can publish pending outbox events with retry, duplicate protection, and observable failure state.
+- [x] **EVENT-05**: Event catalog documentation explains emitted events, payload versions, and expected consumers.
 
 ### Workflow MVP
 
@@ -82,11 +82,11 @@ Deferred to future milestones, tracked to keep dependency order visible.
 | SECCTX-03 | Phase 28 | Pending |
 | SECCTX-04 | Phase 28 | Pending |
 | SECCTX-05 | Phase 28 | Pending |
-| EVENT-01 | Phase 29 | Pending |
-| EVENT-02 | Phase 29 | Pending |
-| EVENT-03 | Phase 29 | Pending |
-| EVENT-04 | Phase 29 | Pending |
-| EVENT-05 | Phase 29 | Pending |
+| EVENT-01 | Phase 29 | Complete |
+| EVENT-02 | Phase 29 | Complete |
+| EVENT-03 | Phase 29 | Complete |
+| EVENT-04 | Phase 29 | Complete |
+| EVENT-05 | Phase 29 | Complete |
 | WFLOW-01 | Phase 30 | Pending |
 | WFLOW-02 | Phase 30 | Pending |
 | WFLOW-03 | Phase 30 | Pending |
