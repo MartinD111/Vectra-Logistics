@@ -7,6 +7,7 @@
 // only ever creates a collection_views row, it never re-materializes
 // collection_records (no record-create call of any kind in this file).
 
+import { useState } from 'react';
 import { LayoutGrid, Table2 } from 'lucide-react';
 import { useViews, useCreateView } from '@/lib/hooks/useRecords';
 import type { CollectionView } from '@/lib/api/records.api';
@@ -27,9 +28,18 @@ export function ViewSwitcher({
 }) {
   const viewsQuery = useViews(collectionId);
   const createView = useCreateView(collectionId);
+  // WR-03: viewsQuery.data can still be undefined/stale immediately after
+  // mount or immediately after a first switch (useCreateView's onSuccess only
+  // invalidates the query, an async refetch — it doesn't synchronously write
+  // the new view into the cache). Track the in-flight target type locally so
+  // a second click for the same type before the mutation resolves is a no-op
+  // instead of firing a second createView.mutateAsync (which would create a
+  // duplicate collection_views row).
+  const [pendingType, setPendingType] = useState<'board' | 'table' | null>(null);
 
   const switchTo = (type: 'board' | 'table') => {
     if (type === currentView.type) return;
+    if (createView.isPending || pendingType === type) return;
 
     const existing = viewsQuery.data?.find((v) => v.type === type);
     if (existing) {
@@ -37,6 +47,7 @@ export function ViewSwitcher({
       return;
     }
 
+    setPendingType(type);
     createView
       .mutateAsync({
         name: type === 'board' ? 'Board' : 'Table',
@@ -44,7 +55,8 @@ export function ViewSwitcher({
         config: {},
       })
       .then((created) => onSwitch(created.id))
-      .catch((err) => console.error('Failed to create sibling view:', err));
+      .catch((err) => console.error('Failed to create sibling view:', err))
+      .finally(() => setPendingType(null));
   };
 
   return (
@@ -56,7 +68,8 @@ export function ViewSwitcher({
             key={type}
             type="button"
             onClick={() => switchTo(type)}
-            className={`flex items-center gap-1.5 min-h-[32px] px-2.5 text-xs font-semibold ${
+            disabled={createView.isPending}
+            className={`flex items-center gap-1.5 min-h-[32px] px-2.5 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${
               isSelected
                 ? 'bg-primary-600 text-white'
                 : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800'
