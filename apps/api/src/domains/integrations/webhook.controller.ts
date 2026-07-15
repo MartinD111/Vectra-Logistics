@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../../core/errors/asyncHandler';
-import { webhookService, verifySamsaraSignature, verifyGeotabSignature } from './webhook.service';
+import { webhookService, verifyTrustedPublicRequest } from './webhook.service';
 
 // NOTE: Webhook routes do NOT use JWT authenticateToken.
 // Authentication is performed here via provider-specific HMAC signature or token verification
@@ -11,7 +11,11 @@ export const handleSamsaraWebhook = asyncHandler(async (req: Request, res: Respo
   // express.raw() middleware must be applied before this route (see integrations.routes.ts).
   const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
 
-  verifySamsaraSignature(rawBody, req.headers['x-samsara-signature'] as string | undefined);
+  verifyTrustedPublicRequest({
+    edge: 'samsara',
+    rawBody,
+    signatureHeader: req.headers['x-samsara-signature'] as string | undefined,
+  });
 
   await webhookService.processSamsaraWebhook(req.body);
 
@@ -20,7 +24,10 @@ export const handleSamsaraWebhook = asyncHandler(async (req: Request, res: Respo
 });
 
 export const handleGeotabWebhook = asyncHandler(async (req: Request, res: Response) => {
-  verifyGeotabSignature(req.headers['authorization'] as string | undefined);
+  verifyTrustedPublicRequest({
+    edge: 'geotab',
+    authorizationHeader: req.headers['authorization'] as string | undefined,
+  });
 
   await webhookService.processGeotabWebhook(req.body);
 

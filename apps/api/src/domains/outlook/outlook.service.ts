@@ -9,6 +9,8 @@ import { projectsRepository } from '../projects/projects.repository';
 import { crmRepository } from '../crm/crm.repository';
 import { OutlookStatus, OutlookCredentials } from './outlook.types';
 import { getJwtSecret } from '../../core/config/secrets';
+import { buildServiceRequestContext } from '../../core/auth/request-context';
+import { capabilityService } from '../../core/capabilities';
 
 const SCOPES = 'openid profile email offline_access Mail.Read Mail.Send Calendars.Read';
 
@@ -52,8 +54,16 @@ class OutlookService {
     companyId: string, userId: string | null, userEmail: string | null,
   ): Promise<{ mode: 'demo'; status: OutlookStatus } | { mode: 'redirect'; authorizeUrl: string }> {
     const cfg = msConfig();
+    const ctx = buildServiceRequestContext(companyId, 'outlook-connect');
 
     if (!cfg.configured) {
+      const mode = capabilityService.resolveCapabilityMode(ctx, 'outlook.connect', {
+        available: false,
+        explicitFallbackLabel: 'Sample mailbox',
+      });
+      if (!mode.allowed) {
+        throw new AppError(503, 'Outlook integration is unavailable in this deployment');
+      }
       const creds: OutlookCredentials = { demo: true, email: userEmail ?? 'demo@outlook.local' };
       await outlookRepository.upsert(companyId, creds);
       await recordEvent({

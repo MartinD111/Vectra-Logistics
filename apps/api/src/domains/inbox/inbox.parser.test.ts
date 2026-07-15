@@ -45,7 +45,7 @@ test('extract(): hasCloudProvider false, hasUsableProvider false -> demoExtract,
   assert.equal(completeMock.mock.calls.length, 0);
 });
 
-test('extract(): hasUsableProvider true but complete() rejects -> degrades to demoExtract, demo:false, does not throw', async () => {
+test('extract(): hasUsableProvider true but complete() rejects -> degrades to demoExtract, demo:true, does not throw', async () => {
   mock.method(aiService, 'hasCloudProvider', async () => false);
   mock.method(aiService, 'hasUsableProvider', async () => true);
   mock.method(aiService, 'complete', async () => {
@@ -54,6 +54,6 @@ test('extract(): hasUsableProvider true but complete() rejects -> degrades to de
 
   const result = await inboxParser.extract('company-1', EMAIL);
 
-  assert.equal(result.demo, false);
+  assert.equal(result.demo, true);
   assert.equal(result.extraction.origin, 'Koper');
 });

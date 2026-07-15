@@ -6,6 +6,8 @@
 
 import { z } from 'zod';
 import { aiService } from '../ai/ai.service';
+import { buildServiceRequestContext } from '../../core/auth/request-context';
+import { capabilityService } from '../../core/capabilities';
 
 // The shape the model must return. Everything is nullable — the validator and
 // the human reviewer handle gaps; we never fail extraction on a missing field.
@@ -45,9 +47,17 @@ Example output:
 class InboxParser {
   /** Extract via the company LLM, or a deterministic fallback in demo mode. */
   async extract(companyId: string, email: { subject?: string; body: string }): Promise<{ extraction: Extraction; demo: boolean }> {
+    const ctx = buildServiceRequestContext(companyId, 'inbox-parser');
     const usable = (await aiService.hasCloudProvider(companyId)) || (await aiService.hasUsableProvider(companyId));
     if (!usable) {
-      return { extraction: this.demoExtract(email), demo: true };
+      const mode = capabilityService.resolveCapabilityMode(ctx, 'inbox.extract', {
+        available: false,
+        explicitFallbackLabel: 'Sample extraction',
+      });
+      if (!mode.allowed) {
+        return { extraction: this.emptyExtraction(), demo: false };
+      }
+      return { extraction: this.demoExtract(email), demo: mode.explicitFallback?.kind === 'demo' };
     }
     const text = `${email.subject ? `Subject: ${email.subject}\n` : ''}${email.body}`;
     let completion;
@@ -62,7 +72,7 @@ class InboxParser {
       // Local completion failed (timeout, connection refused, bad response) —
       // degrade the same way a non-JSON model response degrades. Never surfaces
       // a hard error to the dispatcher (D-01 corollary).
-      return { extraction: this.demoExtract(email), demo: false };
+      return { extraction: this.demoExtract(email), demo: true };
     }
     let raw: unknown;
     try {
@@ -70,10 +80,10 @@ class InboxParser {
     } catch {
       // Model returned non-JSON — degrade to the deterministic extractor rather
       // than throwing into the dispatcher's inbox.
-      return { extraction: this.demoExtract(email), demo: false };
+      return { extraction: this.demoExtract(email), demo: true };
     }
     const parsed = ExtractionSchema.safeParse(raw);
-    return { extraction: parsed.success ? parsed.data : this.demoExtract(email), demo: false };
+    return { extraction: parsed.success ? parsed.data : this.demoExtract(email), demo: !parsed.success };
   }
 
   /**
@@ -127,6 +137,20 @@ class InboxParser {
       wagon_number: wagon ? wagon[0].replace(/\s+/g, ' ').trim() : null,
       reference: ref ? ref[1] : null,
       confidence: Math.min(0.85, 0.3 + fields * 0.12),
+    };
+  }
+
+  private emptyExtraction(): Extraction {
+    return {
+      origin: null,
+      destination: null,
+      cargo_type: null,
+      weight_kg: null,
+      pickup_date: null,
+      delivery_date: null,
+      wagon_number: null,
+      reference: null,
+      confidence: 0,
     };
   }
 }

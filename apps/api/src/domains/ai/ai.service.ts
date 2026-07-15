@@ -8,6 +8,8 @@ import { AiConfigPublic, AiConfigRow, AiCompletion, AiProvider } from './ai.type
 import { SaveAiConfigSchema } from './dto/save-ai-config.dto';
 import { AiCompleteSchema } from './dto/ai-complete.dto';
 import { getDeploymentMode } from '../../core/config/secrets';
+import { buildServiceRequestContext } from '../../core/auth/request-context';
+import { capabilityService } from '../../core/capabilities';
 
 const DEFAULT_MODEL: Record<AiProvider, string> = {
   openai: 'gpt-4o',
@@ -194,8 +196,16 @@ class AiService {
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
     const { text, target_lang } = parsed.data;
 
+    const ctx = buildServiceRequestContext(companyId, 'ai-translate');
     if (!(await this.hasCloudProvider(companyId))) {
-      return { translated: `[${target_lang}] ${text}`, target_lang, demo: true };
+      const mode = capabilityService.resolveCapabilityMode(ctx, 'ai.translate', {
+        available: false,
+        explicitFallbackLabel: 'Sample translation',
+      });
+      if (!mode.allowed) {
+        throw new AppError(503, 'Translation is unavailable for this deployment');
+      }
+      return { translated: `[${target_lang}] ${text}`, target_lang, demo: mode.explicitFallback?.kind === 'demo' };
     }
 
     const completion = await this.complete(companyId, {

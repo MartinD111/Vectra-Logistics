@@ -1,5 +1,7 @@
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 import { AppError } from '../../core/errors/AppError';
+import { getJwtSecret } from '../../core/config/secrets';
 import { SamsaraWebhookSchema, SamsaraWebhookDto } from './dto/samsara-webhook.dto';
 import { GeotabWebhookSchema, GeotabWebhookDto } from './dto/geotab-webhook.dto';
 
@@ -73,6 +75,60 @@ export function verifyGeotabSignature(
     !crypto.timingSafeEqual(providedBuf, secretBuf)
   ) {
     throw new AppError(401, 'Invalid Geotab webhook token');
+  }
+}
+
+export type TrustedPublicEdge = 'gate-anpr' | 'gate-ocr' | 'samsara' | 'geotab';
+
+export interface TrustedPublicRequest {
+  edge: TrustedPublicEdge;
+  rawBody?: Buffer;
+  signatureHeader?: string;
+  authorizationHeader?: string;
+  gateToken?: string;
+}
+
+export interface TrustedGateIdentity {
+  companyId: string;
+  gate?: string | null;
+}
+
+function decodeTrustedGateToken(token: string | undefined): TrustedGateIdentity {
+  if (!token) {
+    throw new AppError(401, 'Missing X-Gate-Token header');
+  }
+
+  let payload: unknown;
+  try {
+    payload = jwt.verify(token, getJwtSecret());
+  } catch {
+    throw new AppError(401, 'Invalid gate token');
+  }
+
+  const candidate = payload as { company_id?: string; gate?: string };
+  if (!candidate.company_id) {
+    throw new AppError(401, 'Gate token missing company identity');
+  }
+
+  return {
+    companyId: candidate.company_id,
+    gate: candidate.gate ?? null,
+  };
+}
+
+export function verifyTrustedPublicRequest(input: TrustedPublicRequest): TrustedGateIdentity | null {
+  switch (input.edge) {
+    case 'samsara':
+      verifySamsaraSignature(input.rawBody, input.signatureHeader);
+      return null;
+    case 'geotab':
+      verifyGeotabSignature(input.authorizationHeader);
+      return null;
+    case 'gate-anpr':
+    case 'gate-ocr':
+      return decodeTrustedGateToken(input.gateToken);
+    default:
+      throw new AppError(400, `Unsupported trusted edge: ${input.edge}`);
   }
 }
 

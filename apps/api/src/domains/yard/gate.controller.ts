@@ -6,16 +6,15 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { yardService } from './yard.service';
+import { verifyTrustedPublicRequest } from '../integrations/webhook.service';
 
 const AnprSchema = z.object({
-  company_id: z.string().uuid(),          // signed gate token in production
   plate: z.string().min(2).max(32),
   gate: z.string().max(40).optional(),
   label: z.string().max(80).optional(),
 });
 
 const OcrSchema = z.object({
-  company_id: z.string().uuid(),
   container_number: z.string().min(2).max(32),
   gate: z.string().max(40).optional(),
   label: z.string().max(80).optional(),
@@ -28,10 +27,14 @@ export async function anprWebhook(req: Request, res: Response): Promise<void> {
     res.status(400).json({ error: parsed.error.issues[0].message });
     return;
   }
-  const { company_id, plate, gate, label } = parsed.data;
+  const trust = verifyTrustedPublicRequest({
+    edge: 'gate-anpr',
+    gateToken: req.headers['x-gate-token'] as string | undefined,
+  })!;
+  const { plate, gate, label } = parsed.data;
   try {
-    const result = await yardService.gateCheckIn(company_id, {
-      kind: 'truck', identifier: plate, label, source: 'gate_anpr', gate,
+    const result = await yardService.gateCheckIn(trust.companyId, {
+      kind: 'truck', identifier: plate, label, source: 'gate_anpr', gate: gate ?? trust.gate ?? undefined,
     });
     res.status(200).json({
       ok: true, asset_id: result.asset.id,
@@ -50,10 +53,14 @@ export async function ocrWebhook(req: Request, res: Response): Promise<void> {
     res.status(400).json({ error: parsed.error.issues[0].message });
     return;
   }
-  const { company_id, container_number, gate, label } = parsed.data;
+  const trust = verifyTrustedPublicRequest({
+    edge: 'gate-ocr',
+    gateToken: req.headers['x-gate-token'] as string | undefined,
+  })!;
+  const { container_number, gate, label } = parsed.data;
   try {
-    const result = await yardService.gateCheckIn(company_id, {
-      kind: 'container', identifier: container_number, label, source: 'gate_ocr', gate,
+    const result = await yardService.gateCheckIn(trust.companyId, {
+      kind: 'container', identifier: container_number, label, source: 'gate_ocr', gate: gate ?? trust.gate ?? undefined,
     });
     res.status(200).json({
       ok: true, asset_id: result.asset.id,
