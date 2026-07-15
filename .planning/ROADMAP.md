@@ -77,7 +77,7 @@ Milestone audit: [milestones/v3.0-MILESTONE-AUDIT.md](milestones/v3.0-MILESTONE-
 **Success Criteria** (what must be TRUE):
 
   1. User can insert a checklist/to-do block via the slash menu and toggle individual items complete
-  2. User can insert a toggle block that collapses/expands its nested child blocks
+  2. User can insert a collapsible toggle block that collapses/expands its nested child blocks
   3. User can insert a quote block, a fenced code block with a language picker, and each of image/file/video/bookmark/embed media blocks
   4. User can insert a simple inline table block and a multi-column layout block, distinct from any collection-view table
   5. User can insert a sub-page link block and type `@` inline to mention a person, page, or date
@@ -235,7 +235,22 @@ Plans:
   3. User can view a collection as a calendar, with records plotted by a chosen date property
   4. User can view a collection as a gallery (card grid, optional cover image) and as a timeline/Gantt plotted by a date-range property
 
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+**Wave 1**
+
+- [ ] 26-01-PLAN.md — Foundation: export formatCardPropertyValue, ViewSwitcher dropdown (D-10), ViewSettingsMenu property pickers (D-01, D-04, D-06)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 26-02-PLAN.md — List + Gallery view renderers (VIEW-02, VIEW-04)
+- [ ] 26-03-PLAN.md — Calendar view renderer + click-to-create (VIEW-03)
+- [ ] 26-04-PLAN.md — Timeline/Gantt view renderer (VIEW-05)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 26-05-PLAN.md — Wire all 4 new renderers into BoardBlock's view.type branch (VIEW-02, VIEW-03, VIEW-04, VIEW-05)
+
 **UI hint**: yes
 
 ## Progress
@@ -270,7 +285,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 23. Record Detail Page | v4.0 | 2/2 | Complete   | 2026-07-14 |
 | 24. Board View & Legacy Kanban Migration | v4.0 | 4/4 | Complete    | 2026-07-14 |
 | 25. View UX Parity | v4.0 | 4/4 | Complete    | 2026-07-15 |
-| 26. Additional View Types | v4.0 | 0/TBD | Not started | - |
+| 26. Additional View Types | v4.0 | 0/5 | Planned | - |
 
 ---
 *Roadmap created: 2026-07-05 · v1.0 archived: 2026-07-06 · v2.0 archived: 2026-07-12 · v3.0 archived: 2026-07-13 · v4.0 roadmap added: 2026-07-13*
