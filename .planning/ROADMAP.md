@@ -55,7 +55,7 @@ Milestone audit: [milestones/v4.0-MILESTONE-AUDIT.md](milestones/v4.0-MILESTONE-
 - [x] **Phase 27: Baseline Truth & Roadmap Reconciliation** — Inventory current apps/packages/services/routes/migrations, map imported roadmap phases to shipped/partial/demo/absent/deferred, document baseline build/test/local boot status, and identify ADR gaps. (completed 2026-07-15)
 - [ ] **Phase 28: Security, Tenancy & Capabilities Foundation** — Introduce typed `RequestContext`, a capability service, pilot cross-tenant test harness, signed public endpoint pattern, and explicit production/demo capability behavior.
 - [x] **Phase 29: Event Spine & Durable Outbox** — Define versioned event envelope, add durable outbox migration, convert one service mutation to transactional state+event write, and add dispatcher retry/idempotency behavior. (completed 2026-07-15)
-- [ ] **Phase 30: Workflow MVP Persistence & Manual Trigger** — Persist workflow drafts, wire builder save/load, run a manual trigger with notification action, and show durable run/step logs with validation and duplicate protection.
+- [x] **Phase 30: Workflow MVP Persistence & Manual Trigger** — Persist workflow drafts, wire builder save/load, run a manual trigger with notification action, and show durable run/step logs with validation and duplicate protection. (completed 2026-07-15)
 
 </details>
 

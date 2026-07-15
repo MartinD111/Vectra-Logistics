@@ -5,7 +5,7 @@ milestone_name: Platform Foundation & Durable Execution
 status: milestone_complete
 stopped_at: Milestone complete (Phase 30 was final phase)
 last_updated: 2026-07-15T20:17:43.042Z
-last_activity: 2026-07-15 -- Phase 30 planning complete
+last_activity: 2026-07-15 -- Phase 30 completed and v5.0 milestone ready for closeout
 progress:
   total_phases: 10
   completed_phases: 10
@@ -103,4 +103,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Execute the planned work with `/gsd:execute-phase 30`
+- Run `/gsd:complete-milestone` to archive v5.0 Platform Foundation & Durable Execution.
