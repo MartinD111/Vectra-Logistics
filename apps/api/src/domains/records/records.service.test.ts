@@ -45,9 +45,31 @@ test('createCollection calls createCollectionWithDefaultView exactly once and re
     async () => ({ collection: fakeCollection, view: fakeView }),
   );
 
-  const result = await recordsService.createCollection('company-1', { name: 'Clients', schema: fakeCollection.schema });
+  const result = await recordsService.createCollection('company-1', { name: 'Clients', schema: fakeCollection.schema }, {
+    user: { id: 'user-1', role: 'admin', company_id: 'company-1', is_verified: true },
+    companyId: 'company-1',
+    roles: ['admin'],
+    workspaceId: 'company-1',
+    requestId: 'request-1',
+    deploymentMode: 'cloud',
+    deploymentCapabilities: {
+      mode: 'cloud',
+      allowsLocalAiProxy: false,
+      allowsSelfSignup: true,
+      allowsExplicitFallbacks: true,
+      requiresTrustedPublicEdges: true,
+    },
+  });
 
   assert.equal(createMock.mock.calls.length, 1);
+  assert.equal(createMock.mock.calls[0].arguments[0], 'company-1');
+  assert.deepEqual(createMock.mock.calls[0].arguments[1], {
+    name: 'Clients',
+    schema: fakeCollection.schema,
+    createdBy: 'user-1',
+    actorId: 'user-1',
+    correlationId: 'request-1',
+  });
   assert.deepEqual(result, { collection: fakeCollection, view: fakeView });
 });
 

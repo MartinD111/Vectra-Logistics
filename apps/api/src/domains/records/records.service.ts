@@ -1,4 +1,5 @@
 import { AppError } from '../../core/errors/AppError';
+import { RequestContext } from '../../core/auth/request-context';
 import { recordsRepository } from './records.repository';
 import { CollectionPropertyDef, DataCollectionRow, CollectionRecordRow, CollectionViewRow } from './records.types';
 import { CreateCollectionSchema } from './dto/create-collection.dto';
@@ -10,7 +11,11 @@ import { UpdateViewSchema } from './dto/update-view.dto';
 
 class RecordsService {
   // ── Collections ──
-  async createCollection(companyId: string, body: unknown): Promise<{ collection: DataCollectionRow; view: CollectionViewRow }> {
+  async createCollection(
+    companyId: string,
+    body: unknown,
+    context?: RequestContext,
+  ): Promise<{ collection: DataCollectionRow; view: CollectionViewRow }> {
     const parsed = CreateCollectionSchema.safeParse(body);
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
     // D-03: one atomic repo call creates the collection AND its default
@@ -18,7 +23,9 @@ class RecordsService {
     return recordsRepository.createCollectionWithDefaultView(companyId, {
       name: parsed.data.name,
       schema: (parsed.data.schema ?? []) as CollectionPropertyDef[],
-      createdBy: null,
+      createdBy: context?.user?.id ?? null,
+      actorId: context?.user?.id ?? null,
+      correlationId: context?.requestId ?? null,
     });
   }
 

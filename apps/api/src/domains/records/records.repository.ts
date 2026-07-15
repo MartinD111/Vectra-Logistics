@@ -1,10 +1,12 @@
 import { db } from '../../core/db';
+import { createDurableEventEnvelope, insertDurableEvent } from '../../core/events';
 import { CollectionPropertyDef, DataCollectionRow, CollectionRecordRow, CollectionViewRow } from './records.types';
 
 class RecordsRepository {
   // ── Collections ──
   async createCollectionWithDefaultView(companyId: string, d: {
     name: string; schema: CollectionPropertyDef[]; projectId?: string | null; createdBy: string | null;
+    actorId?: string | null; causationId?: string | null; correlationId?: string | null;
   }): Promise<{ collection: DataCollectionRow; view: CollectionViewRow }> {
     const client = await db.connect();
     try {
@@ -21,6 +23,30 @@ class RecordsRepository {
          VALUES ($1, $2, $3, $4, $5) RETURNING *`,
         [companyId, collection.id, 'Table', 'table', JSON.stringify({})]);
       const view = viewResult.rows[0];
+
+      await insertDurableEvent(client, createDurableEventEnvelope({
+        eventName: 'records.collection.created',
+        tenantId: companyId,
+        actorId: d.actorId ?? d.createdBy,
+        objectType: 'data_collection',
+        objectId: collection.id,
+        projectId: collection.project_id,
+        causationId: d.causationId ?? null,
+        correlationId: d.correlationId ?? null,
+        payloadVersion: 1,
+        payload: {
+          collection: {
+            id: collection.id,
+            name: collection.name,
+            schema: collection.schema,
+          },
+          defaultView: {
+            id: view.id,
+            name: view.name,
+            type: view.type,
+          },
+        },
+      }));
 
       await client.query('COMMIT');
       return { collection, view };
