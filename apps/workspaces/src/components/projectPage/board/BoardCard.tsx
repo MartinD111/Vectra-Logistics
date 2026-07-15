@@ -10,16 +10,30 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { CollectionPropertyDef, CollectionRecord } from '@/lib/api/records.api';
 import { useUpdateAnyRecord } from '@/lib/hooks/useRecords';
+import { useTeam } from '@/lib/hooks/useTeam';
 
 // Card-face property values are READ-ONLY previews (D-03) -- the card's
 // onClick (opening the record detail page in a new tab) remains the sole
 // edit path. No PropertyField/onCommit wiring here on purpose.
-function formatCardPropertyValue(value: unknown, property: CollectionPropertyDef): string {
+//
+// `personNames` is a lookup (team member id -> display name) sourced from
+// useTeam() at the BoardCard level (WR-01) — person properties don't carry
+// their options on property.options the way select does; PersonField
+// resolves names from the team roster, a separate data source, so the card
+// face must do the same rather than falling through to the raw id.
+function formatCardPropertyValue(
+  value: unknown,
+  property: CollectionPropertyDef,
+  personNames: Map<string, string>,
+): string {
   switch (property.type) {
     case 'checkbox':
       return value ? 'Yes' : 'No';
-    case 'select':
     case 'person': {
+      if (typeof value !== 'string' || !value) return '';
+      return personNames.get(value) ?? value;
+    }
+    case 'select': {
       const options = (property.options ?? []) as { id: string; label: string }[];
       const match = options.find((o) => o.id === value);
       return match ? match.label : (typeof value === 'string' ? value : '');
@@ -50,6 +64,8 @@ export function BoardCard({
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: record.id });
   const updateRecord = useUpdateAnyRecord(collectionId);
+  const { data: team = [] } = useTeam();
+  const personNames = new Map(team.map((m) => [m.id, `${m.first_name} ${m.last_name}`.trim()]));
 
   const title = String(record.props[titlePropId] ?? '');
   const [editing, setEditing] = useState(autoFocusEdit);
@@ -126,7 +142,7 @@ export function BoardCard({
         <div className="mt-1.5 space-y-1">
           {cardProperties!.map((property) => (
             <div key={property.id} className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {formatCardPropertyValue(record.props[property.id], property)}
+              {formatCardPropertyValue(record.props[property.id], property, personNames)}
             </div>
           ))}
         </div>
