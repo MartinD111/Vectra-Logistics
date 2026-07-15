@@ -269,7 +269,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 22. Records + Views Data Model | v4.0 | 4/4 | Complete   | 2026-07-14 |
 | 23. Record Detail Page | v4.0 | 2/2 | Complete   | 2026-07-14 |
 | 24. Board View & Legacy Kanban Migration | v4.0 | 4/4 | Complete    | 2026-07-14 |
-| 25. View UX Parity | v4.0 | 4/4 | Complete   | 2026-07-14 |
+| 25. View UX Parity | v4.0 | 4/4 | Complete    | 2026-07-15 |
 | 26. Additional View Types | v4.0 | 0/TBD | Not started | - |
 
 ---

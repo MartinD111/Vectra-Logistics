@@ -44,10 +44,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### View UX Parity
 
-- [ ] **VIEWX-01**: User can filter and sort a view's records
-- [ ] **VIEWX-02**: User can choose which properties preview on a card face
-- [ ] **VIEWX-03**: User can see column aggregations (count, sum/avg of a number property, etc.) on a board
-- [ ] **VIEWX-04**: User can switch between view types on the same collection without duplicating records
+- [x] **VIEWX-01**: User can filter and sort a view's records
+- [x] **VIEWX-02**: User can choose which properties preview on a card face
+- [x] **VIEWX-03**: User can see column aggregations (count, sum/avg of a number property, etc.) on a board
+- [x] **VIEWX-04**: User can switch between view types on the same collection without duplicating records
 
 ### Additional View Types
 
@@ -110,10 +110,10 @@ Explicitly excluded from v4.0. Documented to prevent scope creep.
 | BOARD-02 | Phase 24 | Complete |
 | BOARD-03 | Phase 24 | Complete |
 | BOARD-04 | Phase 24 | Complete |
-| VIEWX-01 | Phase 25 | Pending |
-| VIEWX-02 | Phase 25 | Pending |
-| VIEWX-03 | Phase 25 | Pending |
-| VIEWX-04 | Phase 25 | Pending |
+| VIEWX-01 | Phase 25 | Complete |
+| VIEWX-02 | Phase 25 | Complete |
+| VIEWX-03 | Phase 25 | Complete |
+| VIEWX-04 | Phase 25 | Complete |
 | VIEW-01 | Phase 26 | Pending |
 | VIEW-02 | Phase 26 | Pending |
 | VIEW-03 | Phase 26 | Pending |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Workspace Records & Views
-status: executing
-stopped_at: Phase 25 UI-SPEC approved
-last_updated: "2026-07-14T16:06:21.505Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 25 was final phase)
+last_updated: 2026-07-15T05:27:35.184Z
 last_activity: 2026-07-14 -- Phase 25 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 19
-  completed_plans: 15
-  percent: 79
+  completed_plans: 19
+  percent: 80
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Phase 25 — view-ux-parity
+**Current focus:** Milestone complete
 
 ## Current Position
 
-Phase: 25 (view-ux-parity) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 25
-Last activity: 2026-07-14 -- Phase 25 execution started
+Phase: 25
+Plan: Not started
+Status: Milestone complete
+Last activity: 2026-07-15
 
 **Decision coverage override (2026-07-13):** Decision Coverage Gate flagged D-01, D-04, D-05, D-06, D-07, D-08, D-09, D-11, D-13 as not literally cited by ID in any 21-*-PLAN.md. User reviewed and chose "Proceed anyway" — gsd-plan-checker's independent Dimension 7 review already confirmed all 9 are substantively implemented (nesting mechanism in 21-05, media decisions in 21-03, mention scope in 21-02, sub-page preview in 21-04); the gap is citation-format only, not a missing feature. If verify-phase re-surfaces this, treat it as already reviewed and accepted.
 
@@ -36,7 +36,7 @@ Last activity: 2026-07-14 -- Phase 25 execution started
 
 **Velocity:**
 
-- Total plans completed: 23
+- Total plans completed: 27
 - Average duration: N/A
 - Total execution time: 0 hours
 
@@ -55,6 +55,7 @@ Last activity: 2026-07-14 -- Phase 25 execution started
 | 18 | 1 | 20min | 20min |
 | 19 | 3 | - | - |
 | 24 | 4 | - | - |
+| 25 | 4 | - | - |
 
 **Recent Trend:**
 

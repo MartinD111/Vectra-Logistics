@@ -1,5 +1,5 @@
 ---
-status: partial
+status: approved
 phase: 25-view-ux-parity
 source: [25-VERIFICATION.md]
 started: 2026-07-15T00:00:00Z
