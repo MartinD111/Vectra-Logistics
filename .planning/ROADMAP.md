@@ -148,7 +148,7 @@ Milestone audit: [milestones/v4.0-MILESTONE-AUDIT.md](milestones/v4.0-MILESTONE-
 | 27. Baseline Truth & Roadmap Reconciliation | v5.0 | 1/1 | Complete    | 2026-07-15 |
 | 28. Security, Tenancy & Capabilities Foundation | v5.0 | 0/4 | Planned | - |
 | 29. Event Spine & Durable Outbox | v5.0 | 2/2 | Complete    | 2026-07-15 |
-| 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 0/1 | Not started | - |
+| 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 1/1 | Complete    | 2026-07-15 |
 
 ---
 *Roadmap updated: 2026-07-15 — v4.0 archived, v5.0 Platform Foundation & Durable Execution started.*

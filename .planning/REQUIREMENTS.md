@@ -34,12 +34,12 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Workflow MVP
 
-- [ ] **WFLOW-01**: Workflow drafts persist server-side with tenant scope, version/status, validated trigger/action graph, and created/updated metadata.
-- [ ] **WFLOW-02**: The automation builder can save and reload real workflow drafts instead of relying on mock rows/browser-only state.
-- [ ] **WFLOW-03**: User can manually trigger a workflow containing a notification action and see a persisted run.
-- [ ] **WFLOW-04**: Workflow runs and step logs persist with status, attempts, timestamps, error text, and correlation/event ids.
-- [ ] **WFLOW-05**: Workflow execution handles idempotency, retry limits, and duplicate manual-trigger protection.
-- [ ] **WFLOW-06**: Workflow validation rejects unsupported triggers/actions and capability-denied actions before publish/run.
+- [x] **WFLOW-01**: Workflow drafts persist server-side with tenant scope, version/status, validated trigger/action graph, and created/updated metadata.
+- [x] **WFLOW-02**: The automation builder can save and reload real workflow drafts instead of relying on mock rows/browser-only state.
+- [x] **WFLOW-03**: User can manually trigger a workflow containing a notification action and see a persisted run.
+- [x] **WFLOW-04**: Workflow runs and step logs persist with status, attempts, timestamps, error text, and correlation/event ids.
+- [x] **WFLOW-05**: Workflow execution handles idempotency, retry limits, and duplicate manual-trigger protection.
+- [x] **WFLOW-06**: Workflow validation rejects unsupported triggers/actions and capability-denied actions before publish/run.
 
 ## v2 Requirements
 
@@ -87,12 +87,12 @@ Deferred to future milestones, tracked to keep dependency order visible.
 | EVENT-03 | Phase 29 | Complete |
 | EVENT-04 | Phase 29 | Complete |
 | EVENT-05 | Phase 29 | Complete |
-| WFLOW-01 | Phase 30 | Pending |
-| WFLOW-02 | Phase 30 | Pending |
-| WFLOW-03 | Phase 30 | Pending |
-| WFLOW-04 | Phase 30 | Pending |
-| WFLOW-05 | Phase 30 | Pending |
-| WFLOW-06 | Phase 30 | Pending |
+| WFLOW-01 | Phase 30 | Complete |
+| WFLOW-02 | Phase 30 | Complete |
+| WFLOW-03 | Phase 30 | Complete |
+| WFLOW-04 | Phase 30 | Complete |
+| WFLOW-05 | Phase 30 | Complete |
+| WFLOW-06 | Phase 30 | Complete |
 
 **Coverage:**
 - v1 requirements: 20 total
