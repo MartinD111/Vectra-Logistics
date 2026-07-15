@@ -27,6 +27,10 @@ import { FilterSortToolbar } from './board/FilterSortToolbar';
 import { ViewSettingsMenu } from './board/ViewSettingsMenu';
 import { ViewSwitcher } from './board/ViewSwitcher';
 import { CollectionTableView } from './collectionTable/CollectionTableView';
+import { CollectionListView } from './collectionList/CollectionListView';
+import { CollectionCalendarView } from './collectionCalendar/CollectionCalendarView';
+import { CollectionGalleryView } from './collectionGallery/CollectionGalleryView';
+import { CollectionTimelineView } from './collectionTimeline/CollectionTimelineView';
 
 /** Groups records into board columns from the live option values of the
  *  groupBy select property — never hand-authored (BOARD-01). */
@@ -148,6 +152,10 @@ export function BoardBlock({
   const cardProperties = collection.schema.filter((p) =>
     ((view.config.cardProperties as string[]) ?? []).includes(p.id));
   const aggregation = view.config.columnAggregation as AggregationConfig | undefined;
+  const calendarDateProperty = String(view.config.calendarDateProperty ?? '');
+  const galleryCoverProperty = String(view.config.galleryCoverProperty ?? '');
+  const timelineStartProperty = String(view.config.timelineStartProperty ?? '');
+  const timelineEndProperty = String(view.config.timelineEndProperty ?? '');
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -195,6 +203,41 @@ export function BoardBlock({
       </div>
       {view.type === 'table' ? (
         <CollectionTableView collection={collection} records={sorted} updateRecord={updateRecord} />
+      ) : view.type === 'list' ? (
+        <CollectionListView
+          collection={collection}
+          records={sorted}
+          collectionId={block.collectionId as string}
+          titlePropId={titlePropId}
+          cardProperties={cardProperties}
+        />
+      ) : view.type === 'calendar' ? (
+        <CollectionCalendarView
+          collection={collection}
+          records={sorted}
+          collectionId={block.collectionId as string}
+          titlePropId={titlePropId}
+          calendarDateProperty={calendarDateProperty}
+          cardProperties={cardProperties}
+        />
+      ) : view.type === 'gallery' ? (
+        <CollectionGalleryView
+          collection={collection}
+          records={sorted}
+          collectionId={block.collectionId as string}
+          titlePropId={titlePropId}
+          cardProperties={cardProperties}
+          galleryCoverProperty={galleryCoverProperty}
+        />
+      ) : view.type === 'timeline' ? (
+        <CollectionTimelineView
+          collection={collection}
+          records={sorted}
+          collectionId={block.collectionId as string}
+          timelineStartProperty={timelineStartProperty}
+          timelineEndProperty={timelineEndProperty}
+          cardProperties={cardProperties}
+        />
       ) : isFilteredEmpty ? (
         <BoardEmptyFilterState />
       ) : (
