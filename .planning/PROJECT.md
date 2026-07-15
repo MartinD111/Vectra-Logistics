@@ -82,7 +82,12 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 
 ### Active
 
-v4.0 Workspace Records & Views requirements are being scoped now — see REQUIREMENTS.md once written.
+v4.0 Workspace Records & Views: all 6 phases (21-26) complete, all requirements satisfied per REQUIREMENTS.md — pending `/gsd:complete-milestone` to formally close and archive.
+
+- ✓ VIEW-02: User can view a collection as a flat list — Phase 26 (`CollectionListView.tsx`)
+- ✓ VIEW-03: User can view a collection as a calendar, plotted by a date property — Phase 26 (`CollectionCalendarView.tsx`)
+- ✓ VIEW-04: User can view a collection as a gallery with optional cover image — Phase 26 (`CollectionGalleryView.tsx`)
+- ✓ VIEW-05: User can view a collection as a timeline/Gantt over two date properties — Phase 26 (`CollectionTimelineView.tsx`)
 
 ### Out of Scope
 
@@ -142,6 +147,8 @@ v4.0 Workspace Records & Views requirements are being scoped now — see REQUIRE
 **Shipped:** v2.0 Workspace Engine — Engine Unification (2026-07-12) — 7 phases, 8 plans, 10 tasks, all 14 requirements. Project Pages and Mini Programs now render through one shared, plugin-driven `WorkspaceBlockRegistry`; both hand-maintained `switch(block.kind)` dispatch paths are gone; extensibility proven end-to-end (native + manifest block added via one plugin entry each); `docs/ARCHITECTURE-WORKSPACE-ENGINE.md` documents the result; the automations `WorkflowBuilder.tsx` is explicitly parked, untouched, as a future migration target. Archived at `.planning/milestones/v2.0-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md`; phase directories archived at `.planning/milestones/v2.0-phases/`.
 
 **Shipped:** v3.0 On-Premise GA (2026-07-13) — 7 phases, 16 plans, 31 tasks, all 17 requirements. Vectra is now a first-class On-Premise deployment of the same codebase: boot-time secret/seed-admin hardening, an idempotent shared migration runner, a `docker-compose.prod.yml` + `DEPLOYMENT_MODE` toggle, a re-run-safe one-shot installer, backend-side local Gemma/Ollama AI dispatch, one-`VERSION` release/upgrade tooling, and deploy hardening (CORS allowlist, auth rate limiting, live `/health` checks). The milestone audit found and fixed 2 real blockers inline before shipping — see Key Decisions and STATE.md → Deferred Items. Archived at `.planning/milestones/v3.0-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md`; phase directories archived at `.planning/milestones/v3.0-phases/`.
+
+**Phase 26 complete** (2026-07-15) — the last phase of v4.0. `BoardBlock.tsx` now renders all 6 view types (Board, Table, List, Calendar, Gallery, Timeline) over the same `collection_records`, zero new block kind, zero data duplication. Verifier scored 10/10 must-haves (`human_needed`: 3 live-browser checks pending in `26-HUMAN-UAT.md` — full 6-view-type cycle smoke test, config persistence across refresh, and a Calendar duplicate-create risk from code review WR-04). Code review found 5 non-blocking warnings (Timeline bar clamp, a copy-paste empty-state string, a stale-config race in the new property pickers, Calendar's missing double-click guard, Gallery's cover-image field expecting URLs from a freeform text property) — see `26-REVIEW.md`.
 
 Deferred at v1.0 close: 7 pending human-UAT scenarios (Phase 02/03) + 2 verification sign-offs — manual checks on shipped features, tracked in STATE.md → Deferred Items.
 
@@ -261,4 +268,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-13 — milestone v4.0 Workspace Records & Views started, scoped to `docs/specs/core/workspace-blocks.md`'s Kanban→Records+Views gap only.*
+*Last updated: 2026-07-15 — Phase 26 (Additional View Types) complete, closing out v4.0 Workspace Records & Views; milestone pending formal close via `/gsd:complete-milestone`.*
