@@ -21,7 +21,7 @@ import { useTeam } from '@/lib/hooks/useTeam';
 // their options on property.options the way select does; PersonField
 // resolves names from the team roster, a separate data source, so the card
 // face must do the same rather than falling through to the raw id.
-function formatCardPropertyValue(
+export function formatCardPropertyValue(
   value: unknown,
   property: CollectionPropertyDef,
   personNames: Map<string, string>,
