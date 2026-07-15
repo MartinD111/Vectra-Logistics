@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Platform Foundation & Durable Execution
-status: Ready for discuss/plan
-stopped_at: Phase 28 context gathered
-last_updated: "2026-07-15T15:21:54.077Z"
-last_activity: 2026-07-15 -- Phase 27 completed
+status: executing
+stopped_at: Phase 29 context gathered
+last_updated: "2026-07-15T19:32:04.220Z"
+last_activity: 2026-07-15 -- Phase 28 planned
 progress:
-  total_phases: 8
-  completed_phases: 7
-  total_plans: 25
-  completed_plans: 25
-  percent: 88
+  total_phases: 9
+  completed_phases: 8
+  total_plans: 29
+  completed_plans: 29
+  percent: 89
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history - the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Phase 28 preparation
+**Current focus:** Phase 28 execution prep
 
 ## Current Position
 
 Phase: 28
-Plan: Not started
-Status: Ready for discuss/plan
-Last activity: 2026-07-15 -- Phase 27 completed
+Plan: 4 plans created
+Status: Ready to execute
+Last activity: 2026-07-15 -- Phase 28 planned
 
 **v5.0 kickoff note:** The imported roadmap is not being restarted at Phase 0. v1-v4 shipped work is preserved; v5 starts at Phase 27 and focuses on baseline truth, security/tenancy/capabilities, durable event/outbox, and workflow persistence. Agent workstreams are assigned in `.planning/AGENT-WORKSTREAMS.md`.
 
@@ -97,10 +97,10 @@ Items acknowledged and deferred at v4.0 close on 2026-07-15:
 
 ## Session Continuity
 
-Last session: 2026-07-15T15:21:54.058Z
-Stopped at: Phase 28 context gathered
-Resume file: .planning/phases/28-security-tenancy-capabilities-foundation/28-CONTEXT.md
+Last session: 2026-07-15T19:32:04.209Z
+Stopped at: Phase 29 context gathered
+Resume file: .planning/phases/29-event-spine-durable-outbox/29-CONTEXT.md
 
 ## Operator Next Steps
 
-- Start next-phase discussion with `/gsd:discuss-phase 28`
+- Execute the planned work with `/gsd:execute-phase 28`
