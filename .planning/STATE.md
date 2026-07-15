@@ -1,135 +1,106 @@
 ---
 gsd_state_version: 1.0
-milestone: v4.0
-milestone_name: Workspace Records & Views
-status: milestone_complete
-stopped_at: Milestone complete (Phase 26 was final phase)
-last_updated: 2026-07-15T10:36:53.774Z
-last_activity: 2026-07-15 -- Phase 26 execution started
+milestone: v5.0
+milestone_name: Platform Foundation & Durable Execution
+status: planning
+stopped_at: Milestone v5.0 initialized
+last_updated: 2026-07-15T12:45:00.000Z
+last_activity: 2026-07-15 -- v4.0 archived and v5.0 initialized
 progress:
-  total_phases: 6
-  completed_phases: 5
-  total_plans: 24
-  completed_plans: 24
-  percent: 83
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 4
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-12)
+See: .planning/PROJECT.md (updated 2026-07-15)
 
-**Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history — the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Milestone complete
+**Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history - the risk semaphore is a hard, visible block, not a suggestion.
+**Current focus:** v5.0 Platform Foundation & Durable Execution
 
 ## Current Position
 
-Phase: 26
+Phase: 27
 Plan: Not started
-Status: Milestone complete
-Last activity: 2026-07-15
+Status: Planning ready
+Last activity: 2026-07-15 - v4.0 archived; v5.0 roadmap and requirements created
 
-**Decision coverage override (2026-07-13):** Decision Coverage Gate flagged D-01, D-04, D-05, D-06, D-07, D-08, D-09, D-11, D-13 as not literally cited by ID in any 21-*-PLAN.md. User reviewed and chose "Proceed anyway" — gsd-plan-checker's independent Dimension 7 review already confirmed all 9 are substantively implemented (nesting mechanism in 21-05, media decisions in 21-03, mention scope in 21-02, sub-page preview in 21-04); the gap is citation-format only, not a missing feature. If verify-phase re-surfaces this, treat it as already reviewed and accepted.
-
-## Performance Metrics
-
-**Velocity:**
-
-- Total plans completed: 32
-- Average duration: N/A
-- Total execution time: 0 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01 | 3 | - | - |
-| 04 | 2 | - | - |
-| 05 | 2 | 55min | 27.5min |
-| 06 | 2 | 60min | 30min |
-| 11 | 1 | 15min | 15min |
-| 13 | 1 | - | - |
-| 14 | 2 | - | - |
-| 16 | 2 | - | - |
-| 18 | 1 | 20min | 20min |
-| 19 | 3 | - | - |
-| 24 | 4 | - | - |
-| 25 | 4 | - | - |
-| 26 | 5 | - | - |
-
-**Recent Trend:**
-
-- Last 5 plans: N/A
-- Trend: N/A
-
-*Updated after each plan completion*
+**v5.0 kickoff note:** The imported roadmap is not being restarted at Phase 0. v1-v4 shipped work is preserved; v5 starts at Phase 27 and focuses on baseline truth, security/tenancy/capabilities, durable event/outbox, and workflow persistence. Agent workstreams are assigned in `.planning/AGENT-WORKSTREAMS.md`.
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+- v4.0 closed as shipped with tech-debt/manual-UAT follow-ups, not missing requirements.
+- v5.0 continues phase numbering at 27.
+- v5.0 combines the imported roadmap's baseline truth, security/tenancy, event/outbox, and durable automation prerequisites.
+- Phase 27 must complete repo truth and imported-roadmap reconciliation before architecture-changing v5 code changes.
+- Phase 28 request/capability/tenant foundation precedes Phase 29 outbox and Phase 30 workflow execution.
+- Phase 29 introduces durable outbox before workflow MVP to avoid best-effort UI-triggered automation side effects.
+- App Store/package lifecycle remains blocked until capability/action enforcement exists.
 
-- Roadmap (v3.0): Used the drafted 7-phase build order from `.planning/milestones/v3.0-on-premise-ga.md` as-is, renumbered 1-7 → 14-20 — it was already sequenced by dependency directly from the on-prem/cloud/release specs' own build-order sections, and validated cleanly 1:1 against the 17 REQUIREMENTS.md items with no gaps.
-- Roadmap (v3.0): Phase 14 (Security Hardening) precedes Phase 15 (Migration Runner) so the default-admin seed is already excluded from customer-facing installs before the migration runner formalizes execution order.
-- Roadmap (v3.0): Phase 18 (Backend-side Local AI) depends on Phase 16 (`DEPLOYMENT_MODE`) so the new server-side local-AI dispatch path can be scoped to on-prem without touching Cloud's existing hard-throw behavior.
-- Roadmap (v3.0): Phase 20 (Deploy Hardening + Connectivity Doc) has no hard dependency on the installer/release track and is sequenced last only to keep every earlier phase independently shippable.
-- Phase 18: D-01/D-02 from 18-CONTEXT.md applied as specified — hasUsableProvider trusts stored config (no live ping), completeLocal uses a 180s timeout (vs 60s for cloud providers) for slower on-prem CPU inference.
-- Roadmap (v4.0): Phases 21 (content blocks) and 22 (Records+Views data model) have no dependency on each other — parallelization-safe, sequenced 21 then 22 only for numbering, not build order.
-- Roadmap (v4.0): Phase 23 (record detail page) depends on both 21 and 22 — it needs the full block palette for record bodies and the schema/records API to render against.
-- Roadmap (v4.0): Phase 24 (board view) sequenced after 23, not just 22, because BOARD-03's inline card creation opens straight into the same record-detail surface Phase 23 builds.
-- Roadmap (v4.0): Phase 24 explicitly reuses `@dnd-kit` (already a workspaces dependency, used elsewhere in the app) for drag-and-drop rather than adding a new library.
-- Roadmap (v4.0): Phases 25 (view UX parity) and 26 (additional view types) both depend only on Phase 24's `collection-view` scaffold and can run in parallel with each other.
-- Roadmap (v4.0): `callout` already exists as a native block (v2.0, Phase 12) and was deliberately excluded from Phase 21's CONT-01..09 scope — only genuinely missing kinds are in that phase.
-- Roadmap (v4.0): New schema work starts at migration `025_` (last existing is `024_kpi_target_client.sql`), following `009_project_pages.sql`'s conventions (company_id-scoped, UUID PK, JSONB with defaults, created_by/at/updated_at, composite index).
-- Roadmap (v4.0): Realtime record sync (`emitToRoom`) explicitly deferred to v2 Requirements (RTSYNC-01/02) — no phase created for it in this milestone.
+### Agent Assignments
 
-### Pending Todos
+See `.planning/AGENT-WORKSTREAMS.md`.
 
-None yet.
+### Deferred Items
 
-## Deferred Items
-
-Items acknowledged and deferred at v1.0 milestone close on 2026-07-06:
+Items acknowledged and deferred at v1.0 close:
 
 | Category | Item | Status |
 |----------|------|--------|
-| uat | Phase 02 human-UAT (02-HUMAN-UAT.md) — 5 pending scenarios | partial |
-| uat | Phase 03 human-UAT (03-HUMAN-UAT.md) — 2 pending scenarios | partial |
-| verification | Phase 02 verification (02-VERIFICATION.md) | human_needed |
-| verification | Phase 03 verification (03-VERIFICATION.md) | human_needed |
+| uat | Phase 02 human-UAT - 5 pending scenarios | partial |
+| uat | Phase 03 human-UAT - 2 pending scenarios | partial |
+| verification | Phase 02 verification | human_needed |
+| verification | Phase 03 verification | human_needed |
 
-These are manual sign-offs on already-shipped CRM features (incl. the credit-risk semaphore). Run before/during production rollout; not blocking v3.0 work.
-
-Items acknowledged and deferred at v2.0 milestone close on 2026-07-12 (see `.planning/milestones/v2.0-MILESTONE-AUDIT.md` for full detail):
+Items acknowledged and deferred at v2.0 close:
 
 | Category | Item | Status |
 |----------|------|--------|
-| verification | Phases 07-11 missing VERIFICATION.md (never run after execution) | tech_debt — backfill via `/gsd:validate-phase 07`..`11` if desired |
-| verification | RND-03 (byte-identical persisted JSON) verified only via static code trace | tech_debt — recommend a live pre/post diff smoke test |
-| verification | MPG-02 (full mini-program round-trip) verified only via static code trace | tech_debt — recommend a live load→run→export smoke test |
+| verification | Phases 07-11 missing formal `VERIFICATION.md` at execution time, later audit-confirmed wired | tech_debt |
+| verification | Live pre/post page JSON diff and mini-program round-trip only statically traced | tech_debt |
 
-No functional gaps — all 14/14 v2.0 requirements independently re-confirmed satisfied by the milestone audit's integration check. Not blocking v3.0 work.
+Items acknowledged and deferred at v3.0 close:
 
-### Blockers/Concerns
+| Category | Item | Status |
+|----------|------|--------|
+| health | `/health` has no timeout on Postgres/Redis probes | tech_debt |
+| auth | Auth rate limiter shares one bucket across auth endpoints | tech_debt |
+| compose | Live `docker compose config` validation remains manual | manual |
 
-- [Phase 1] `kpi_results.user_id` is NOT NULL today — needs schema resolution (nullable + `client_id` column, or equivalent) before Phase 6's client-subject risk evaluator can write results (already resolved via migration 021 — nullable + client_id column added; Phase 6 unblocked)
-- [Phase 5] Migration 023's idempotency was verified by manual SQL inspection only — no live PostgreSQL container was available in the execution environment to run it twice against a real DB. Worth a real dry-run before/during deployment.
-- [Phase 5] `integration_credentials` table has no formal migration (schema drift risk) — not fixed incidentally during Phase 5 since no Outlook credentials-table changes were needed (only last_sync_at, which is a pre-existing column)
-- [Phase 6] Migration 024's idempotency also verified by manual SQL inspection only, same reason (no live DB in this environment) — worth a real dry-run before/during deployment, same as migration 023.
-- [Phase 6] `crmService.getClientEmails()` (separate from the timeline's real email read path) still returns a hardcoded empty array — a pre-existing stub noticed but out of this phase's RSK-01/02/03 scope; worth fixing in a future cleanup pass since Phase 5 already made real email data available via `crmRepository.listClientEmails()`.
-- [Phase 13] Decision Coverage Gate (`check.decision-coverage-plan`) reported 0/4 CONTEXT.md decisions (D-01–D-04) covered by 13-01-PLAN.md — overridden and proceeded. Manual `grep` confirms all 4 IDs appear 8 times total in the plan body (`read_first`, task actions, ADR section), and the independent gsd-plan-checker agent pass explicitly confirmed all 4 decisions are correctly handled. Looks like a gate tool false-negative (phase-dir/glob resolution issue), not a real coverage gap — worth a closer look if the gate misfires again on a future phase.
-- [Phase 18] The `worktree-agent-adc9aa1890f503c5c` worktree branch this plan executed in was checked out 246 commits behind `main` with zero unique commits (exactly at the merge-base) — `.planning/` didn't exist in the worktree at session start. Resolved with a safe `git merge main --ff-only` before execution began (no destructive operations, no conflicts). Also, `gsd-sdk query state.advance-plan` incorrectly advanced Phase 17's stale "Plan 1 of 3" tracking instead of recognizing Phase 18 as the active phase — STATE.md's "Current Position" section was stale (still said "Phase 17 EXECUTING" even though all 3 Phase 17 plans and Phase 18 context-gathering were already committed on `main`). Reverted the incorrect auto-advance and updated STATE.md's Current Position manually to reflect Phase 18 complete. Worth investigating why `state.advance-plan` didn't detect the correct current phase from disk state (SUMMARY.md files / ROADMAP.md checkboxes) before advancing.
+Items acknowledged and deferred at v4.0 close on 2026-07-15:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat | Phase 25 human-UAT (`25-HUMAN-UAT.md`) - 5 pending live-browser scenarios | human_needed |
+| uat | Phase 26 human-UAT (`26-HUMAN-UAT.md`) - 3 pending live-browser scenarios | partial |
+| verification | Phase 21 verification remains `human_needed` | tech_debt |
+| verification | Phase 23 verification remains `human_needed` | tech_debt |
+| verification | Phase 25 verification remains `human_needed` | tech_debt |
+| verification | Phase 26 verification remains `human_needed` despite 10/10 code-verified must-haves | tech_debt |
+| review | Phase 26 warning-level UI follow-ups: timeline clamp/copy, stale config race, calendar duplicate-create guard, gallery cover URL expectations | follow_up |
+
+### v5 Risks Carried Into Phase 27
+
+- Legacy `/api/shipments` and `/api/capacity` appear unauthenticated and accept caller-supplied `user_id`.
+- Code references credential/runtime tables whose migration truth needs verification: `integration_credentials`, `api_credentials`, `internal_api_keys`, `vehicle_locations`, `assignment_scores`.
+- Matching worker and FastAPI matching-engine route contracts appear inconsistent.
+- Demo/stub behavior can silently enter LTL, yard, telematics, Outlook, inbox, document AI, and marketplace paths.
+- No durable outbox exists; `activity_events` is best-effort and swallows logging errors.
+- Automations dashboard/builder are mock/browser-local; workflows/runs/step logs are not persisted.
 
 ## Session Continuity
 
-Last session: 2026-07-15T06:01:10.055Z
-Stopped at: Phase 26 UI-SPEC approved
-Resume file: .planning/phases/26-additional-view-types/26-UI-SPEC.md
+Last session: 2026-07-15T12:45:00.000Z
+Stopped at: v5.0 initialized
+Resume file: .planning/ROADMAP.md
 
 ## Operator Next Steps
 
-- Review and approve .planning/ROADMAP.md (Phases 21-26) and .planning/REQUIREMENTS.md
-- Once approved, start execution with /gsd:plan-phase 21
+- Start execution with `/gsd:plan-phase 27`

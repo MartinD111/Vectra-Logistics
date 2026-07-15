@@ -1,5 +1,21 @@
 # Milestones
 
+## v4.0 Workspace Records & Views (Shipped: 2026-07-15)
+
+**Phases completed:** 6 phases, 24 plans
+**Timeline:** 2026-07-13 -> 2026-07-15
+
+**Key accomplishments:**
+
+- Completed the generic page/record body palette: checklist, toggle, quote, code, media, simple table, columns, sub-page, and inline mentions.
+- Added the Records+Views data model and API domain: company-scoped collections, records, views, parent records, property schemas, and record bodies.
+- Added record detail pages with schema-driven property editing and the existing page editor as the body editor.
+- Replaced legacy page Kanban with a real `collection-view` board and zero-data-loss migration path.
+- Added view UX parity: filters, sorts, card preview properties, column aggregations, view switching, and table view.
+- Added list, calendar, gallery, and timeline renderers over the same `collection_records` source.
+
+**Known deferred items at close:** Tech debt/manual UAT only, no missing v4 requirements - see `.planning/milestones/v4.0-MILESTONE-AUDIT.md`. Phase 25/26 live-browser UAT remains pending; Phase 26 has warning-level UI follow-ups around timeline geometry/copy, settings stale-config race, calendar duplicate-create guard, and gallery cover URL expectations.
+
 ## v3.0 On-Premise GA (Shipped: 2026-07-13)
 
 **Phases completed:** 7 phases, 16 plans, 31 tasks
