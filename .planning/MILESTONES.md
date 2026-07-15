@@ -1,5 +1,21 @@
 # Milestones
 
+## v5.0 Platform Foundation & Durable Execution (Shipped: 2026-07-15)
+
+**Phases completed:** 4 phases, 8 plans
+
+**Key accomplishments:**
+
+- Hardened `docs/architecture/current-state-truth-matrix.md` into the single audit-grade Phase 27 artifact, covering grouped repository inventory, strict imported-roadmap reconciliation, a real command baseline, and the ADR gaps that block architecture-changing v5 work.
+- Added one typed `RequestContext`, one capability surface, focused tenant/trust regression tests, and a Phase 28 security contract for future actions.
+- Versioned event_outbox envelope with a records collection-created transaction pilot
+- Database-anchored outbox dispatcher with bounded retry and a workflow-ready records event catalog
+- Persisted workflow drafts and manual notification runs with tenant-scoped logs, idempotency, and real automation UI state
+
+**Known deferred items at close:** 6 inherited v4 manual-UAT/verification items remain acknowledged in `.planning/STATE.md`; no missing v5 requirements.
+
+---
+
 ## v4.0 Workspace Records & Views (Shipped: 2026-07-15)
 
 **Phases completed:** 6 phases, 24 plans

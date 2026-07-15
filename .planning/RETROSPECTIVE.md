@@ -40,6 +40,44 @@
 
 ---
 
+## Milestone: v5.0 - Platform Foundation & Durable Execution
+
+**Shipped:** 2026-07-15
+**Phases:** 4 | **Plans:** 8
+
+### What Was Built
+- Baseline truth matrix and imported-roadmap reconciliation for the live v1-v4 platform.
+- Typed request context and reusable capability service for future actions and integrations.
+- Pilot cross-tenant/trust regression coverage and a documented Phase 28 security contract.
+- Versioned durable event outbox, records collection-created transactional pilot, and dispatcher retry lifecycle.
+- Persisted workflow drafts, manual notification-action runs, idempotent run rows, step logs, and real automation UI state.
+
+### What Worked
+- Sequencing security/capability work before event and workflow work made Phase 30 much cleaner: the workflow domain reused `workflow.build`, `workflow.run`, and RequestContext.
+- Keeping Phase 30 to one supported graph avoided accidental platform sprawl while still proving persistence, validation, execution, and observability.
+- The event catalog and workflow docs made the boundary between durable publication and durable run inspection explicit.
+
+### What Was Inefficient
+- Phase 28 artifacts were present but uncommitted at milestone close, forcing a late recovery/commit pass before tagging.
+- GSD archive generation counted the full project state instead of the v5 phase range, requiring manual correction of v5 archive stats.
+- Old v4 human-UAT/verification debt continues to appear in open-artifact audits during later milestone closeouts.
+
+### Patterns Established
+- Foundation milestones should include a final archive sanity check before tag creation: phase counts, plan counts, requirement traceability, and whether earlier phase artifacts are actually committed.
+- A narrow MVP graph contract is a useful way to prove workflow infrastructure without committing to scheduler/connector scope too early.
+- Capability names should be created before feature domains consume them; this kept workflow authorization boring in the best way.
+
+### Key Lessons
+1. Before closing a milestone, run `git status` scoped to every phase in the milestone, not only the latest phase.
+2. If archived stats look suspicious, trust the phase directories and summaries over generated counters.
+3. Carrying old human-UAT debt is manageable when it is explicitly acknowledged, but it will keep surfacing until resolved or archived as permanent tech debt.
+
+### Cost Observations
+- Sessions: 1 closeout session after Phase 30 execution.
+- Notable: late Phase 28 commit recovery added time, but prevented tagging a milestone that would have omitted shipped foundation code.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution

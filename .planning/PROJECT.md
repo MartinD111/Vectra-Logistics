@@ -4,20 +4,21 @@
 
 Vectra is a workspace platform for logistics companies. It combines a Notion-like workspace, a configurable records/views database, mini programs, durable automations, integrations, and logistics business modules in one codebase for cloud and on-prem deployments.
 
-The product already has four shipped foundations:
+The product already has five shipped foundations:
 
 - v1.0 CRM Rework: CRM dashboard, client detail pages, Excel import, Outlook sent-mail sync, per-project client overrides, and credit-risk semaphore.
 - v2.0 Workspace Engine: shared `WorkspaceBlockRegistry` powering Project Pages and Mini Programs, plus native and manifest extensibility seams.
 - v3.0 On-Premise GA: deployment mode, migration runner, installer, local AI dispatch, production compose, release/upgrade docs, and deployment hardening.
 - v4.0 Workspace Records & Views: generic content blocks, records/views API, record detail pages, collection board/table/list/calendar/gallery/timeline views, and legacy Kanban migration.
+- v5.0 Platform Foundation & Durable Execution: baseline truth matrix, typed request/capability spine, durable event outbox, and persisted workflow MVP.
 
 ## Core Value
 
 Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history. The risk semaphore is a hard, visible block, not a suggestion.
 
-## Current Milestone: v5.0 Platform Foundation & Durable Execution
+## Current Milestone
 
-**Goal:** Reconcile the imported execution roadmap with the shipped v1-v4 platform, then harden the request, capability, event, and workflow foundation required before larger logistics verticals continue.
+No active milestone. Start the next milestone with `/gsd:new-milestone`.
 
 **Target features:**
 
@@ -45,7 +46,7 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 
 ### Active
 
-- v5.0 requirements live in `.planning/REQUIREMENTS.md`.
+- No active milestone requirements. The next milestone should create a fresh `.planning/REQUIREMENTS.md`.
 
 ### Out of Scope
 
@@ -71,16 +72,11 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 
 **Completed:** v5.0 Phase 30 Workflow MVP Persistence & Manual Trigger (2026-07-15) - persisted workflow drafts, active publish state, manual notification-action runs, idempotent `workflow_runs`, step logs, and real automation dashboard/builder API state.
 
+**Shipped:** v5.0 Platform Foundation & Durable Execution (2026-07-15) - 4 phases, 8 plans, all 20 v5 requirements archived at `.planning/milestones/v5.0-REQUIREMENTS.md`.
+
 ## Next Milestone Goals
 
-v5.0 Platform Foundation & Durable Execution is complete and ready for milestone closeout.
-
-The first four v5 phases are:
-
-- Phase 27: Baseline Truth & Roadmap Reconciliation
-- Phase 28: Security, Tenancy & Capabilities Foundation
-- Phase 29: Event Spine & Durable Outbox
-- Phase 30: Workflow MVP Persistence & Manual Trigger
+Start the next milestone with `/gsd:new-milestone`.
 
 The concrete agent ownership map lives in `.planning/AGENT-WORKSTREAMS.md`.
 
@@ -133,4 +129,4 @@ After each milestone:
 3. Preserve core value unless the business priority explicitly changes.
 
 ---
-*Last updated: 2026-07-15 - Phase 30 workflow MVP completed.*
+*Last updated: 2026-07-15 after v5.0 milestone completion.*

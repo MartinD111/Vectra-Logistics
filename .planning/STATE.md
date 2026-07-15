@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: Platform Foundation & Durable Execution
-status: milestone_complete
-stopped_at: Milestone complete (Phase 30 was final phase)
-last_updated: 2026-07-15T20:17:43.042Z
-last_activity: 2026-07-15 -- Phase 30 completed and v5.0 milestone ready for closeout
+status: Awaiting next milestone
+stopped_at: Completed 30-01-PLAN.md
+last_updated: "2026-07-15T20:20:42.170Z"
+last_activity: 2026-07-15 — Milestone v5.0 completed and archived
 progress:
   total_phases: 10
   completed_phases: 10
@@ -21,16 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history - the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Milestone complete
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 30
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-07-15
-
-**v5.0 kickoff note:** The imported roadmap is not being restarted at Phase 0. v1-v4 shipped work is preserved; v5 starts at Phase 27 and focuses on baseline truth, security/tenancy/capabilities, durable event/outbox, and workflow persistence. Agent workstreams are assigned in `.planning/AGENT-WORKSTREAMS.md`.
+Phase: Milestone v5.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-15 — Milestone v5.0 completed and archived
 
 ## Accumulated Context
 
@@ -103,4 +101,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Run `/gsd:complete-milestone` to archive v5.0 Platform Foundation & Durable Execution.
+- Start the next milestone with `/gsd:new-milestone`.
