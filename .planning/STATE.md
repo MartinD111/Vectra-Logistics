@@ -4,8 +4,8 @@ milestone: v5.0
 milestone_name: Platform Foundation & Durable Execution
 status: executing
 stopped_at: Phase 27 planned
-last_updated: "2026-07-15T14:49:59.322Z"
-last_activity: 2026-07-15 -- Phase 27 planning complete
+last_updated: "2026-07-15T14:52:45.542Z"
+last_activity: 2026-07-15 -- Phase 27 execution started
 progress:
   total_phases: 7
   completed_phases: 6
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history - the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** v5.0 Platform Foundation & Durable Execution
+**Current focus:** Phase 27 — Baseline Truth & Roadmap Reconciliation
 
 ## Current Position
 
-Phase: 27
-Plan: 01
-Status: Ready to execute
-Last activity: 2026-07-15 -- Phase 27 planning complete
+Phase: 27 (Baseline Truth & Roadmap Reconciliation) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 27
+Last activity: 2026-07-15 -- Phase 27 execution started
 
 **v5.0 kickoff note:** The imported roadmap is not being restarted at Phase 0. v1-v4 shipped work is preserved; v5 starts at Phase 27 and focuses on baseline truth, security/tenancy/capabilities, durable event/outbox, and workflow persistence. Agent workstreams are assigned in `.planning/AGENT-WORKSTREAMS.md`.
 
