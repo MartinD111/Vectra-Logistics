@@ -147,7 +147,7 @@ Milestone audit: [milestones/v4.0-MILESTONE-AUDIT.md](milestones/v4.0-MILESTONE-
 | 26. Additional View Types | v4.0 | 5/5 | Complete | 2026-07-15 |
 | 27. Baseline Truth & Roadmap Reconciliation | v5.0 | 1/1 | Complete    | 2026-07-15 |
 | 28. Security, Tenancy & Capabilities Foundation | v5.0 | 0/4 | Planned | - |
-| 29. Event Spine & Durable Outbox | v5.0 | 2/2 | Complete   | 2026-07-15 |
+| 29. Event Spine & Durable Outbox | v5.0 | 2/2 | Complete    | 2026-07-15 |
 | 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 0/1 | Not started | - |
 
 ---

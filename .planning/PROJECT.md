@@ -67,6 +67,8 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 
 **Shipped:** v4.0 Workspace Records & Views (2026-07-15) - 6 phases, 24 plans, all 30 requirements. Archived at `.planning/milestones/v4.0-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md`. Known deferred items are manual UAT and warning-level UI follow-ups, not missing requirements.
 
+**Completed:** v5.0 Phase 29 Event Spine & Durable Outbox (2026-07-15) - versioned `event_outbox` envelope, records collection-created transactional pilot, dispatcher retry/failure lifecycle, and durable event catalog for Phase 30 workflows.
+
 ## Next Milestone Goals
 
 v5.0 Platform Foundation & Durable Execution is active.
@@ -129,4 +131,4 @@ After each milestone:
 3. Preserve core value unless the business priority explicitly changes.
 
 ---
-*Last updated: 2026-07-15 - v4.0 archived and v5.0 Platform Foundation & Durable Execution initialized.*
+*Last updated: 2026-07-15 - Phase 29 durable event outbox baseline completed.*
