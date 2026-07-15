@@ -1,9 +1,9 @@
-# event-spine.md — `activity_events` specification
+# event-spine.md — durable publication and `activity_events` projection
 
-Scope: the append-only event log that is the single source of truth for all
-statistics and KPIs in Vectra. This document describes the spine **as it
-actually exists in the code today**, plus the rules any Claude Code session
-must follow when writing to it or reading from it.
+Scope: the event spine as it exists after Phase 29. `event_outbox` is the
+canonical durable publication contract for workflow/integration consumers.
+`activity_events` remains the append-only analytics/history projection that
+statistics and KPIs read.
 
 Referenced by code comments as **CLAUDE.md §3** and **§4**. Keep those section
 references intact.
@@ -14,10 +14,14 @@ references intact.
 
 ## 1. Purpose & core principle
 
-`activity_events` is a **single, append-only table** that every meaningful
-action writes one row to. Metrics, per-project stats, per-user stats, KPI
-evaluation, and activity timelines are all **reads over this log** — there are
-no separate per-project or per-user counters to maintain.
+`event_outbox` is the durable source of publication truth. Backend mutations
+that need reliable workflow/integration publication write a versioned event
+envelope into `event_outbox` in the same transaction as the business state.
+
+`activity_events` is a **single, append-only analytics/history projection**.
+Metrics, per-project stats, per-user stats, KPI evaluation, and activity
+timelines are reads over this projection. There are no separate per-project or
+per-user counters to maintain.
 
 The governing rule (already stated in `004_projects_and_programs.sql`):
 
@@ -30,7 +34,26 @@ is a query over this table. This holds under On-Premise as much as Cloud.
 
 ---
 
-## 2. Schema (source of truth)
+## 2. Durable outbox schema
+
+Defined in `database/migrations/026_event_outbox.sql`. The durable envelope
+includes:
+
+- `event_id`, `event_name`, `envelope_version`
+- `tenant_id`, `actor_id`, `object_type`, `object_id`, `project_id`
+- `causation_id`, `correlation_id`
+- `payload_version`, `payload`
+- publication lifecycle fields: `status`, `attempts`, `max_attempts`,
+  `next_attempt_at`, `locked_at`, `locked_by`, `published_at`, `failed_at`,
+  `last_error`
+
+The dispatcher claims rows by persisted status and moves each row through
+`pending -> publishing -> published` or `pending -> publishing -> pending`
+retry, ending in `failed` when bounded attempts are exhausted.
+
+See `docs/specs/core/event-catalog.md` for workflow-facing event contracts.
+
+## 3. `activity_events` schema
 
 Defined in `database/migrations/003_workspaces_and_presets.sql`. Do **not**
 redefine it elsewhere; extend only via a new numbered, idempotent migration.
@@ -70,7 +93,7 @@ CREATE INDEX activity_events_verb_idx   ON activity_events (tenant_id, verb, occ
 
 ---
 
-## 3. Writing events — the only sanctioned path
+## 4. Writing analytics/history events
 
 All writes go through **one helper**: `apps/api/src/core/events/activityLog.ts`.
 
@@ -88,7 +111,7 @@ await recordEvent({
 });
 ```
 
-Hard rules — these are already how the code behaves, keep them true:
+Hard rules for legacy and derived projection writes:
 
 1. **Write from the SERVICE layer only.** Never from controllers, repositories,
    or the frontend. Every current call site is in a `*.service.ts`.
@@ -110,7 +133,7 @@ or manager would reasonably expect to see in stats/timelines, add a
 
 ---
 
-## 4. Verb & object_type conventions
+## 5. Verb & object_type conventions
 
 `verb` is `domain.action` (or `domain.subthing.action`), **past tense**,
 lower-case, dot-separated. `object_type` is the generic noun. Neither is a DB
@@ -155,6 +178,7 @@ ltl.scan.suggested                 -> ltl_scan        (actor_id NULL: system)
 ltl.accepted                       -> ltl_suggestion
 yard.gate.checkin                  -> yard_asset
 shipment.draft.created             -> shipment_draft
+records.collection.created         -> data_collection
 ```
 
 ### Naming a new verb
@@ -171,7 +195,7 @@ current code, but a good next step before the list gets much longer.
 
 ---
 
-## 5. Payload discipline
+## 6. Payload discipline
 
 From `activityLog.ts`:
 
@@ -192,7 +216,7 @@ Guidelines:
 
 ---
 
-## 6. Reading events — established query patterns
+## 7. Reading events — established query patterns
 
 All reads are `tenant_id`-scoped. Existing consumers to copy from:
 
@@ -217,7 +241,7 @@ add an index in a new migration rather than scanning.
 
 ---
 
-## 7. Relationship to the KPI engine
+## 8. Relationship to the KPI engine
 
 The KPI framework (migration `008_kpi_rules.sql`, domain `kpi/`) sits **on top
 of** the spine:
@@ -236,7 +260,7 @@ ad-hoc counters. Detail of the KPI layer belongs in `kpi-engine.md`, not here.
 
 ---
 
-## 8. Cloud vs. On-Premise notes
+## 9. Cloud vs. On-Premise notes
 
 - The spine is **deployment-mode agnostic** — identical schema and code paths
   in both. `tenant_id` scoping means an On-Prem single-tenant install is just
@@ -253,15 +277,17 @@ ad-hoc counters. Detail of the KPI layer belongs in `kpi-engine.md`, not here.
 
 ---
 
-## 9. Do / Don't summary
+## 10. Do / Don't summary
 
 **Do**
+- Use `event_outbox` for durable workflow/integration publication contracts.
 - Write every meaningful business action via `recordEvent` from the service layer.
 - Set `tenant_id` always, `project_id` whenever project-scoped.
 - Put sliceable detail in `payload`, generously.
 - Read stats via `tenant_id`-scoped queries over this table.
 
 **Don't**
+- Don't treat `activity_events` as the durable source for Phase 30 workflows.
 - Don't add domain-specific columns — use `payload`.
 - Don't maintain parallel counters or cached totals for anything derivable here.
 - Don't let `recordEvent` throw or roll back the real action.

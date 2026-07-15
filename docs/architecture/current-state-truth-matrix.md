@@ -10,7 +10,7 @@
 
 | Surface | Repo truth | Current status |
 |---------|------------|----------------|
-| `apps/api` | Shared Express backend. Canonical DDD surface mounted at `/api/v1`, plus legacy `/api/auth`, `/api/profile`, `/api/documents`, `/api/shipments`, `/api/capacity`, `/api/integrations`, `/api/ratings`, `/api/companies`, `/api/webhooks`, `/api/pod`, `/uploads`, and `/health`. | Partial: real backend surface, but legacy and canonical routes coexist, and some legacy public edges still need tenancy/security normalization. |
+| `apps/api` | Shared Express backend. Canonical DDD surface mounted at `/api/v1`, plus legacy `/api/auth`, `/api/profile`, `/api/documents`, `/api/shipments`, `/api/capacity`, `/api/integrations`, `/api/ratings`, `/api/companies`, `/api/webhooks`, `/api/pod`, `/uploads`, and `/health`. Phase 29 adds the durable `event_outbox` publication path and event dispatcher. | Partial: real backend surface, but legacy and canonical routes coexist, and some legacy public edges still need tenancy/security normalization. |
 | `apps/workspaces` | Main Next.js workspace app with records, projects, programs, automations, CRM-adjacent UI, and vertical operational surfaces. | Shipped for current v1-v4 spine, with known lint debt and demo/stub caveats in some downstream features. |
 | `apps/cmr` | Separate Next.js CMR/POD-facing app. | Partial: real production build exists, but broader lifecycle unification remains incomplete. |
 | `apps/marketplace` | Separate Next.js marketplace/LTL app. | Partial: real production build exists, but shipment/capacity lifecycle remains fragmented and partially demo/stub-backed. |
@@ -82,19 +82,21 @@ Repo truth: this is the canonical DDD API surface. It is real and substantial, b
 - `apps/api/src/workers/matchingJob.ts`
 - `apps/api/src/workers/email.worker.ts`
 - `apps/api/src/workers/telematics.worker.ts`
+- `apps/api/src/workers/eventOutbox.worker.ts`
 
 | Surface | Repo truth | Current status |
 |---------|------------|----------------|
 | Matching worker | `startMatchingWorker()` is called from API bootstrap and the worker listens on queue `matching`. | Partial: real worker wiring exists, but matching-engine contract drift remains a blocking truth for future durable event work. |
 | Email sync worker | `startEmailWorker()` and `scheduleEmailSync()` are called from API bootstrap. | Partial: real worker wiring exists, but Outlook/demo-mode caveats still affect end-to-end truth. |
+| Event outbox worker | `startEventOutboxWorker()` and `scheduleEventOutboxDispatch()` are called from API bootstrap. It claims durable `event_outbox` rows, applies bounded retry/failure state, and projects the records pilot into `activity_events`. | Shipped Phase 29 baseline for durable publication; intentionally narrow to the records collection-created pilot and not a general operator UI/API. |
 | Telematics worker | Worker file exists and can schedule queue work, but `startTelematicsWorker()` is not called from API bootstrap. | Partial: code exists, runtime wiring does not. This must not be overstated as a shipped live capability. |
 
 ### Database migrations and schema surfaces
 
 | Surface | Repo truth | Current status |
 |---------|------------|----------------|
-| `database/migrations/` | Visible migration range is `002_realtime_and_documents.sql` through `025_records_views.sql`. There is no visible `001_*` file in the repo. | Partial baseline: real migration trail exists, but Phase 27 must treat missing early numbering and code/schema drift as truth, not assume completeness. |
-| Latest visible schema surface | Latest migration is `025_records_views.sql`. | Shipped for v4 records/views work. |
+| `database/migrations/` | Visible migration range is `002_realtime_and_documents.sql` through `026_event_outbox.sql`. There is no visible `001_*` file in the repo. | Partial baseline: real migration trail exists, but Phase 27 must treat missing early numbering and code/schema drift as truth, not assume completeness. |
+| Latest visible schema surface | Latest migration is `026_event_outbox.sql`. | Shipped for v5 Phase 29 durable event outbox baseline. |
 | Schema-truth caveat | Code still references `integration_credentials`, `api_credentials`, `internal_api_keys`, `vehicle_locations`, and `assignment_scores` without a complete visible migration trail proven in this repo. | Partial/risky: must be resolved as part of the v5 schema-truth ADR gap before architecture-changing work builds on these tables. |
 
 ### Operational entrypoints
@@ -170,7 +172,7 @@ Repo truth: development boot and migration truth are not a single path today. Th
 ## Immediate v5 Risks
 
 - Tenant isolation is implemented by convention in many domains, but lacks a shared cross-tenant test harness.
-- `activity_events` exists, but service writes are not yet backed by a durable outbox/dispatcher.
+- `event_outbox` now exists for the records collection-created pilot, but most legacy `recordEvent()` call sites are not yet backed by durable publication.
 - Automations are still a UI/demo surface rather than a persisted workflow runtime.
 - Public/integration endpoints need a unified signed/keyed framework before more connectors are added.
 - Demo/stub behavior needs a single explicit capability/demo-mode story so production cannot synthesize operational data silently.
@@ -182,13 +184,15 @@ Repo truth: development boot and migration truth are not a single path today. Th
 
 ## ADR Gaps Before Architecture-Changing PRs
 
+Status note: Phase 28 now codifies the shipped request/capability/public-trust contract in `docs/architecture/phase-28-security-contract.md`. Remaining items below stay relevant where they are explicitly marked deferred by that contract.
+
 | ADR gap | Why it is needed | Downstream pressure |
 |---------|------------------|---------------------|
 | Typed `RequestContext` and capability boundary | The repo still mixes legacy and canonical route surfaces, and security/tenancy behavior is not expressed through one shared request contract. | Blocks Phase 28. |
 | Public endpoint trust model | `/api/webhooks/*`, `/api/pod/:token`, and legacy public edges need one documented signed-token/API-key/HMAC posture instead of route-by-route exceptions. | Blocks Phase 28 and any new connector/public-surface work. |
 | Demo-mode vs production-mode capability policy | Several surfaces have demo/stub behavior today. The platform needs one explicit rule for when synthetic behavior is allowed, surfaced, and denied. | Blocks Phase 28 and protects Phase 30 from building on silent demo fallbacks. |
 | Schema-truth ADR for credential/runtime tables | Code references runtime and credential tables without a complete visible migration trail. The team needs one canonical answer on whether these are missing migrations, external/manual tables, or dead references. | Blocks Phase 28 and Phase 29 schema work. |
-| Event envelope and durable outbox contract | Current `activity_events` is best-effort. Durable automation and reliable integrations need one versioned event/outbox contract first. | Blocks Phase 29 and Phase 30. |
+| Event envelope and durable outbox contract | Phase 29 now defines the v1 outbox envelope and records pilot catalog. Additional domains still need explicit catalog entries before workflow consumers rely on them. | Phase 30 can consume the records pilot; broader integration events remain deferred. |
 | Workflow persistence and run contract | Current automation UI is not backed by durable drafts, runs, steps, or idempotency rules. | Blocks Phase 30. |
 | Matching-engine/service contract reconciliation | Node worker assumptions and FastAPI route contracts are not visibly aligned. Durable queue/event work should not inherit that ambiguity. | Blocks Phase 29 event work and future routing vertical execution. |
 | Migration/bootstrap contract for local and production environments | Development Compose boot and the migration runner are not one unified path today. The repo needs one operator-truth ADR for how schema state is established and upgraded in each environment. | Blocks Phase 29 schema changes and future operator hardening. |
@@ -196,7 +200,7 @@ Repo truth: development boot and migration truth are not a single path today. Th
 ## Agent Findings Snapshot
 
 - **Repo Auditor Agent:** confirmed apps/packages/services inventory, current `/api/v1` domains, legacy route surfaces, migration range `002`-`025`, BullMQ workers, and major demo/stub candidates in matching, LTL, yard, fleet/telematics, Outlook demo mode, inbox, document AI, and marketplace UI.
-- **Backend Security Agent:** confirmed auth context lives in `core/auth`, no outbox exists, `activity_events` is best-effort, public endpoints are mixed, legacy shipment/capacity routes are risky, and credential schemas are split.
+- **Backend Security Agent:** originally confirmed auth context lives in `core/auth`, no durable outbox existed before Phase 29, `activity_events` was best-effort, public endpoints are mixed, legacy shipment/capacity routes are risky, and credential schemas are split.
 - **Programs/Automation Agent:** confirmed programs persist config but not runs, automations dashboard/builder are static/browser-local, notifications are persisted and can be reused for the first workflow action, and server-owned workflow run tables/API should come before broader automation work.
 
 ## Phase 27 Conclusion

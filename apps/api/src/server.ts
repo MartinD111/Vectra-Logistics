@@ -14,6 +14,7 @@ import { errorHandler } from "./core/errors/errorHandler";
 import documentsRoutes from "./routes/documentsRoutes";
 import { startMatchingWorker } from "./workers/matchingJob";
 import { startEmailWorker, scheduleEmailSync } from "./workers/email.worker";
+import { startEventOutboxWorker, scheduleEventOutboxDispatch } from "./workers/eventOutbox.worker";
 import integrationsRoutes from "./routes/integrationsRoutes";
 import webhookRoutes from "./routes/webhookRoutes";
 import podPublicRoutes from "./domains/pod/pod.public.routes";
@@ -126,7 +127,9 @@ async function bootstrap() {
     // Start background worker
     startMatchingWorker();
     startEmailWorker();
+    startEventOutboxWorker();
     await scheduleEmailSync();
+    await scheduleEventOutboxDispatch();
 
     server.listen(PORT, () => {
       console.log(`Backend server running on port ${PORT}`);
