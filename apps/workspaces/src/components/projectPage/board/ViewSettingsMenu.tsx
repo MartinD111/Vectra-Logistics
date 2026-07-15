@@ -36,10 +36,26 @@ export function ViewSettingsMenu({
   const [localAggregation, setLocalAggregation] = useState<AggregationConfig | undefined>(
     () => view.config.columnAggregation as AggregationConfig | undefined,
   );
+  const [localCalendarDateProperty, setLocalCalendarDateProperty] = useState<string | undefined>(
+    () => view.config.calendarDateProperty as string | undefined,
+  );
+  const [localGalleryCoverProperty, setLocalGalleryCoverProperty] = useState<string | undefined>(
+    () => view.config.galleryCoverProperty as string | undefined,
+  );
+  const [localTimelineStartProperty, setLocalTimelineStartProperty] = useState<string | undefined>(
+    () => view.config.timelineStartProperty as string | undefined,
+  );
+  const [localTimelineEndProperty, setLocalTimelineEndProperty] = useState<string | undefined>(
+    () => view.config.timelineEndProperty as string | undefined,
+  );
 
   useEffect(() => {
     setLocalCardProperties((view.config.cardProperties as string[]) ?? []);
     setLocalAggregation(view.config.columnAggregation as AggregationConfig | undefined);
+    setLocalCalendarDateProperty(view.config.calendarDateProperty as string | undefined);
+    setLocalGalleryCoverProperty(view.config.galleryCoverProperty as string | undefined);
+    setLocalTimelineStartProperty(view.config.timelineStartProperty as string | undefined);
+    setLocalTimelineEndProperty(view.config.timelineEndProperty as string | undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view.id]);
 
@@ -47,6 +63,8 @@ export function ViewSettingsMenu({
   const aggregation = localAggregation;
   const aggType = aggregation?.type ?? 'count';
   const numberProperties = collection.schema.filter((p) => p.type === 'number');
+  const dateProperties = collection.schema.filter((p) => p.type === 'date');
+  const filesProperties = collection.schema.filter((p) => p.type === 'files');
 
   const toggleCardProperty = (propId: string) => {
     const next = cardProperties.includes(propId)
@@ -66,6 +84,26 @@ export function ViewSettingsMenu({
     const next = { type: aggType, propId: nextPropId };
     setLocalAggregation(next);
     updateView.mutate({ config: { ...view.config, columnAggregation: next } });
+  };
+
+  const setCalendarDateProperty = (propId: string) => {
+    setLocalCalendarDateProperty(propId);
+    updateView.mutate({ config: { ...view.config, calendarDateProperty: propId } });
+  };
+
+  const setGalleryCoverProperty = (propId: string) => {
+    setLocalGalleryCoverProperty(propId);
+    updateView.mutate({ config: { ...view.config, galleryCoverProperty: propId } });
+  };
+
+  const setTimelineStartProperty = (propId: string) => {
+    setLocalTimelineStartProperty(propId);
+    updateView.mutate({ config: { ...view.config, timelineStartProperty: propId } });
+  };
+
+  const setTimelineEndProperty = (propId: string) => {
+    setLocalTimelineEndProperty(propId);
+    updateView.mutate({ config: { ...view.config, timelineEndProperty: propId } });
   };
 
   return (
@@ -123,6 +161,69 @@ export function ViewSettingsMenu({
                 </select>
               )}
             </div>
+
+            {view.type === 'calendar' && (
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Calendar date property</p>
+                <select
+                  className="saas-input !py-1.5 text-xs w-full"
+                  value={localCalendarDateProperty ?? ''}
+                  onChange={(e) => setCalendarDateProperty(e.target.value)}
+                >
+                  <option value="">Select a date property…</option>
+                  {dateProperties.map((property) => (
+                    <option key={property.id} value={property.id}>{property.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {view.type === 'gallery' && (
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Cover image property</p>
+                <select
+                  className="saas-input !py-1.5 text-xs w-full"
+                  value={localGalleryCoverProperty ?? ''}
+                  onChange={(e) => setGalleryCoverProperty(e.target.value)}
+                >
+                  <option value="">Select a files property…</option>
+                  {filesProperties.map((property) => (
+                    <option key={property.id} value={property.id}>{property.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {view.type === 'timeline' && (
+              <div className="space-y-1.5">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Start date property</p>
+                  <select
+                    className="saas-input !py-1.5 text-xs w-full"
+                    value={localTimelineStartProperty ?? ''}
+                    onChange={(e) => setTimelineStartProperty(e.target.value)}
+                  >
+                    <option value="">Select a date property…</option>
+                    {dateProperties.map((property) => (
+                      <option key={property.id} value={property.id}>{property.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">End date property</p>
+                  <select
+                    className="saas-input !py-1.5 text-xs w-full"
+                    value={localTimelineEndProperty ?? ''}
+                    onChange={(e) => setTimelineEndProperty(e.target.value)}
+                  >
+                    <option value="">Select a date property…</option>
+                    {dateProperties.map((property) => (
+                      <option key={property.id} value={property.id}>{property.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}
