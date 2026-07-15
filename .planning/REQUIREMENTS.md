@@ -51,7 +51,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Additional View Types
 
-- [ ] **VIEW-01**: User can view a collection as a table (rows/columns, sortable/filterable)
+- [x] **VIEW-01**: User can view a collection as a table (rows/columns, sortable/filterable) — delivered by Phase 25 plan 25-04 (`CollectionTableView.tsx`)
 - [ ] **VIEW-02**: User can view a collection as a flat list
 - [ ] **VIEW-03**: User can view a collection as a calendar, plotted by a date property
 - [ ] **VIEW-04**: User can view a collection as a gallery (card grid with optional cover image)
@@ -114,7 +114,7 @@ Explicitly excluded from v4.0. Documented to prevent scope creep.
 | VIEWX-02 | Phase 25 | Complete |
 | VIEWX-03 | Phase 25 | Complete |
 | VIEWX-04 | Phase 25 | Complete |
-| VIEW-01 | Phase 26 | Pending |
+| VIEW-01 | Phase 25 | Complete |
 | VIEW-02 | Phase 26 | Pending |
 | VIEW-03 | Phase 26 | Pending |
 | VIEW-04 | Phase 26 | Pending |

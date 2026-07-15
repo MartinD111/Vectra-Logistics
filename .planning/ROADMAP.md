@@ -227,10 +227,10 @@ Plans:
 
 **Goal**: The same collection can be viewed as a table, list, calendar, or gallery/timeline — all reading the same records
 **Depends on**: Phase 24 (collection-view block scaffold), can run alongside Phase 25
-**Requirements**: VIEW-01, VIEW-02, VIEW-03, VIEW-04, VIEW-05
+**Requirements**: VIEW-02, VIEW-03, VIEW-04, VIEW-05
 **Success Criteria** (what must be TRUE):
 
-  1. User can view a collection as a sortable/filterable table of rows and columns
+  1. User can view a collection as a sortable/filterable table of rows and columns (VIEW-01 — already delivered by Phase 25 plan 25-04; carried here as a cross-check, not a new deliverable)
   2. User can view a collection as a flat list
   3. User can view a collection as a calendar, with records plotted by a chosen date property
   4. User can view a collection as a gallery (card grid, optional cover image) and as a timeline/Gantt plotted by a date-range property
