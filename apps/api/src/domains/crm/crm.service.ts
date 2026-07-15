@@ -103,9 +103,8 @@ class CrmService {
   // since that method is private to ProjectsService. Reuses the public
   // projectsRepository.findProject export rather than adding a new one.
   private async assertOwnedProject(projectId: string, companyId: string): Promise<void> {
-    const p = await projectsRepository.findProject(projectId);
+    const p = await projectsRepository.findProjectForCompany(projectId, companyId);
     if (!p) throw new AppError(404, 'Project not found');
-    if (p.company_id !== companyId) throw new AppError(403, 'Forbidden');
   }
 
   // ── Client Pages (D-07/D-08: idempotent get-or-create, one page per client) ──

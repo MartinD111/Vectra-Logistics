@@ -24,6 +24,14 @@ class ProjectsRepository {
     return rows[0] ?? null;
   }
 
+  async findProjectForCompany(id: string, companyId: string): Promise<Project | null> {
+    const { rows } = await db.query<Project>(
+      `SELECT * FROM projects WHERE id = $1 AND company_id = $2`,
+      [id, companyId],
+    );
+    return rows[0] ?? null;
+  }
+
   async createProject(
     companyId: string, createdBy: string | null,
     data: { name: string; description?: string | null; color?: string | null; folder_id?: string | null },
@@ -76,6 +84,14 @@ class ProjectsRepository {
 
   async findProgram(id: string): Promise<Program | null> {
     const { rows } = await db.query<Program>(`SELECT * FROM programs WHERE id = $1`, [id]);
+    return rows[0] ?? null;
+  }
+
+  async findProgramForCompany(id: string, companyId: string): Promise<Program | null> {
+    const { rows } = await db.query<Program>(
+      `SELECT * FROM programs WHERE id = $1 AND company_id = $2`,
+      [id, companyId],
+    );
     return rows[0] ?? null;
   }
 
@@ -173,6 +189,14 @@ class ProjectsRepository {
 
   async findPage(id: string): Promise<ProjectPage | null> {
     const { rows } = await db.query<ProjectPage>(`SELECT * FROM project_pages WHERE id = $1`, [id]);
+    return rows[0] ?? null;
+  }
+
+  async findPageForCompany(id: string, companyId: string): Promise<ProjectPage | null> {
+    const { rows } = await db.query<ProjectPage>(
+      `SELECT * FROM project_pages WHERE id = $1 AND company_id = $2`,
+      [id, companyId],
+    );
     return rows[0] ?? null;
   }
 

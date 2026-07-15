@@ -67,9 +67,8 @@ class FoldersService {
   }
 
   private async assertOwnedFolder(id: string, companyId: string): Promise<Folder> {
-    const f = await foldersRepository.findFolder(id);
+    const f = await foldersRepository.findFolderForCompany(id, companyId);
     if (!f) throw new AppError(404, 'Folder not found');
-    if (f.company_id !== companyId) throw new AppError(403, 'Forbidden');
     return f;
   }
 

@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticateToken, requireRole } from '../../core/auth/middleware';
+import { requireCapability } from '../../core/capabilities';
 import {
   getIntegrations,
   saveIntegration,
@@ -11,10 +12,10 @@ import { handleSamsaraWebhook, handleGeotabWebhook } from './webhook.controller'
 const router = Router();
 
 // ── Standard integration routes (JWT protected, admin only) ───────────────
-router.get('/settings', authenticateToken, requireRole(['admin']), getIntegrations);
-router.post('/settings', authenticateToken, requireRole(['admin']), saveIntegration);
-router.get('/settings/keys', authenticateToken, requireRole(['admin']), getInternalApiKeys);
-router.post('/settings/keys', authenticateToken, requireRole(['admin']), generateInternalApiKey);
+router.get('/settings', authenticateToken, requireRole(['admin']), requireCapability('integration.admin'), getIntegrations);
+router.post('/settings', authenticateToken, requireRole(['admin']), requireCapability('integration.admin'), saveIntegration);
+router.get('/settings/keys', authenticateToken, requireRole(['admin']), requireCapability('integration.admin'), getInternalApiKeys);
+router.post('/settings/keys', authenticateToken, requireRole(['admin']), requireCapability('integration.admin'), generateInternalApiKey);
 
 // ── Webhook routes (NO JWT — provider-specific auth in controller) ─────────
 //

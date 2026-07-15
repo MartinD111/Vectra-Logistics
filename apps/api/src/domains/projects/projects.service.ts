@@ -179,23 +179,20 @@ class ProjectsService {
   // ── Internal ──────────────────────────────────────────────────────────────────
 
   private async assertOwnedProject(id: string, companyId: string): Promise<Project> {
-    const p = await projectsRepository.findProject(id);
+    const p = await projectsRepository.findProjectForCompany(id, companyId);
     if (!p) throw new AppError(404, 'Project not found');
-    if (p.company_id !== companyId) throw new AppError(403, 'Forbidden');
     return p;
   }
 
   private async assertOwnedPage(id: string, companyId: string): Promise<ProjectPage> {
-    const p = await projectsRepository.findPage(id);
+    const p = await projectsRepository.findPageForCompany(id, companyId);
     if (!p) throw new AppError(404, 'Page not found');
-    if (p.company_id !== companyId) throw new AppError(403, 'Forbidden');
     return p;
   }
 
   private async assertOwnedProgram(id: string, companyId: string): Promise<Program> {
-    const p = await projectsRepository.findProgram(id);
+    const p = await projectsRepository.findProgramForCompany(id, companyId);
     if (!p) throw new AppError(404, 'Program not found');
-    if (p.company_id !== companyId) throw new AppError(403, 'Forbidden');
     return p;
   }
 

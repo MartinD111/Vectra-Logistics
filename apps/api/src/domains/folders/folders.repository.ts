@@ -15,6 +15,14 @@ class FoldersRepository {
     return rows[0] ?? null;
   }
 
+  async findFolderForCompany(id: string, companyId: string): Promise<Folder | null> {
+    const { rows } = await db.query<Folder>(
+      `SELECT * FROM folders WHERE id = $1 AND company_id = $2`,
+      [id, companyId],
+    );
+    return rows[0] ?? null;
+  }
+
   async createFolder(
     companyId: string, createdBy: string | null,
     data: { name: string; parent_id?: string | null; icon?: string | null; color?: string | null },
