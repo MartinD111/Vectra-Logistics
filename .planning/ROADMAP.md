@@ -239,17 +239,17 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 26-01-PLAN.md — Foundation: export formatCardPropertyValue, ViewSwitcher dropdown (D-10), ViewSettingsMenu property pickers (D-01, D-04, D-06)
+- [x] 26-01-PLAN.md — Foundation: export formatCardPropertyValue, ViewSwitcher dropdown (D-10), ViewSettingsMenu property pickers (D-01, D-04, D-06)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 26-02-PLAN.md — List + Gallery view renderers (VIEW-02, VIEW-04)
-- [ ] 26-03-PLAN.md — Calendar view renderer + click-to-create (VIEW-03)
-- [ ] 26-04-PLAN.md — Timeline/Gantt view renderer (VIEW-05)
+- [x] 26-02-PLAN.md — List + Gallery view renderers (VIEW-02, VIEW-04)
+- [x] 26-03-PLAN.md — Calendar view renderer + click-to-create (VIEW-03)
+- [x] 26-04-PLAN.md — Timeline/Gantt view renderer (VIEW-05)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 26-05-PLAN.md — Wire all 4 new renderers into BoardBlock's view.type branch (VIEW-02, VIEW-03, VIEW-04, VIEW-05)
+- [x] 26-05-PLAN.md — Wire all 4 new renderers into BoardBlock's view.type branch (VIEW-02, VIEW-03, VIEW-04, VIEW-05)
 
 **UI hint**: yes
 
@@ -285,7 +285,7 @@ Phases execute in numeric order: 21 → 22 (parallel-safe with 21) → 23 → 24
 | 23. Record Detail Page | v4.0 | 2/2 | Complete   | 2026-07-14 |
 | 24. Board View & Legacy Kanban Migration | v4.0 | 4/4 | Complete    | 2026-07-14 |
 | 25. View UX Parity | v4.0 | 4/4 | Complete    | 2026-07-15 |
-| 26. Additional View Types | v4.0 | 0/5 | Planned | - |
+| 26. Additional View Types | v4.0 | 5/5 | Complete   | 2026-07-15 |
 
 ---
 *Roadmap created: 2026-07-05 · v1.0 archived: 2026-07-06 · v2.0 archived: 2026-07-12 · v3.0 archived: 2026-07-13 · v4.0 roadmap added: 2026-07-13*
