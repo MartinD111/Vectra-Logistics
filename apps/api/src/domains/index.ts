@@ -21,6 +21,7 @@ import billingRouter from './billing/billing.routes';
 import crmRouter from './crm/crm.routes';
 import ltlRouter from './ltl/ltl.routes';
 import recordsRouter from './records/records.routes';
+import workflowsRouter from './workflows/workflows.routes';
 
 const router = Router();
 
@@ -46,6 +47,7 @@ router.use('/billing', billingRouter);
 router.use('/crm', crmRouter);
 router.use('/ltl', ltlRouter);
 router.use('/records', recordsRouter);
+router.use('/workflows', workflowsRouter);
 
 // Future domains mount here:
 // router.use('/routes', routesDomainRouter);
