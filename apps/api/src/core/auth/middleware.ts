@@ -2,14 +2,16 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { db } from '../db';
 import { getJwtSecret } from '../config/secrets';
+import {
+  buildRequestContext,
+  resolveRequestId,
+  type RequestUser,
+  type RequestContext,
+} from './request-context';
 
 export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    role: string;
-    company_id: string | null;
-    is_verified: boolean;
-  };
+  user?: RequestUser;
+  context?: RequestContext;
 }
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -20,7 +22,8 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
 
   jwt.verify(token, getJwtSecret(), (err: any, user: any) => {
     if (err) return res.status(403).json({ error: 'Invalid or expired token' });
-    req.user = user;
+    req.user = user as RequestUser;
+    req.context = buildRequestContext(req.user, resolveRequestId(req));
     next();
   });
 };
