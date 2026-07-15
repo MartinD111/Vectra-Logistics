@@ -69,9 +69,11 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 
 **Completed:** v5.0 Phase 29 Event Spine & Durable Outbox (2026-07-15) - versioned `event_outbox` envelope, records collection-created transactional pilot, dispatcher retry/failure lifecycle, and durable event catalog for Phase 30 workflows.
 
+**Completed:** v5.0 Phase 30 Workflow MVP Persistence & Manual Trigger (2026-07-15) - persisted workflow drafts, active publish state, manual notification-action runs, idempotent `workflow_runs`, step logs, and real automation dashboard/builder API state.
+
 ## Next Milestone Goals
 
-v5.0 Platform Foundation & Durable Execution is active.
+v5.0 Platform Foundation & Durable Execution is complete and ready for milestone closeout.
 
 The first four v5 phases are:
 
@@ -131,4 +133,4 @@ After each milestone:
 3. Preserve core value unless the business priority explicitly changes.
 
 ---
-*Last updated: 2026-07-15 - Phase 29 durable event outbox baseline completed.*
+*Last updated: 2026-07-15 - Phase 30 workflow MVP completed.*
