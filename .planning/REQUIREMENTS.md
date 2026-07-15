@@ -11,10 +11,10 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Baseline Truth
 
-- [ ] **BASE-01**: Maintainer can read a current inventory of apps, packages, services, database migrations/tables, queues, and public route domains.
-- [ ] **BASE-02**: Maintainer can read a feature truth matrix marking each imported roadmap phase/capability as shipped, partial, demo, absent, or deferred.
-- [ ] **BASE-03**: Maintainer can run or read a documented baseline for lint, typecheck, tests, builds, migrations, and local boot commands without hiding failures.
-- [ ] **BASE-04**: Maintainer can see the ADR gap list needed before architecture-changing PRs proceed.
+- [x] **BASE-01**: Maintainer can read a current inventory of apps, packages, services, database migrations/tables, queues, and public route domains.
+- [x] **BASE-02**: Maintainer can read a feature truth matrix marking each imported roadmap phase/capability as shipped, partial, demo, absent, or deferred.
+- [x] **BASE-03**: Maintainer can run or read a documented baseline for lint, typecheck, tests, builds, migrations, and local boot commands without hiding failures.
+- [x] **BASE-04**: Maintainer can see the ADR gap list needed before architecture-changing PRs proceed.
 
 ### Security & Tenancy
 
@@ -73,10 +73,10 @@ Deferred to future milestones, tracked to keep dependency order visible.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BASE-01 | Phase 27 | Pending |
-| BASE-02 | Phase 27 | Pending |
-| BASE-03 | Phase 27 | Pending |
-| BASE-04 | Phase 27 | Pending |
+| BASE-01 | Phase 27 | Complete |
+| BASE-02 | Phase 27 | Complete |
+| BASE-03 | Phase 27 | Complete |
+| BASE-04 | Phase 27 | Complete |
 | SECCTX-01 | Phase 28 | Pending |
 | SECCTX-02 | Phase 28 | Pending |
 | SECCTX-03 | Phase 28 | Pending |
@@ -101,4 +101,4 @@ Deferred to future milestones, tracked to keep dependency order visible.
 
 ---
 *Requirements defined: 2026-07-15*
-*Last updated: 2026-07-15 after v5 milestone initialization*
+*Last updated: 2026-07-15 after Phase 27 completion*

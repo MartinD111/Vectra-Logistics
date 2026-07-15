@@ -151,7 +151,7 @@ Repo truth: development boot and migration truth are not a single path today. Th
 |----------|---------|--------|----------|
 | lint | `npm run lint` (repo root) | Not available | Root `package.json` has no `lint` script. |
 | lint | `npm run lint --workspace @vectra/workspaces` | Fail | `next lint` runs and reports existing `react/no-unescaped-entities` errors in `billing/settlements`, `company/[id]`, and `how-it-works`, plus warnings in `profile` and image usage. |
-| lint | `npm run lint --workspace @vectra/cmr` | Not CI-ready | `next lint` launches the interactive “How would you like to configure ESLint?” prompt instead of running a preconfigured lint pass. |
+| lint | `npm run lint --workspace @vectra/cmr` | Not CI-ready | `next lint` launches the interactive "How would you like to configure ESLint?" prompt instead of running a preconfigured lint pass. |
 | lint | `npm run lint --workspace @vectra/marketplace` | Not CI-ready | Same interactive ESLint setup prompt as CMR. |
 | typecheck | dedicated repo script | Not available | No root or app-level `typecheck` script exists in package manifests. |
 | typecheck | `npx tsc --noEmit -p apps/api/tsconfig.json` | Pass | Command exits 0. |
@@ -201,9 +201,9 @@ Repo truth: development boot and migration truth are not a single path today. Th
 
 ## Phase 27 Conclusion
 
-Phase 27 baseline truth is not “the repo has no foundation.” The repo has a substantial shipped spine across CRM, workspace engine, on-prem hardening, and records/views. The real truth is narrower and more actionable:
+Phase 27 baseline truth is not "the repo has no foundation." The repo has a substantial shipped spine across CRM, workspace engine, on-prem hardening, and records/views. The real truth is narrower and more actionable:
 
 - the platform already ships meaningful product surfaces
-- the imported roadmap must be biased downward to avoid calling partial/demo infrastructure “done”
+- the imported roadmap must be biased downward to avoid calling partial/demo infrastructure "done"
 - command/operator truth is uneven across apps and environments
 - local boot, migration truth, public trust, capability enforcement, and durable event/workflow contracts all need explicit decisions before v5 architecture-changing work proceeds

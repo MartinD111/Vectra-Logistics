@@ -52,7 +52,7 @@ Milestone audit: [milestones/v4.0-MILESTONE-AUDIT.md](milestones/v4.0-MILESTONE-
 <details open>
 <summary>🚧 v5.0 Platform Foundation & Durable Execution (Phases 27-30) — ACTIVE</summary>
 
-- [ ] **Phase 27: Baseline Truth & Roadmap Reconciliation** — Inventory current apps/packages/services/routes/migrations, map imported roadmap phases to shipped/partial/demo/absent/deferred, document baseline build/test/local boot status, and identify ADR gaps.
+- [x] **Phase 27: Baseline Truth & Roadmap Reconciliation** — Inventory current apps/packages/services/routes/migrations, map imported roadmap phases to shipped/partial/demo/absent/deferred, document baseline build/test/local boot status, and identify ADR gaps. (completed 2026-07-15)
 - [ ] **Phase 28: Security, Tenancy & Capabilities Foundation** — Introduce typed `RequestContext`, a capability service, pilot cross-tenant test harness, signed public endpoint pattern, and explicit production/demo capability behavior.
 - [ ] **Phase 29: Event Spine & Durable Outbox** — Define versioned event envelope, add durable outbox migration, convert one service mutation to transactional state+event write, and add dispatcher retry/idempotency behavior.
 - [ ] **Phase 30: Workflow MVP Persistence & Manual Trigger** — Persist workflow drafts, wire builder save/load, run a manual trigger with notification action, and show durable run/step logs with validation and duplicate protection.
@@ -135,7 +135,7 @@ Milestone audit: [milestones/v4.0-MILESTONE-AUDIT.md](milestones/v4.0-MILESTONE-
 | 24. Board View & Legacy Kanban Migration | v4.0 | 4/4 | Complete | 2026-07-14 |
 | 25. View UX Parity | v4.0 | 4/4 | Complete | 2026-07-15 |
 | 26. Additional View Types | v4.0 | 5/5 | Complete | 2026-07-15 |
-| 27. Baseline Truth & Roadmap Reconciliation | v5.0 | 0/1 | Not started | - |
+| 27. Baseline Truth & Roadmap Reconciliation | v5.0 | 1/1 | Complete    | 2026-07-15 |
 | 28. Security, Tenancy & Capabilities Foundation | v5.0 | 0/1 | Not started | - |
 | 29. Event Spine & Durable Outbox | v5.0 | 0/1 | Not started | - |
 | 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 0/1 | Not started | - |

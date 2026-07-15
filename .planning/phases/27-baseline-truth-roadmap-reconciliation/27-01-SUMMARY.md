@@ -86,7 +86,7 @@ Each task was committed atomically:
 ## Decisions Made
 
 - Preserved one primary truth artifact instead of scattering the same baseline across multiple docs
-- Treated interactive lint prompts in CMR/Marketplace as a real baseline finding, not as a “soft pass”
+- Treated interactive lint prompts in CMR/Marketplace as a real baseline finding, not as a "soft pass"
 - Treated local boot as blocked in this environment once `docker compose config` failed at the executable layer, rather than pretending boot had been validated
 
 ## Deviations from Plan
