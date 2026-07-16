@@ -81,7 +81,7 @@ Milestone audit: [milestones/v5.0-MILESTONE-AUDIT.md](milestones/v5.0-MILESTONE-
 **Plans**: 6 plans
 
 Plans:
-- [ ] 31-01-PLAN.md — Folder hierarchy invariants migration (archived_at, ancestor_ids, data_collections.folder_id, composite FK invariants, cycle/depth trigger)
+- [x] 31-01-PLAN.md — Folder hierarchy invariants migration (archived_at, ancestor_ids, data_collections.folder_id, composite FK invariants, cycle/depth trigger)
 - [ ] 31-02-PLAN.md — Records domain: data_collections.folder_id + bulk archive/unarchive methods
 - [ ] 31-03-PLAN.md — Projects/programs: replace hard-delete with archive/unarchive + bulk cascade methods
 - [ ] 31-04-PLAN.md — Folders domain foundation: types/DTOs/repository (ancestor-index, archive/unarchive)
@@ -151,7 +151,7 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 28. Security, Tenancy & Capabilities Foundation | v5.0 | 4/4 | Complete | 2026-07-15 |
 | 29. Event Spine & Durable Outbox | v5.0 | 2/2 | Complete | 2026-07-15 |
 | 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 1/1 | Complete | 2026-07-15 |
-| 31. Data Model + Modernize Folders Domain | v6.0 | 0/6 | Not started | - |
+| 31. Data Model + Modernize Folders Domain | v6.0 | 1/6 | In Progress|  |
 | 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 0/TBD | Not started | - |
 | 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 0/TBD | Not started | - |
 | 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 0/TBD | Not started | - |

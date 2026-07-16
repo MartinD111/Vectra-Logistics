@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Unified Workspace Hierarchy
-status: planning
+status: executing
 stopped_at: Phase 31 context gathered
-last_updated: "2026-07-16T12:41:28.509Z"
-last_activity: 2026-07-16 — v6.0 ROADMAP.md created (Phases 31-34), all 22 v1 requirements mapped
+last_updated: "2026-07-16T13:33:10.699Z"
+last_activity: 2026-07-16 -- Phase 31 execution started
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 6
   completed_plans: 0
   percent: 0
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history - the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Phase 31 — Data Model + Modernize Folders Domain
+**Current focus:** Phase 31 — data-model-modernize-folders-domain
 
 ## Current Position
 
-Phase: 31 of 34 (Data Model + Modernize Folders Domain)
-Plan: TBD — not yet planned
-Status: Ready to plan
-Last activity: 2026-07-16 — v6.0 ROADMAP.md created (Phases 31-34), all 22 v1 requirements mapped
+Phase: 31 (data-model-modernize-folders-domain) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 31
+Last activity: 2026-07-16 -- Phase 31 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
