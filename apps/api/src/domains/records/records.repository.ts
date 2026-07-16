@@ -5,7 +5,7 @@ import { CollectionPropertyDef, DataCollectionRow, CollectionRecordRow, Collecti
 class RecordsRepository {
   // ── Collections ──
   async createCollectionWithDefaultView(companyId: string, d: {
-    name: string; schema: CollectionPropertyDef[]; projectId?: string | null; createdBy: string | null;
+    name: string; schema: CollectionPropertyDef[]; projectId?: string | null; folderId?: string | null; createdBy: string | null;
     actorId?: string | null; causationId?: string | null; correlationId?: string | null;
   }): Promise<{ collection: DataCollectionRow; view: CollectionViewRow }> {
     const client = await db.connect();
@@ -13,9 +13,9 @@ class RecordsRepository {
       await client.query('BEGIN');
 
       const collectionResult = await client.query<DataCollectionRow>(
-        `INSERT INTO data_collections (company_id, project_id, name, schema, created_by)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [companyId, d.projectId ?? null, d.name, JSON.stringify(d.schema ?? []), d.createdBy]);
+        `INSERT INTO data_collections (company_id, project_id, folder_id, name, schema, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [companyId, d.projectId ?? null, d.folderId ?? null, d.name, JSON.stringify(d.schema ?? []), d.createdBy]);
       const collection = collectionResult.rows[0];
 
       const viewResult = await client.query<CollectionViewRow>(
@@ -71,7 +71,7 @@ class RecordsRepository {
   }
 
   async updateCollection(id: string, companyId: string, patch: Partial<{
-    name: string; schema: CollectionPropertyDef[]; project_id: string | null;
+    name: string; schema: CollectionPropertyDef[]; project_id: string | null; folder_id: string | null;
   }>): Promise<DataCollectionRow | null> {
     const sets: string[] = [];
     const params: unknown[] = [id, companyId];

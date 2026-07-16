@@ -1,6 +1,7 @@
 import { AppError } from '../../core/errors/AppError';
 import { RequestContext } from '../../core/auth/request-context';
 import { recordsRepository } from './records.repository';
+import { foldersRepository } from '../folders/folders.repository';
 import { CollectionPropertyDef, DataCollectionRow, CollectionRecordRow, CollectionViewRow } from './records.types';
 import { CreateCollectionSchema } from './dto/create-collection.dto';
 import { UpdateCollectionSchema } from './dto/update-collection.dto';
@@ -18,11 +19,13 @@ class RecordsService {
   ): Promise<{ collection: DataCollectionRow; view: CollectionViewRow }> {
     const parsed = CreateCollectionSchema.safeParse(body);
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
+    if (parsed.data.folder_id) await this.assertOwnedFolder(parsed.data.folder_id, companyId);
     // D-03: one atomic repo call creates the collection AND its default
     // 'table' view — never two separate service-level calls.
     return recordsRepository.createCollectionWithDefaultView(companyId, {
       name: parsed.data.name,
       schema: (parsed.data.schema ?? []) as CollectionPropertyDef[],
+      folderId: parsed.data.folder_id,
       createdBy: context?.user?.id ?? null,
       actorId: context?.user?.id ?? null,
       correlationId: context?.requestId ?? null,
@@ -43,9 +46,11 @@ class RecordsService {
     const parsed = UpdateCollectionSchema.safeParse(body);
     if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
     await this.getCollection(id, companyId);
+    if (parsed.data.folder_id) await this.assertOwnedFolder(parsed.data.folder_id, companyId);
     const updated = await recordsRepository.updateCollection(id, companyId, {
       name: parsed.data.name,
       schema: parsed.data.schema as CollectionPropertyDef[] | undefined,
+      folder_id: parsed.data.folder_id,
     });
     if (!updated) throw new AppError(404, 'Collection not found');
     return updated;
@@ -173,6 +178,14 @@ class RecordsService {
       default:
         return true;
     }
+  }
+
+  // T-31-04: reject a cross-tenant/missing folder_id before any write.
+  // findFolderForCompany returns null for both "no such folder" and
+  // "wrong tenant", so a plain 404 is correct with no existence leak.
+  private async assertOwnedFolder(id: string, companyId: string): Promise<void> {
+    const folder = await foldersRepository.findFolderForCompany(id, companyId);
+    if (!folder) throw new AppError(404, 'Folder not found');
   }
 }
 

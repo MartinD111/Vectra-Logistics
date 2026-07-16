@@ -2,15 +2,18 @@ import { test, mock, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { recordsService } from './records.service';
 import { recordsRepository } from './records.repository';
+import { foldersRepository } from '../folders/folders.repository';
 import { DataCollectionRow, CollectionRecordRow, CollectionViewRow } from './records.types';
+import { CreateCollectionSchema } from './dto/create-collection.dto';
 
 const COLLECTION_ID = '11111111-1111-4111-8111-111111111111';
+const FOLDER_ID = '22222222-2222-4222-8222-222222222222';
 
 function makeCollection(overrides: Partial<DataCollectionRow> = {}): DataCollectionRow {
   return {
-    id: COLLECTION_ID, company_id: 'company-1', project_id: null, name: 'Clients',
+    id: COLLECTION_ID, company_id: 'company-1', project_id: null, folder_id: null, name: 'Clients',
     schema: [{ id: 'age', name: 'Age', type: 'number' }],
-    created_by: null, created_at: new Date(), updated_at: new Date(),
+    created_by: null, created_at: new Date(), updated_at: new Date(), archived_at: null,
     ...overrides,
   };
 }
@@ -66,6 +69,7 @@ test('createCollection calls createCollectionWithDefaultView exactly once and re
   assert.deepEqual(createMock.mock.calls[0].arguments[1], {
     name: 'Clients',
     schema: fakeCollection.schema,
+    folderId: undefined,
     createdBy: 'user-1',
     actorId: 'user-1',
     correlationId: 'request-1',
@@ -153,4 +157,37 @@ test('createRecord throws 404 before running prop validation when the collection
     },
   );
   assert.equal(createRecordMock.mock.calls.length, 0);
+});
+
+// HIER-01 Test 1: folder_id is accepted and passed through by the DTO.
+test('CreateCollectionSchema accepts a valid folder_id UUID', () => {
+  const parsed = CreateCollectionSchema.safeParse({ name: 'X', folder_id: FOLDER_ID });
+  assert.equal(parsed.success, true);
+  if (parsed.success) assert.equal(parsed.data.folder_id, FOLDER_ID);
+});
+
+// HIER-01 Test 2: a non-UUID folder_id fails validation.
+test('CreateCollectionSchema rejects a non-UUID folder_id', () => {
+  const parsed = CreateCollectionSchema.safeParse({ name: 'X', folder_id: 'not-a-uuid' });
+  assert.equal(parsed.success, false);
+});
+
+// HIER-01 Test 3 / T-31-04: cross-tenant folder_id is rejected with 404 before any write.
+test('createCollection throws 404 when folder_id belongs to a different company', async () => {
+  mock.method(foldersRepository, 'findFolderForCompany', async () => null);
+  const createMock = mock.method(
+    recordsRepository, 'createCollectionWithDefaultView',
+    async () => ({ collection: makeCollection(), view: makeView() }),
+  );
+
+  await assert.rejects(
+    recordsService.createCollection('company-1', { name: 'Clients', folder_id: FOLDER_ID }),
+    (err: unknown) => {
+      assert.ok(err instanceof Error);
+      assert.equal((err as { status?: number }).status, 404);
+      assert.match(err.message, /Folder not found/i);
+      return true;
+    },
+  );
+  assert.equal(createMock.mock.calls.length, 0);
 });

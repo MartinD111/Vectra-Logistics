@@ -16,5 +16,6 @@ export const CreateCollectionSchema = z.object({
   name: z.string().min(1).max(160),
   // .max(100) is defense-in-depth against JSONB payload DoS (T-22-01).
   schema: z.array(PropertyDefSchema).max(100).optional(),
+  folder_id: z.string().uuid().nullable().optional(),
 });
 export type CreateCollectionDto = z.infer<typeof CreateCollectionSchema>;
