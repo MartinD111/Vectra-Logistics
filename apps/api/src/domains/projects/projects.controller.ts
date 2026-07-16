@@ -24,9 +24,16 @@ export const updateProject = asyncHandler(async (req: AuthRequest, res: Response
   res.json({ project: await projectsService.updateProject(req.params.id, requireCompanyId(req), req.body) });
 });
 
-export const deleteProject = asyncHandler(async (req: AuthRequest, res: Response) => {
-  await projectsService.deleteProject(req.params.id, requireCompanyId(req));
-  res.status(204).send();
+export const archiveProject = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const ctx = requireRequestContext(req);
+  const project = await projectsService.archiveProject(req.params.id, requireCompanyId(ctx), ctx.user?.id ?? null);
+  res.json({ project });
+});
+
+export const unarchiveProject = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const ctx = requireRequestContext(req);
+  const project = await projectsService.unarchiveProject(req.params.id, requireCompanyId(ctx), ctx.user?.id ?? null);
+  res.json({ project });
 });
 
 export const getProjectStats = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -56,9 +63,16 @@ export const updateProgram = asyncHandler(async (req: AuthRequest, res: Response
   res.json({ program });
 });
 
-export const deleteProgram = asyncHandler(async (req: AuthRequest, res: Response) => {
-  await projectsService.deleteProgram(req.params.id, requireCompanyId(req));
-  res.status(204).send();
+export const archiveProgram = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const ctx = requireRequestContext(req);
+  const program = await projectsService.archiveProgram(req.params.id, requireCompanyId(ctx), ctx.user?.id ?? null);
+  res.json({ program });
+});
+
+export const unarchiveProgram = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const ctx = requireRequestContext(req);
+  const program = await projectsService.unarchiveProgram(req.params.id, requireCompanyId(ctx), ctx.user?.id ?? null);
+  res.json({ program });
 });
 
 // ── Project pages ─────────────────────────────────────────────────────────────

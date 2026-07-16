@@ -1,3 +1,4 @@
+import type { PoolClient } from 'pg';
 import { db } from '../../core/db';
 import {
   Project, Program, ProjectWithCounts, ProjectStats, ProjectPage, ActivityEventRow,
@@ -11,7 +12,7 @@ class ProjectsRepository {
       `SELECT p.*, COUNT(pr.id)::int AS program_count
        FROM projects p
        LEFT JOIN programs pr ON pr.project_id = p.id
-       WHERE p.company_id = $1
+       WHERE p.company_id = $1 AND p.archived_at IS NULL
        GROUP BY p.id
        ORDER BY p.created_at DESC`,
       [companyId],
@@ -26,7 +27,7 @@ class ProjectsRepository {
 
   async findProjectForCompany(id: string, companyId: string): Promise<Project | null> {
     const { rows } = await db.query<Project>(
-      `SELECT * FROM projects WHERE id = $1 AND company_id = $2`,
+      `SELECT * FROM projects WHERE id = $1 AND company_id = $2 AND archived_at IS NULL`,
       [id, companyId],
     );
     return rows[0] ?? null;
@@ -61,8 +62,22 @@ class ProjectsRepository {
     return rows[0] ?? null;
   }
 
-  async deleteProject(id: string): Promise<void> {
-    await db.query(`DELETE FROM projects WHERE id = $1`, [id]);
+  async archiveProject(id: string): Promise<Project | null> {
+    const { rows } = await db.query<Project>(
+      `UPDATE projects SET archived_at = NOW(), updated_at = NOW()
+       WHERE id = $1 AND archived_at IS NULL RETURNING *`,
+      [id],
+    );
+    return rows[0] ?? null;
+  }
+
+  async unarchiveProject(id: string): Promise<Project | null> {
+    const { rows } = await db.query<Project>(
+      `UPDATE projects SET archived_at = NULL, updated_at = NOW()
+       WHERE id = $1 RETURNING *`,
+      [id],
+    );
+    return rows[0] ?? null;
   }
 
   // ── Programs ────────────────────────────────────────────────────────────────
@@ -70,13 +85,13 @@ class ProjectsRepository {
   async listPrograms(companyId: string, projectId?: string): Promise<Program[]> {
     if (projectId) {
       const { rows } = await db.query<Program>(
-        `SELECT * FROM programs WHERE company_id = $1 AND project_id = $2 ORDER BY created_at DESC`,
+        `SELECT * FROM programs WHERE company_id = $1 AND project_id = $2 AND archived_at IS NULL ORDER BY created_at DESC`,
         [companyId, projectId],
       );
       return rows;
     }
     const { rows } = await db.query<Program>(
-      `SELECT * FROM programs WHERE company_id = $1 ORDER BY created_at DESC`,
+      `SELECT * FROM programs WHERE company_id = $1 AND archived_at IS NULL ORDER BY created_at DESC`,
       [companyId],
     );
     return rows;
@@ -89,7 +104,7 @@ class ProjectsRepository {
 
   async findProgramForCompany(id: string, companyId: string): Promise<Program | null> {
     const { rows } = await db.query<Program>(
-      `SELECT * FROM programs WHERE id = $1 AND company_id = $2`,
+      `SELECT * FROM programs WHERE id = $1 AND company_id = $2 AND archived_at IS NULL`,
       [id, companyId],
     );
     return rows[0] ?? null;
@@ -132,8 +147,64 @@ class ProjectsRepository {
     return rows[0] ?? null;
   }
 
-  async deleteProgram(id: string): Promise<void> {
-    await db.query(`DELETE FROM programs WHERE id = $1`, [id]);
+  async archiveProgram(id: string): Promise<Program | null> {
+    const { rows } = await db.query<Program>(
+      `UPDATE programs SET archived_at = NOW(), updated_at = NOW()
+       WHERE id = $1 AND archived_at IS NULL RETURNING *`,
+      [id],
+    );
+    return rows[0] ?? null;
+  }
+
+  async unarchiveProgram(id: string): Promise<Program | null> {
+    const { rows } = await db.query<Program>(
+      `UPDATE programs SET archived_at = NULL, updated_at = NOW()
+       WHERE id = $1 RETURNING *`,
+      [id],
+    );
+    return rows[0] ?? null;
+  }
+
+  // ── Bulk cascade-archive (used by the folders-domain archive cascade) ────────
+
+  async archiveProjectsInFolders(client: PoolClient, folderIds: string[], companyId: string): Promise<Project[]> {
+    const { rows } = await client.query<Project>(
+      `UPDATE projects SET archived_at = NOW(), updated_at = NOW()
+       WHERE company_id = $1 AND folder_id = ANY($2::uuid[]) AND archived_at IS NULL
+       RETURNING *`,
+      [companyId, folderIds],
+    );
+    return rows;
+  }
+
+  async archiveProgramsInFolders(client: PoolClient, folderIds: string[], companyId: string): Promise<Program[]> {
+    const { rows } = await client.query<Program>(
+      `UPDATE programs SET archived_at = NOW(), updated_at = NOW()
+       WHERE company_id = $1 AND folder_id = ANY($2::uuid[]) AND archived_at IS NULL
+       RETURNING *`,
+      [companyId, folderIds],
+    );
+    return rows;
+  }
+
+  async archiveProgramsInProjects(client: PoolClient, projectIds: string[], companyId: string): Promise<Program[]> {
+    const { rows } = await client.query<Program>(
+      `UPDATE programs SET archived_at = NOW(), updated_at = NOW()
+       WHERE company_id = $1 AND project_id = ANY($2::uuid[]) AND archived_at IS NULL
+       RETURNING *`,
+      [companyId, projectIds],
+    );
+    return rows;
+  }
+
+  async archivePagesInProjects(client: PoolClient, projectIds: string[], companyId: string): Promise<ProjectPage[]> {
+    const { rows } = await client.query<ProjectPage>(
+      `UPDATE project_pages SET archived_at = NOW(), updated_at = NOW()
+       WHERE company_id = $1 AND project_id = ANY($2::uuid[]) AND archived_at IS NULL
+       RETURNING *`,
+      [companyId, projectIds],
+    );
+    return rows;
   }
 
   // ── Per-project statistics (read from the event spine) ───────────────────────

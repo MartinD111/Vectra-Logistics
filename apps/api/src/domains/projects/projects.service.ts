@@ -43,9 +43,28 @@ class ProjectsService {
     return updated;
   }
 
-  async deleteProject(id: string, companyId: string): Promise<void> {
-    await this.assertOwnedProject(id, companyId);
-    await projectsRepository.deleteProject(id); // programs.project_id ON DELETE SET NULL
+  async archiveProject(id: string, companyId: string, actorId: string | null): Promise<Project> {
+    await this.assertOwnedProjectAnyState(id, companyId);
+    const updated = await projectsRepository.archiveProject(id);
+    if (!updated) throw new AppError(404, 'Project not found');
+    await recordEvent({
+      tenantId: companyId, actorId, verb: 'project.archived',
+      objectType: 'project', objectId: id, projectId: id,
+      payload: { name: updated.name },
+    });
+    return updated;
+  }
+
+  async unarchiveProject(id: string, companyId: string, actorId: string | null): Promise<Project> {
+    await this.assertOwnedProjectAnyState(id, companyId);
+    const updated = await projectsRepository.unarchiveProject(id);
+    if (!updated) throw new AppError(404, 'Project not found');
+    await recordEvent({
+      tenantId: companyId, actorId, verb: 'project.unarchived',
+      objectType: 'project', objectId: id, projectId: id,
+      payload: { name: updated.name },
+    });
+    return updated;
   }
 
   getProjectStats(id: string, companyId: string): Promise<ProjectStats> {
@@ -99,9 +118,28 @@ class ProjectsService {
     return updated;
   }
 
-  async deleteProgram(id: string, companyId: string): Promise<void> {
-    await this.assertOwnedProgram(id, companyId);
-    await projectsRepository.deleteProgram(id);
+  async archiveProgram(id: string, companyId: string, actorId: string | null): Promise<Program> {
+    await this.assertOwnedProgramAnyState(id, companyId);
+    const updated = await projectsRepository.archiveProgram(id);
+    if (!updated) throw new AppError(404, 'Program not found');
+    await recordEvent({
+      tenantId: companyId, actorId, verb: 'program.archived',
+      objectType: 'program', objectId: id, projectId: updated.project_id,
+      payload: { name: updated.name },
+    });
+    return updated;
+  }
+
+  async unarchiveProgram(id: string, companyId: string, actorId: string | null): Promise<Program> {
+    await this.assertOwnedProgramAnyState(id, companyId);
+    const updated = await projectsRepository.unarchiveProgram(id);
+    if (!updated) throw new AppError(404, 'Program not found');
+    await recordEvent({
+      tenantId: companyId, actorId, verb: 'program.unarchived',
+      objectType: 'program', objectId: id, projectId: updated.project_id,
+      payload: { name: updated.name },
+    });
+    return updated;
   }
 
   // ── Project pages ─────────────────────────────────────────────────────────────
@@ -184,6 +222,17 @@ class ProjectsService {
     return p;
   }
 
+  /**
+   * Same ownership check as assertOwnedProject, but via the unscoped
+   * findProject lookup so it can find an already-archived row (needed by
+   * archive/unarchive — findProjectForCompany excludes archived_at rows).
+   */
+  private async assertOwnedProjectAnyState(id: string, companyId: string): Promise<Project> {
+    const p = await projectsRepository.findProject(id);
+    if (!p || p.company_id !== companyId) throw new AppError(404, 'Project not found');
+    return p;
+  }
+
   private async assertOwnedPage(id: string, companyId: string): Promise<ProjectPage> {
     const p = await projectsRepository.findPageForCompany(id, companyId);
     if (!p) throw new AppError(404, 'Page not found');
@@ -193,6 +242,17 @@ class ProjectsService {
   private async assertOwnedProgram(id: string, companyId: string): Promise<Program> {
     const p = await projectsRepository.findProgramForCompany(id, companyId);
     if (!p) throw new AppError(404, 'Program not found');
+    return p;
+  }
+
+  /**
+   * Same ownership check as assertOwnedProgram, but via the unscoped
+   * findProgram lookup so it can find an already-archived row (needed by
+   * archive/unarchive — findProgramForCompany excludes archived_at rows).
+   */
+  private async assertOwnedProgramAnyState(id: string, companyId: string): Promise<Program> {
+    const p = await projectsRepository.findProgram(id);
+    if (!p || p.company_id !== companyId) throw new AppError(404, 'Program not found');
     return p;
   }
 

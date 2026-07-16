@@ -2,8 +2,8 @@ import { Router } from 'express';
 import { authenticateToken } from '../../core/auth/middleware';
 import { requireCapability } from '../../core/capabilities';
 import {
-  listProjects, getProject, createProject, updateProject, deleteProject, getProjectStats,
-  listPrograms, getProgram, createProgram, updateProgram, deleteProgram,
+  listProjects, getProject, createProject, updateProject, archiveProject, unarchiveProject, getProjectStats,
+  listPrograms, getProgram, createProgram, updateProgram, archiveProgram, unarchiveProgram,
   listPages, getPage, createPage, updatePage, deletePage, listActivity, listCalendarEvents, listAllPages,
 } from './projects.controller';
 
@@ -15,7 +15,8 @@ router.get('/programs', listPrograms);
 router.post('/programs', requireCapability('program.build'), createProgram);
 router.get('/programs/:id', getProgram);
 router.patch('/programs/:id', requireCapability('program.build'), updateProgram);
-router.delete('/programs/:id', requireCapability('program.build'), deleteProgram);
+router.post('/programs/:id/archive', requireCapability('program.build'), archiveProgram);
+router.post('/programs/:id/unarchive', requireCapability('program.build'), unarchiveProgram);
 
 // Pages by id (registered before /:id so "pages" isn't matched as a project id).
 router.get('/pages/all', listAllPages);
@@ -28,7 +29,8 @@ router.get('/', listProjects);
 router.post('/', requireCapability('workspace.admin'), createProject);
 router.get('/:id', getProject);
 router.patch('/:id', requireCapability('workspace.admin'), updateProject);
-router.delete('/:id', requireCapability('workspace.admin'), deleteProject);
+router.post('/:id/archive', requireCapability('workspace.admin'), archiveProject);
+router.post('/:id/unarchive', requireCapability('workspace.admin'), unarchiveProject);
 router.get('/:id/stats', getProjectStats);
 router.get('/:id/activity', listActivity);
 router.get('/:id/calendar', listCalendarEvents);

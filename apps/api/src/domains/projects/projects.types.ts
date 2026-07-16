@@ -11,6 +11,7 @@ export interface Project {
   created_by: string | null;
   created_at: Date;
   updated_at: Date;
+  archived_at: Date | null;
 }
 
 export interface Program {
@@ -26,6 +27,7 @@ export interface Program {
   created_by: string | null;
   created_at: Date;
   updated_at: Date;
+  archived_at: Date | null;
 }
 
 export interface ProjectWithCounts extends Project {
@@ -60,6 +62,7 @@ export interface ProjectPage {
   created_by: string | null;
   created_at: Date;
   updated_at: Date;
+  archived_at: Date | null;
 }
 
 export interface ActivityEventRow {

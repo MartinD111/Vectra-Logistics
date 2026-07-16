@@ -56,3 +56,98 @@ test('getProgram and getPage use company-scoped repository helpers', async () =>
   assert.equal(program.company_id, 'company-1');
   assert.equal(page.company_id, 'company-1');
 });
+
+const baseProject = {
+  id: 'project-1',
+  company_id: 'company-1',
+  name: 'Project',
+  description: null,
+  color: null,
+  folder_id: null,
+  created_by: null,
+  created_at: new Date(),
+  updated_at: new Date(),
+  archived_at: null as Date | null,
+};
+
+const baseProgram = {
+  id: 'program-1',
+  company_id: 'company-1',
+  project_id: null as string | null,
+  folder_id: null,
+  name: 'Program',
+  description: null,
+  type: 'transform',
+  status: 'draft',
+  config: {},
+  created_by: null,
+  created_at: new Date(),
+  updated_at: new Date(),
+  archived_at: null as Date | null,
+};
+
+test('archiveProject sets archived_at and emits project.archived', async () => {
+  mock.method(projectsRepository, 'findProject', async () => ({ ...baseProject }));
+  const archiveMock = mock.method(projectsRepository, 'archiveProject', async () => ({
+    ...baseProject, archived_at: new Date(),
+  }));
+
+  const result = await projectsService.archiveProject('project-1', 'company-1', 'user-1');
+
+  assert.equal(archiveMock.mock.calls.length, 1);
+  assert.ok(result.archived_at);
+});
+
+test('archiveProject on a different company project throws 404', async () => {
+  mock.method(projectsRepository, 'findProject', async () => ({ ...baseProject, company_id: 'other-company' }));
+
+  await assert.rejects(
+    projectsService.archiveProject('project-1', 'company-1', 'user-1'),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 404,
+  );
+});
+
+test('unarchiveProject clears archived_at and emits project.unarchived', async () => {
+  mock.method(projectsRepository, 'findProject', async () => ({ ...baseProject, archived_at: new Date() }));
+  const unarchiveMock = mock.method(projectsRepository, 'unarchiveProject', async () => ({
+    ...baseProject, archived_at: null,
+  }));
+
+  const result = await projectsService.unarchiveProject('project-1', 'company-1', 'user-1');
+
+  assert.equal(unarchiveMock.mock.calls.length, 1);
+  assert.equal(result.archived_at, null);
+});
+
+test('archiveProgram sets archived_at and emits program.archived', async () => {
+  mock.method(projectsRepository, 'findProgram', async () => ({ ...baseProgram }));
+  const archiveMock = mock.method(projectsRepository, 'archiveProgram', async () => ({
+    ...baseProgram, archived_at: new Date(),
+  }));
+
+  const result = await projectsService.archiveProgram('program-1', 'company-1', 'user-1');
+
+  assert.equal(archiveMock.mock.calls.length, 1);
+  assert.ok(result.archived_at);
+});
+
+test('archiveProgram on a different company program throws 404', async () => {
+  mock.method(projectsRepository, 'findProgram', async () => ({ ...baseProgram, company_id: 'other-company' }));
+
+  await assert.rejects(
+    projectsService.archiveProgram('program-1', 'company-1', 'user-1'),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 404,
+  );
+});
+
+test('unarchiveProgram clears archived_at and emits program.unarchived', async () => {
+  mock.method(projectsRepository, 'findProgram', async () => ({ ...baseProgram, archived_at: new Date() }));
+  const unarchiveMock = mock.method(projectsRepository, 'unarchiveProgram', async () => ({
+    ...baseProgram, archived_at: null,
+  }));
+
+  const result = await projectsService.unarchiveProgram('program-1', 'company-1', 'user-1');
+
+  assert.equal(unarchiveMock.mock.calls.length, 1);
+  assert.equal(result.archived_at, null);
+});
