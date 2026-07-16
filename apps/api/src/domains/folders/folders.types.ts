@@ -12,6 +12,8 @@ export interface Folder {
   created_by: string | null;
   created_at: Date;
   updated_at: Date;
+  ancestor_ids: string[];
+  archived_at: Date | null;
 }
 
 export interface FolderTree extends Folder {

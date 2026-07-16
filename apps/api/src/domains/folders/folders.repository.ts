@@ -4,7 +4,7 @@ import { Folder } from './folders.types';
 class FoldersRepository {
   async listFolders(companyId: string): Promise<Folder[]> {
     const { rows } = await db.query<Folder>(
-      `SELECT * FROM folders WHERE company_id = $1 ORDER BY sort_order ASC, created_at ASC`,
+      `SELECT * FROM folders WHERE company_id = $1 AND archived_at IS NULL ORDER BY sort_order ASC, created_at ASC`,
       [companyId],
     );
     return rows;
@@ -17,20 +17,37 @@ class FoldersRepository {
 
   async findFolderForCompany(id: string, companyId: string): Promise<Folder | null> {
     const { rows } = await db.query<Folder>(
-      `SELECT * FROM folders WHERE id = $1 AND company_id = $2`,
+      `SELECT * FROM folders WHERE id = $1 AND company_id = $2 AND archived_at IS NULL`,
       [id, companyId],
     );
     return rows[0] ?? null;
   }
 
+  async findFoldersByIds(companyId: string, ids: string[]): Promise<Folder[]> {
+    const { rows } = await db.query<Folder>(
+      `SELECT * FROM folders WHERE company_id = $1 AND id = ANY($2::uuid[])`,
+      [companyId, ids],
+    );
+    return rows;
+  }
+
+  async descendantFolderIds(companyId: string, folderId: string): Promise<string[]> {
+    const { rows } = await db.query<{ id: string }>(
+      `SELECT id FROM folders WHERE company_id = $1 AND (id = $2 OR ancestor_ids @> ARRAY[$2]::uuid[])`,
+      [companyId, folderId],
+    );
+    return rows.map((r) => r.id);
+  }
+
   async createFolder(
     companyId: string, createdBy: string | null,
     data: { name: string; parent_id?: string | null; icon?: string | null; color?: string | null },
+    ancestorIds: string[],
   ): Promise<Folder> {
     const { rows } = await db.query<Folder>(
-      `INSERT INTO folders (company_id, parent_id, name, icon, color, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [companyId, data.parent_id ?? null, data.name, data.icon ?? null, data.color ?? null, createdBy],
+      `INSERT INTO folders (company_id, parent_id, name, icon, color, ancestor_ids, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [companyId, data.parent_id ?? null, data.name, data.icon ?? null, data.color ?? null, ancestorIds, createdBy],
     );
     return rows[0];
   }
