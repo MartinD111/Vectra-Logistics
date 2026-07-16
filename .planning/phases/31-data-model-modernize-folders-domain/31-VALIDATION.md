@@ -64,6 +64,7 @@ created: 2026-07-16
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
 | No `recordEvent()`/`activityLog` calls remain in the folders domain | HIER-06 | No custom ESLint rule or static-analysis tooling exists in this repo to automate this check | Run `grep -rn "recordEvent\|activityLog" apps/api/src/domains/folders/` — must return no matches (excluding test files/comments) before phase sign-off |
+| Migration `028_folder_hierarchy_invariants.sql` backfill/idempotency (re-running `npm run migrate` after 31-01 applies produces "No pending migrations", no errors) | — (infra safety net for HIER-01/02/03/04/07) | No automated re-apply test exists for this repo's migration runner; accepted as a manual check rather than deferring proof entirely to 31-06's live-DB tests | After applying migration 028, re-run `npm run migrate` and confirm it reports no pending migrations and exits 0 |
 
 ---
 
