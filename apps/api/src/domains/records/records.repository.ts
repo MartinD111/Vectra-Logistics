@@ -1,3 +1,4 @@
+import type { PoolClient } from 'pg';
 import { db } from '../../core/db';
 import { createDurableEventEnvelope, insertDurableEvent } from '../../core/events';
 import { CollectionPropertyDef, DataCollectionRow, CollectionRecordRow, CollectionViewRow } from './records.types';
@@ -84,6 +85,63 @@ class RecordsRepository {
     sets.push('updated_at = NOW()');
     const { rows } = await db.query<DataCollectionRow>(
       `UPDATE data_collections SET ${sets.join(', ')} WHERE id = $1 AND company_id = $2 RETURNING *`, params);
+    return rows[0] ?? null;
+  }
+
+  // HIER-04: bulk-archive collections filed directly into a set of folders
+  // (pass 1 of the folders-domain cascade owned by foldersService.archiveFolder).
+  // Takes an explicit client so it runs inside the caller's transaction.
+  async archiveCollectionsInFolders(client: PoolClient, folderIds: string[], companyId: string): Promise<DataCollectionRow[]> {
+    const { rows } = await client.query<DataCollectionRow>(
+      `UPDATE data_collections
+       SET archived_at = NOW(), updated_at = NOW()
+       WHERE company_id = $1 AND folder_id = ANY($2::uuid[]) AND archived_at IS NULL
+       RETURNING *`,
+      [companyId, folderIds]);
+    for (const collection of rows) {
+      await insertDurableEvent(client, createDurableEventEnvelope({
+        eventName: 'data_collection.archived',
+        tenantId: companyId,
+        objectType: 'data_collection',
+        objectId: collection.id,
+        projectId: collection.project_id,
+        payloadVersion: 1,
+        payload: { collection: { id: collection.id, name: collection.name } },
+      }));
+    }
+    return rows;
+  }
+
+  // HIER-04: bulk-archive collections filed by project_id (pass 2 of the
+  // cascade — catches collections attached via project_id but not folder_id).
+  async archiveCollectionsInProjects(client: PoolClient, projectIds: string[], companyId: string): Promise<DataCollectionRow[]> {
+    const { rows } = await client.query<DataCollectionRow>(
+      `UPDATE data_collections
+       SET archived_at = NOW(), updated_at = NOW()
+       WHERE company_id = $1 AND project_id = ANY($2::uuid[]) AND archived_at IS NULL
+       RETURNING *`,
+      [companyId, projectIds]);
+    for (const collection of rows) {
+      await insertDurableEvent(client, createDurableEventEnvelope({
+        eventName: 'data_collection.archived',
+        tenantId: companyId,
+        objectType: 'data_collection',
+        objectId: collection.id,
+        projectId: collection.project_id,
+        payloadVersion: 1,
+        payload: { collection: { id: collection.id, name: collection.name } },
+      }));
+    }
+    return rows;
+  }
+
+  // D-03: standalone single-row restore, not part of a cascade — uses the
+  // module-level db pool rather than a passed client.
+  async unarchiveCollection(id: string, companyId: string): Promise<DataCollectionRow | null> {
+    const { rows } = await db.query<DataCollectionRow>(
+      `UPDATE data_collections SET archived_at = NULL, updated_at = NOW()
+       WHERE id = $1 AND company_id = $2 RETURNING *`,
+      [id, companyId]);
     return rows[0] ?? null;
   }
 
