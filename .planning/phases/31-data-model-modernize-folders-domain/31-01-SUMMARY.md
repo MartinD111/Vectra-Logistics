@@ -86,3 +86,11 @@ Docker/Postgres was not reachable from this worktree agent's sandboxed environme
 ## Next Phase Readiness
 - Schema foundation for the entire folders domain rework is in place: composite FK tenant-safety, cycle/depth trigger, archived_at columns, and ancestor_ids are all ready for the repository/service-layer plans (31-02 onward) to build against.
 - **Blocker for downstream plans:** live-database verification (migration apply + manual exception-path checks) has not yet been performed in this environment — recommended as a first step before or during the next plan that touches this schema.
+
+## Self-Check: PASSED
+
+- FOUND: `database/migrations/028_folder_hierarchy_invariants.sql`
+- FOUND: `.planning/phases/31-data-model-modernize-folders-domain/31-01-SUMMARY.md`
+- FOUND commit `9bd0589` (Task 1)
+- FOUND commit `e06cef7` (Task 2)
+- FOUND commit `3ee16a0` (docs: plan metadata)
