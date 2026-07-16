@@ -10,11 +10,13 @@ export interface DataCollectionRow {
   id: string;
   company_id: string;
   project_id: string | null;
+  folder_id: string | null;
   name: string;
   schema: CollectionPropertyDef[];
   created_by: string | null;
   created_at: Date;
   updated_at: Date;
+  archived_at: Date | null;
 }
 
 export interface CollectionRecordRow {

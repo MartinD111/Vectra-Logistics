@@ -1,5 +1,6 @@
 import { test, mock, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
+import type { PoolClient } from 'pg';
 import { db } from '../../core/db';
 import { recordsRepository } from './records.repository';
 
@@ -142,4 +143,126 @@ test('listViews scopes by collection_id and company_id', async () => {
 
   assert.match(capturedSql, /collection_id = \$1 AND company_id = \$2/);
   assert.deepEqual(capturedParams, ['collection-1', 'company-1']);
+});
+
+// HIER-04 Test 1: archiveCollectionsInFolders filters on company_id, folder_id set,
+// and archived_at IS NULL; sets archived_at = NOW() using the passed-in client.
+test('archiveCollectionsInFolders scopes by company_id, folder_id set, and archived_at IS NULL', async () => {
+  let capturedSql = '';
+  let capturedParams: unknown[] = [];
+  const fakeClient = {
+    query: async (sql: string, params: unknown[]) => {
+      if (/UPDATE data_collections/.test(sql)) {
+        capturedSql = sql;
+        capturedParams = params;
+        return {
+          rows: [{
+            id: 'collection-1', company_id: 'company-1', project_id: null, folder_id: 'folder-1',
+            name: 'My Collection', schema: [], created_by: null, created_at: new Date(),
+            updated_at: new Date(), archived_at: new Date(),
+          }],
+        };
+      }
+      if (/INSERT INTO event_outbox/.test(sql)) {
+        return {
+          rows: [{
+            id: 'outbox-1', tenant_id: 'company-1', event_id: params?.[0], event_name: 'data_collection.archived',
+            envelope_version: 1, actor_id: null, object_type: 'data_collection', object_id: 'collection-1',
+            project_id: null, causation_id: null, correlation_id: null, payload_version: 1, payload: {},
+            status: 'pending', attempts: 0, max_attempts: 5, next_attempt_at: new Date(), locked_at: null,
+            locked_by: null, published_at: null, failed_at: null, last_error: null, created_at: new Date(),
+            updated_at: new Date(),
+          }],
+        };
+      }
+      return { rows: [] };
+    },
+  } as unknown as PoolClient;
+
+  const result = await recordsRepository.archiveCollectionsInFolders(fakeClient, ['folder-1', 'folder-2'], 'company-1');
+
+  assert.match(capturedSql, /company_id = \$1/);
+  assert.match(capturedSql, /folder_id = ANY\(\$2::uuid\[\]\)/);
+  assert.match(capturedSql, /archived_at IS NULL/);
+  assert.match(capturedSql, /SET archived_at = NOW\(\)/);
+  assert.deepEqual(capturedParams, ['company-1', ['folder-1', 'folder-2']]);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].id, 'collection-1');
+});
+
+// HIER-04 Test 2: archiveCollectionsInProjects filters independently by project_id
+// (Pitfall 5 pass 2), catching collections attached via project_id only.
+test('archiveCollectionsInProjects scopes by company_id and project_id set, independent of folder_id', async () => {
+  let capturedSql = '';
+  let capturedParams: unknown[] = [];
+  const fakeClient = {
+    query: async (sql: string, params: unknown[]) => {
+      if (/UPDATE data_collections/.test(sql)) {
+        capturedSql = sql;
+        capturedParams = params;
+        return {
+          rows: [{
+            id: 'collection-2', company_id: 'company-1', project_id: 'project-1', folder_id: null,
+            name: 'Project-only Collection', schema: [], created_by: null, created_at: new Date(),
+            updated_at: new Date(), archived_at: new Date(),
+          }],
+        };
+      }
+      if (/INSERT INTO event_outbox/.test(sql)) {
+        return {
+          rows: [{
+            id: 'outbox-2', tenant_id: 'company-1', event_id: params?.[0], event_name: 'data_collection.archived',
+            envelope_version: 1, actor_id: null, object_type: 'data_collection', object_id: 'collection-2',
+            project_id: 'project-1', causation_id: null, correlation_id: null, payload_version: 1, payload: {},
+            status: 'pending', attempts: 0, max_attempts: 5, next_attempt_at: new Date(), locked_at: null,
+            locked_by: null, published_at: null, failed_at: null, last_error: null, created_at: new Date(),
+            updated_at: new Date(),
+          }],
+        };
+      }
+      return { rows: [] };
+    },
+  } as unknown as PoolClient;
+
+  const result = await recordsRepository.archiveCollectionsInProjects(fakeClient, ['project-1'], 'company-1');
+
+  assert.match(capturedSql, /company_id = \$1/);
+  assert.match(capturedSql, /project_id = ANY\(\$2::uuid\[\]\)/);
+  assert.match(capturedSql, /archived_at IS NULL/);
+  assert.deepEqual(capturedParams, ['company-1', ['project-1']]);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].id, 'collection-2');
+});
+
+// HIER-04 Test 3: unarchiveCollection restores archived_at to NULL, or returns
+// null if the row doesn't exist for that company.
+test('unarchiveCollection sets archived_at to NULL and returns the updated row', async () => {
+  let capturedSql = '';
+  let capturedParams: unknown[] = [];
+  mock.method(db, 'query', async (sql: string, params: unknown[]) => {
+    capturedSql = sql;
+    capturedParams = params;
+    return {
+      rows: [{
+        id: 'collection-1', company_id: 'company-1', project_id: null, folder_id: 'folder-1',
+        name: 'My Collection', schema: [], created_by: null, created_at: new Date(),
+        updated_at: new Date(), archived_at: null,
+      }],
+    };
+  });
+
+  const result = await recordsRepository.unarchiveCollection('collection-1', 'company-1');
+
+  assert.match(capturedSql, /SET archived_at = NULL/);
+  assert.match(capturedSql, /WHERE id = \$1 AND company_id = \$2/);
+  assert.deepEqual(capturedParams, ['collection-1', 'company-1']);
+  assert.equal(result?.archived_at, null);
+});
+
+test('unarchiveCollection returns null when no row matches', async () => {
+  mock.method(db, 'query', async () => ({ rows: [] }));
+
+  const result = await recordsRepository.unarchiveCollection('missing-id', 'company-1');
+
+  assert.equal(result, null);
 });

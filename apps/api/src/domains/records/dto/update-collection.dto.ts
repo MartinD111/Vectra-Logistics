@@ -13,5 +13,6 @@ const PropertyDefSchema = z.object({
 export const UpdateCollectionSchema = z.object({
   name: z.string().min(1).max(160).optional(),
   schema: z.array(PropertyDefSchema).max(100).optional(),
+  folder_id: z.string().uuid().nullable().optional(),
 });
 export type UpdateCollectionDto = z.infer<typeof UpdateCollectionSchema>;
