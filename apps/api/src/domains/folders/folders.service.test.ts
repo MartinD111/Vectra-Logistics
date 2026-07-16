@@ -1,9 +1,15 @@
 import { test, mock, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { db } from '../../core/db';
 import { RequestContext } from '../../core/auth/request-context';
 import { foldersService } from './folders.service';
 import { foldersRepository } from './folders.repository';
+import { projectsRepository } from '../projects/projects.repository';
+import { recordsRepository } from '../records/records.repository';
+import * as outbox from '../../core/events/outbox';
 import { Folder } from './folders.types';
+import type { Project, Program, ProjectPage } from '../projects/projects.types';
+import type { DataCollectionRow } from '../records/records.types';
 
 afterEach(() => {
   mock.restoreAll();
@@ -128,4 +134,156 @@ test('listFolderTree and getFolder do not call assertCapability (reads stay capa
   // A ctx with no roles at all would fail any assertCapability('workspace.admin') check.
   await foldersService.listFolderTree(ctx({ roles: [] }));
   await foldersService.getFolder(ctx({ roles: [] }), 'folder-1');
+});
+
+function project(overrides: Partial<Project> = {}): Project {
+  return {
+    id: 'project-1',
+    company_id: 'company-1',
+    name: 'Project',
+    description: null,
+    color: null,
+    folder_id: FOLDER_ID,
+    created_by: 'user-1',
+    created_at: new Date(),
+    updated_at: new Date(),
+    archived_at: new Date(),
+    ...overrides,
+  };
+}
+
+function program(overrides: Partial<Program> = {}): Program {
+  return {
+    id: 'program-1',
+    company_id: 'company-1',
+    project_id: null,
+    folder_id: FOLDER_ID,
+    name: 'Program',
+    description: null,
+    type: 'transform',
+    status: 'draft',
+    config: {},
+    created_by: 'user-1',
+    created_at: new Date(),
+    updated_at: new Date(),
+    archived_at: new Date(),
+    ...overrides,
+  };
+}
+
+function page(overrides: Partial<ProjectPage> = {}): ProjectPage {
+  return {
+    id: 'page-1',
+    company_id: 'company-1',
+    project_id: 'project-1',
+    parent_page_id: null,
+    title: 'Page',
+    icon: null,
+    is_default: true,
+    sort_order: 0,
+    config: {},
+    cover_image_url: null,
+    header_settings: {},
+    created_by: 'user-1',
+    created_at: new Date(),
+    updated_at: new Date(),
+    archived_at: new Date(),
+    ...overrides,
+  };
+}
+
+function collectionRow(overrides: Partial<DataCollectionRow> = {}): DataCollectionRow {
+  return {
+    id: 'collection-1',
+    company_id: 'company-1',
+    project_id: null,
+    folder_id: FOLDER_ID,
+    name: 'Collection',
+    schema: [],
+    created_by: 'user-1',
+    created_at: new Date(),
+    updated_at: new Date(),
+    archived_at: new Date(),
+    ...overrides,
+  };
+}
+
+function fakeClient() {
+  return {
+    query: async (_sql: string) => ({ rows: [] }),
+    release: mock.fn(),
+  };
+}
+
+test('archiveFolder archives the target folder plus every descendant folder in one transaction', async () => {
+  mock.method(foldersRepository, 'findFolderForCompany', async () => folder({ id: FOLDER_ID }));
+  mock.method(db, 'connect', async () => fakeClient());
+  mock.method(foldersRepository, 'descendantFolderIds', async () => [FOLDER_ID, 'child-folder']);
+  const archiveSubtreeMock = mock.method(foldersRepository, 'archiveFolderSubtree', async () => [
+    folder({ id: FOLDER_ID }), folder({ id: 'child-folder' }),
+  ]);
+  mock.method(projectsRepository, 'archiveProjectsInFolders', async () => []);
+  mock.method(projectsRepository, 'archiveProgramsInFolders', async () => []);
+  mock.method(recordsRepository, 'archiveCollectionsInFolders', async () => []);
+  mock.method(outbox, 'insertDurableEvent', async () => ({}) as never);
+
+  await foldersService.archiveFolder(ctx(), FOLDER_ID);
+
+  assert.equal(archiveSubtreeMock.mock.calls.length, 1);
+  assert.deepEqual(archiveSubtreeMock.mock.calls[0].arguments[1], [FOLDER_ID, 'child-folder']);
+});
+
+test('archiving a folder that directly contains a project also archives that project\'s own programs/pages (pass 2)', async () => {
+  mock.method(foldersRepository, 'findFolderForCompany', async () => folder({ id: FOLDER_ID }));
+  mock.method(db, 'connect', async () => fakeClient());
+  mock.method(foldersRepository, 'descendantFolderIds', async () => [FOLDER_ID]);
+  mock.method(foldersRepository, 'archiveFolderSubtree', async () => [folder({ id: FOLDER_ID })]);
+  mock.method(projectsRepository, 'archiveProjectsInFolders', async () => [project({ id: 'project-1' })]);
+  mock.method(projectsRepository, 'archiveProgramsInFolders', async () => []);
+  mock.method(recordsRepository, 'archiveCollectionsInFolders', async () => []);
+  const programsViaProjectMock = mock.method(projectsRepository, 'archiveProgramsInProjects', async () => [program()]);
+  const pagesMock = mock.method(projectsRepository, 'archivePagesInProjects', async () => [page()]);
+  mock.method(recordsRepository, 'archiveCollectionsInProjects', async () => []);
+  mock.method(outbox, 'insertDurableEvent', async () => ({}) as never);
+
+  await foldersService.archiveFolder(ctx(), FOLDER_ID);
+
+  assert.deepEqual(programsViaProjectMock.mock.calls[0].arguments[1], ['project-1']);
+  assert.deepEqual(pagesMock.mock.calls[0].arguments[1], ['project-1']);
+});
+
+test('one insertDurableEvent call happens per archived row across all passes, never one batched event', async () => {
+  mock.method(foldersRepository, 'findFolderForCompany', async () => folder({ id: FOLDER_ID }));
+  mock.method(db, 'connect', async () => fakeClient());
+  mock.method(foldersRepository, 'descendantFolderIds', async () => [FOLDER_ID]);
+  mock.method(foldersRepository, 'archiveFolderSubtree', async () => [folder({ id: FOLDER_ID })]);
+  mock.method(projectsRepository, 'archiveProjectsInFolders', async () => [project({ id: 'project-1' })]);
+  mock.method(projectsRepository, 'archiveProgramsInFolders', async () => [program({ id: 'program-direct' })]);
+  mock.method(recordsRepository, 'archiveCollectionsInFolders', async () => [collectionRow({ id: 'collection-direct' })]);
+  mock.method(projectsRepository, 'archiveProgramsInProjects', async () => [program({ id: 'program-via-project' })]);
+  mock.method(projectsRepository, 'archivePagesInProjects', async () => [page({ id: 'page-1' })]);
+  mock.method(recordsRepository, 'archiveCollectionsInProjects', async () => [collectionRow({ id: 'collection-via-project' })]);
+
+  const outboxSpy = mock.method(outbox, 'insertDurableEvent', async () => ({}) as never);
+
+  await foldersService.archiveFolder(ctx(), FOLDER_ID);
+
+  // 1 folder + 1 project + 1 program (direct) + 1 program (via project) + 1 page = 5.
+  // Collections emit their own events inside the (mocked) repository methods, so
+  // they are not counted here.
+  assert.equal(outboxSpy.mock.calls.length, 5);
+});
+
+test('unarchiveFolder restores the folder only (no cascade) and emits a folder.unarchived event', async () => {
+  mock.method(foldersRepository, 'unarchiveFolder', async () => folder({ id: FOLDER_ID }));
+  mock.method(db, 'connect', async () => fakeClient());
+  const projectsCascadeMock = mock.method(projectsRepository, 'archiveProjectsInFolders', async () => []);
+  const outboxSpy = mock.method(outbox, 'insertDurableEvent', async () => ({}) as never);
+
+  await foldersService.unarchiveFolder(ctx(), FOLDER_ID);
+
+  assert.equal(projectsCascadeMock.mock.calls.length, 0);
+  assert.equal(outboxSpy.mock.calls.length, 1);
+  const event = outboxSpy.mock.calls[0]!.arguments[1] as { eventName: string };
+  assert.equal(event.eventName, 'folder.unarchived');
 });

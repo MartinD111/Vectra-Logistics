@@ -2,7 +2,10 @@ import { db } from '../../core/db';
 import { AppError } from '../../core/errors/AppError';
 import { assertCapability } from '../../core/capabilities';
 import { RequestContext, requireCompanyId, requireUserId } from '../../core/auth/request-context';
+import { createDurableEventEnvelope, insertDurableEvent } from '../../core/events/outbox';
 import { foldersRepository } from './folders.repository';
+import { projectsRepository } from '../projects/projects.repository';
+import { recordsRepository } from '../records/records.repository';
 import { Folder, FolderTree } from './folders.types';
 import { CreateFolderSchema, UpdateFolderSchema, MoveFolderSchema } from './dto/folder.dto';
 
@@ -85,6 +88,144 @@ class FoldersService {
       } finally {
         client.release();
       }
+    }
+
+    return updated;
+  }
+
+  async archiveFolder(ctx: RequestContext, id: string): Promise<Folder> {
+    assertCapability(ctx, 'workspace.admin');
+    const tenantId = requireCompanyId(ctx);
+    const userId = requireUserId(ctx);
+    await this.assertOwnedFolder(id, tenantId);
+
+    const client = await db.connect();
+    try {
+      await client.query('BEGIN');
+
+      const folderIds = await foldersRepository.descendantFolderIds(tenantId, id);
+
+      const archivedFolders = await foldersRepository.archiveFolderSubtree(client, folderIds, tenantId);
+      for (const row of archivedFolders) {
+        await insertDurableEvent(client, createDurableEventEnvelope({
+          eventName: 'folder.archived',
+          tenantId,
+          actorId: userId,
+          objectType: 'folder',
+          objectId: row.id,
+          correlationId: ctx.requestId,
+          payloadVersion: 1,
+          payload: { name: row.name },
+        }));
+      }
+
+      // Pass 1 — rows filed directly into one of the archived folders.
+      const archivedProjects = await projectsRepository.archiveProjectsInFolders(client, folderIds, tenantId);
+      for (const row of archivedProjects) {
+        await insertDurableEvent(client, createDurableEventEnvelope({
+          eventName: 'project.archived',
+          tenantId,
+          actorId: userId,
+          objectType: 'project',
+          objectId: row.id,
+          correlationId: ctx.requestId,
+          payloadVersion: 1,
+          payload: { name: row.name },
+        }));
+      }
+
+      const archivedProgramsDirect = await projectsRepository.archiveProgramsInFolders(client, folderIds, tenantId);
+      for (const row of archivedProgramsDirect) {
+        await insertDurableEvent(client, createDurableEventEnvelope({
+          eventName: 'program.archived',
+          tenantId,
+          actorId: userId,
+          objectType: 'program',
+          objectId: row.id,
+          correlationId: ctx.requestId,
+          payloadVersion: 1,
+          payload: { name: row.name },
+        }));
+      }
+
+      // archiveCollectionsInFolders emits its own durable event per row internally.
+      await recordsRepository.archiveCollectionsInFolders(client, folderIds, tenantId);
+
+      // Pass 2 — rows attached via the just-archived projects' project_id.
+      const archivedProjectIds = archivedProjects.map((project) => project.id);
+      if (archivedProjectIds.length > 0) {
+        const archivedProgramsViaProject = await projectsRepository.archiveProgramsInProjects(client, archivedProjectIds, tenantId);
+        for (const row of archivedProgramsViaProject) {
+          await insertDurableEvent(client, createDurableEventEnvelope({
+            eventName: 'program.archived',
+            tenantId,
+            actorId: userId,
+            objectType: 'program',
+            objectId: row.id,
+            correlationId: ctx.requestId,
+            payloadVersion: 1,
+            payload: { name: row.name },
+          }));
+        }
+
+        const archivedPages = await projectsRepository.archivePagesInProjects(client, archivedProjectIds, tenantId);
+        for (const row of archivedPages) {
+          await insertDurableEvent(client, createDurableEventEnvelope({
+            eventName: 'project_page.archived',
+            tenantId,
+            actorId: userId,
+            objectType: 'project_page',
+            objectId: row.id,
+            correlationId: ctx.requestId,
+            payloadVersion: 1,
+            payload: { title: row.title },
+          }));
+        }
+
+        // archiveCollectionsInProjects emits its own durable event per row internally.
+        await recordsRepository.archiveCollectionsInProjects(client, archivedProjectIds, tenantId);
+      }
+
+      const updated = archivedFolders.find((f) => f.id === id);
+      if (!updated) throw new AppError(404, 'Folder not found');
+
+      await client.query('COMMIT');
+      return updated;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async unarchiveFolder(ctx: RequestContext, id: string): Promise<Folder> {
+    assertCapability(ctx, 'workspace.admin');
+    const tenantId = requireCompanyId(ctx);
+    const userId = requireUserId(ctx);
+
+    const updated = await foldersRepository.unarchiveFolder(id, tenantId);
+    if (!updated) throw new AppError(404, 'Folder not found');
+
+    const client = await db.connect();
+    try {
+      await client.query('BEGIN');
+      await insertDurableEvent(client, createDurableEventEnvelope({
+        eventName: 'folder.unarchived',
+        tenantId,
+        actorId: userId,
+        objectType: 'folder',
+        objectId: updated.id,
+        correlationId: ctx.requestId,
+        payloadVersion: 1,
+        payload: { name: updated.name },
+      }));
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
     }
 
     return updated;
