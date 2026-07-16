@@ -3,8 +3,9 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Unified Workspace Hierarchy
 status: planning
-last_updated: "2026-07-16T00:00:00.000Z"
-last_activity: 2026-07-16
+stopped_at: Phase 31 context gathered
+last_updated: "2026-07-16T12:41:28.509Z"
+last_activity: 2026-07-16 — v6.0 ROADMAP.md created (Phases 31-34), all 22 v1 requirements mapped
 progress:
   total_phases: 4
   completed_phases: 0
@@ -99,9 +100,9 @@ Items acknowledged and deferred at v4.0 close on 2026-07-15:
 
 ## Session Continuity
 
-Last session: 2026-07-15T20:17:09.924Z
-Stopped at: Completed 30-01-PLAN.md
-Resume file: None
+Last session: 2026-07-16T12:41:28.503Z
+Stopped at: Phase 31 context gathered
+Resume file: .planning/phases/31-data-model-modernize-folders-domain/31-CONTEXT.md
 
 ## Operator Next Steps
 
