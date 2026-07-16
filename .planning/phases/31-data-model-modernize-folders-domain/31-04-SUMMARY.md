@@ -119,3 +119,7 @@ None - no external service configuration required.
 ---
 *Phase: 31-data-model-modernize-folders-domain*
 *Completed: 2026-07-16*
+
+## Self-Check: PASSED
+
+All created/modified files and all 3 task/plan commit hashes verified present in the worktree and git log.
