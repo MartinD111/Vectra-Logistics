@@ -23,6 +23,11 @@ export const MoveFolderSchema = z.object({
   parent_id: z.string().uuid().nullable(),
 });
 
+export const ArchiveFolderSchema = z.object({});
+export const UnarchiveFolderSchema = z.object({});
+
 export type CreateFolderDto = z.infer<typeof CreateFolderSchema>;
 export type UpdateFolderDto = z.infer<typeof UpdateFolderSchema>;
 export type MoveFolderDto = z.infer<typeof MoveFolderSchema>;
+export type ArchiveFolderDto = z.infer<typeof ArchiveFolderSchema>;
+export type UnarchiveFolderDto = z.infer<typeof UnarchiveFolderSchema>;
