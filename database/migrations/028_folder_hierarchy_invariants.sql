@@ -62,3 +62,126 @@ BEGIN
     END IF;
   END LOOP;
 END $$;
+
+-- ── Task 2: composite (id, company_id) FK invariants + cycle/depth trigger ─
+
+-- Composite UNIQUE (id, company_id) — only on tables whose id is referenced
+-- as a parent-pointer target elsewhere in this hierarchy.
+DO $$ BEGIN
+  ALTER TABLE folders ADD CONSTRAINT folders_id_company_uniq UNIQUE (id, company_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE projects ADD CONSTRAINT projects_id_company_uniq UNIQUE (id, company_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE project_pages ADD CONSTRAINT project_pages_id_company_uniq UNIQUE (id, company_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- folders.parent_id -> folders (id, company_id), ON DELETE CASCADE
+DO $$ BEGIN
+  ALTER TABLE folders DROP CONSTRAINT IF EXISTS folders_parent_id_fkey;
+EXCEPTION WHEN undefined_object THEN NULL; END $$;
+
+ALTER TABLE folders
+  ADD CONSTRAINT folders_parent_id_company_fkey
+  FOREIGN KEY (parent_id, company_id) REFERENCES folders (id, company_id) ON DELETE CASCADE;
+
+-- projects.folder_id -> folders (id, company_id), ON DELETE SET NULL
+DO $$ BEGIN
+  ALTER TABLE projects DROP CONSTRAINT IF EXISTS projects_folder_id_fkey;
+EXCEPTION WHEN undefined_object THEN NULL; END $$;
+
+ALTER TABLE projects
+  ADD CONSTRAINT projects_folder_id_company_fkey
+  FOREIGN KEY (folder_id, company_id) REFERENCES folders (id, company_id) ON DELETE SET NULL;
+
+-- programs.folder_id -> folders (id, company_id), ON DELETE SET NULL
+DO $$ BEGIN
+  ALTER TABLE programs DROP CONSTRAINT IF EXISTS programs_folder_id_fkey;
+EXCEPTION WHEN undefined_object THEN NULL; END $$;
+
+ALTER TABLE programs
+  ADD CONSTRAINT programs_folder_id_company_fkey
+  FOREIGN KEY (folder_id, company_id) REFERENCES folders (id, company_id) ON DELETE SET NULL;
+
+-- programs.project_id -> projects (id, company_id), ON DELETE SET NULL
+DO $$ BEGIN
+  ALTER TABLE programs DROP CONSTRAINT IF EXISTS programs_project_id_fkey;
+EXCEPTION WHEN undefined_object THEN NULL; END $$;
+
+ALTER TABLE programs
+  ADD CONSTRAINT programs_project_id_company_fkey
+  FOREIGN KEY (project_id, company_id) REFERENCES projects (id, company_id) ON DELETE SET NULL;
+
+-- project_pages.project_id -> projects (id, company_id), ON DELETE CASCADE
+DO $$ BEGIN
+  ALTER TABLE project_pages DROP CONSTRAINT IF EXISTS project_pages_project_id_fkey;
+EXCEPTION WHEN undefined_object THEN NULL; END $$;
+
+ALTER TABLE project_pages
+  ADD CONSTRAINT project_pages_project_id_company_fkey
+  FOREIGN KEY (project_id, company_id) REFERENCES projects (id, company_id) ON DELETE CASCADE;
+
+-- project_pages.parent_page_id -> project_pages (id, company_id), ON DELETE CASCADE
+DO $$ BEGIN
+  ALTER TABLE project_pages DROP CONSTRAINT IF EXISTS project_pages_parent_page_id_fkey;
+EXCEPTION WHEN undefined_object THEN NULL; END $$;
+
+ALTER TABLE project_pages
+  ADD CONSTRAINT project_pages_parent_page_id_company_fkey
+  FOREIGN KEY (parent_page_id, company_id) REFERENCES project_pages (id, company_id) ON DELETE CASCADE;
+
+-- data_collections.folder_id -> folders (id, company_id), ON DELETE SET NULL
+-- (new column, no existing constraint to drop)
+DO $$ BEGIN
+  ALTER TABLE data_collections
+    ADD CONSTRAINT data_collections_folder_id_company_fkey
+    FOREIGN KEY (folder_id, company_id) REFERENCES folders (id, company_id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- data_collections.project_id -> projects (id, company_id), ON DELETE SET NULL
+DO $$ BEGIN
+  ALTER TABLE data_collections DROP CONSTRAINT IF EXISTS data_collections_project_id_fkey;
+EXCEPTION WHEN undefined_object THEN NULL; END $$;
+
+ALTER TABLE data_collections
+  ADD CONSTRAINT data_collections_project_id_company_fkey
+  FOREIGN KEY (project_id, company_id) REFERENCES projects (id, company_id) ON DELETE SET NULL;
+
+-- Cycle + depth trigger on folders. Top-level folder = depth 1.
+CREATE OR REPLACE FUNCTION folders_prevent_cycle_and_depth()
+RETURNS TRIGGER AS $$
+DECLARE
+  parent_ancestors UUID[];
+  new_depth INTEGER;
+BEGIN
+  IF NEW.parent_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  IF NEW.parent_id = NEW.id THEN
+    RAISE EXCEPTION 'Folder cannot be its own parent' USING ERRCODE = 'check_violation';
+  END IF;
+
+  SELECT ancestor_ids INTO parent_ancestors FROM folders WHERE id = NEW.parent_id;
+
+  IF NEW.id = ANY(parent_ancestors) THEN
+    RAISE EXCEPTION 'Cannot move a folder into its own descendant' USING ERRCODE = 'check_violation';
+  END IF;
+
+  new_depth := COALESCE(array_length(parent_ancestors, 1), 0) + 1 + 1;
+  IF new_depth > 3 THEN
+    RAISE EXCEPTION 'Folder nesting cannot exceed depth 3' USING ERRCODE = 'check_violation';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS folders_prevent_cycle_and_depth_trg ON folders;
+
+CREATE TRIGGER folders_prevent_cycle_and_depth_trg
+  BEFORE INSERT OR UPDATE OF parent_id ON folders
+  FOR EACH ROW EXECUTE FUNCTION folders_prevent_cycle_and_depth();
