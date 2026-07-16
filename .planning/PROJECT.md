@@ -16,20 +16,18 @@ The product already has five shipped foundations:
 
 Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history. The risk semaphore is a hard, visible block, not a suggestion.
 
-## Current Milestone
+## Current Milestone: v6.0 Unified Workspace Hierarchy
 
-No active milestone. Start the next milestone with `/gsd:new-milestone`.
+**Goal:** Replace the flat, module-keyed sidebar and disconnected records/pages with a real folder → project → page/record tree, so users can organize and navigate the workspace the way the platform's data model already supports.
 
 **Target features:**
 
-- Current-state truth matrix for apps, packages, services, migrations, routes, demo/stub paths, and imported-roadmap phase status.
-- Typed backend `RequestContext` and capability/permission service for future actions and integrations.
-- Pilot cross-tenant negative test harness and public endpoint signing/API-key/HMAC pattern.
-- Explicit demo-mode/capability behavior so production paths never silently synthesize operational data.
-- Versioned event envelope and durable outbox with a pilot transactional state+event write.
-- Workflow MVP persistence: save/load automation drafts, manual trigger, notification action, run/step logs, validation, retries, and idempotency.
+- Folder/project/page tree data model + API (parent/child relationships, ordering, cross-links to existing `data_collections`/records).
+- Tree-based sidebar navigation replacing the flat `ITEMS` list in `WorkspaceSidebar.tsx`: expand/collapse, drag-to-reorder, module-aware visibility preserved.
+- Create/rename/move/delete/archive flows for folders and projects.
+- Breadcrumbs and in-page navigation consistent with the tree structure.
 
-**Scope note:** This milestone is foundation-first. Unified workspace hierarchy, Mini Program v3, connector lifecycle, App Store, and the first logistics vertical are sequenced after v5 so they can reuse one request/capability/event/workflow contract.
+**Scope note:** v6 reuses the request/capability/event/action contract shipped in v5 rather than introducing a parallel authorization or persistence path. Mini Program v3, connector lifecycle, App Store, and the first logistics vertical remain sequenced after v6.
 
 ## Requirements
 
@@ -46,14 +44,13 @@ No active milestone. Start the next milestone with `/gsd:new-milestone`.
 
 ### Active
 
-- No active milestone requirements. The next milestone should create a fresh `.planning/REQUIREMENTS.md`.
+- v6.0 requirements are defined in `.planning/REQUIREMENTS.md`.
 
 ### Out of Scope
 
 | Item | Reason |
 |------|--------|
 | App Store/package catalog | Requires enforced action/capability boundary first |
-| Full workspace hierarchy | Planned as v6 after request/capability/event foundation |
 | Mini Program v3 | Planned as v7 after actions and workflow contracts stabilize |
 | Logistics vertical slice | Planned as v8 after foundation avoids duplicate state |
 | Offline licensing/support bundle/HA operations | Important on-prem follow-up, outside v5 foundation |
@@ -76,11 +73,11 @@ No active milestone. Start the next milestone with `/gsd:new-milestone`.
 
 ## Next Milestone Goals
 
-Start the next milestone with `/gsd:new-milestone`.
+v6.0 is the active milestone (see Current Milestone above). Plan its phases with `/gsd:plan-phase [N]`.
 
 The concrete agent ownership map lives in `.planning/AGENT-WORKSTREAMS.md`.
 
-Deferred beyond v5: unified workspace hierarchy (v6), Mini Program v3 and connector lifecycle (v7), the first production logistics vertical slice (v8), App Store/package lifecycle, offline licensing/support bundles, and broad SLO/chaos/commercial readiness.
+Deferred beyond v6: Mini Program v3 and connector lifecycle (v7), the first production logistics vertical slice (v8), App Store/package lifecycle, offline licensing/support bundles, and broad SLO/chaos/commercial readiness.
 
 ## Key Decisions
 
@@ -129,4 +126,4 @@ After each milestone:
 3. Preserve core value unless the business priority explicitly changes.
 
 ---
-*Last updated: 2026-07-15 after v5.0 milestone completion.*
+*Last updated: 2026-07-16 after v6.0 milestone start.*

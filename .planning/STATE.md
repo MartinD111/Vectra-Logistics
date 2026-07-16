@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v5.0
-milestone_name: Platform Foundation & Durable Execution
-status: Awaiting next milestone
-stopped_at: Completed 30-01-PLAN.md
-last_updated: "2026-07-15T20:20:42.170Z"
-last_activity: 2026-07-15 — Milestone v5.0 completed and archived
+milestone: v6.0
+milestone_name: Unified Workspace Hierarchy
+status: planning
+last_updated: "2026-07-16T12:11:25.381Z"
+last_activity: 2026-07-16
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 32
-  completed_plans: 32
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 ## Current Position
 
-Phase: Milestone v5.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-15 — Milestone v5.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-07-16 — Milestone v6.0 started
 
 ## Accumulated Context
 
