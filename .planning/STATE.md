@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Unified Workspace Hierarchy
 status: planning
-last_updated: "2026-07-16T12:11:25.381Z"
+last_updated: "2026-07-16T00:00:00.000Z"
 last_activity: 2026-07-16
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history - the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Planning next milestone
+**Current focus:** Phase 31 — Data Model + Modernize Folders Domain
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-07-16 — Milestone v6.0 started
+Phase: 31 of 34 (Data Model + Modernize Folders Domain)
+Plan: TBD — not yet planned
+Status: Ready to plan
+Last activity: 2026-07-16 — v6.0 ROADMAP.md created (Phases 31-34), all 22 v1 requirements mapped
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
@@ -40,6 +42,9 @@ Last activity: 2026-07-16 — Milestone v6.0 started
 - Phase 28 request/capability/tenant foundation precedes Phase 29 outbox and Phase 30 workflow execution.
 - Phase 29 introduces durable outbox before workflow MVP to avoid best-effort UI-triggered automation side effects.
 - App Store/package lifecycle remains blocked until capability/action enforcement exists.
+- v6.0 continues phase numbering at 31; extends the existing `folders` domain rather than introducing a new `workspace_nodes` table (reuse-over-rebuild).
+- v6.0 phase order is schema/domain (31) -> aggregated read + mutation API (32) -> read-only tree UI (33) -> drag/create/rename/archive UI (34), so each phase builds on an already-correct lower layer.
+- Phase 31 (ancestor-index technique choice) and Phase 34 (drag-reorder concurrency/locking scheme) are flagged for a research-phase pass during planning; Phase 32 and Phase 33 match standard/existing patterns.
 
 ### Agent Assignments
 
@@ -100,4 +105,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with `/gsd:new-milestone`.
+- Plan Phase 31 with `/gsd:plan-phase 31` (consider `--research-phase` given the flagged ancestor-index decision).

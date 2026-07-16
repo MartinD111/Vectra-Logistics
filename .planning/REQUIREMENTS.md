@@ -68,34 +68,34 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HIER-01 | TBD | Pending |
-| HIER-02 | TBD | Pending |
-| HIER-03 | TBD | Pending |
-| HIER-04 | TBD | Pending |
-| HIER-05 | TBD | Pending |
-| HIER-06 | TBD | Pending |
-| HIER-07 | TBD | Pending |
-| TREEAPI-01 | TBD | Pending |
-| TREEAPI-02 | TBD | Pending |
-| TREEAPI-03 | TBD | Pending |
-| TREEAPI-04 | TBD | Pending |
-| TREEUI-01 | TBD | Pending |
-| TREEUI-02 | TBD | Pending |
-| TREEUI-03 | TBD | Pending |
-| TREEUI-04 | TBD | Pending |
-| TREEUI-05 | TBD | Pending |
-| TREEOPS-01 | TBD | Pending |
-| TREEOPS-02 | TBD | Pending |
-| TREEOPS-03 | TBD | Pending |
-| TREEOPS-04 | TBD | Pending |
-| TREEOPS-05 | TBD | Pending |
-| TREEOPS-06 | TBD | Pending |
+| HIER-01 | Phase 31 | Pending |
+| HIER-02 | Phase 31 | Pending |
+| HIER-03 | Phase 31 | Pending |
+| HIER-04 | Phase 31 | Pending |
+| HIER-05 | Phase 31 | Pending |
+| HIER-06 | Phase 31 | Pending |
+| HIER-07 | Phase 31 | Pending |
+| TREEAPI-01 | Phase 32 | Pending |
+| TREEAPI-02 | Phase 32 | Pending |
+| TREEAPI-03 | Phase 32 | Pending |
+| TREEAPI-04 | Phase 32 | Pending |
+| TREEUI-01 | Phase 33 | Pending |
+| TREEUI-02 | Phase 33 | Pending |
+| TREEUI-03 | Phase 33 | Pending |
+| TREEUI-04 | Phase 33 | Pending |
+| TREEUI-05 | Phase 33 | Pending |
+| TREEOPS-01 | Phase 34 | Pending |
+| TREEOPS-02 | Phase 34 | Pending |
+| TREEOPS-03 | Phase 34 | Pending |
+| TREEOPS-04 | Phase 34 | Pending |
+| TREEOPS-05 | Phase 34 | Pending |
+| TREEOPS-06 | Phase 34 | Pending |
 
 **Coverage:**
 - v1 requirements: 22 total
-- Mapped to phases: 0 (roadmap not yet created)
-- Unmapped: 22 ⚠️ (expected — filled in by roadmapper)
+- Mapped to phases: 22 (Phase 31: 7, Phase 32: 4, Phase 33: 5, Phase 34: 6)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-16*
-*Last updated: 2026-07-16 after initial v6.0 definition*
+*Last updated: 2026-07-16 after v6.0 roadmap creation (Phases 31-34)*
