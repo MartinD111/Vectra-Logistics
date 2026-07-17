@@ -13,7 +13,6 @@
 | TREEAPI-02 | A reorder endpoint updates sibling order for a moved node using server-authoritative, lock-safe positions, with no lost updates under concurrent reorder | Pattern 2 (`FOR UPDATE` + single renumber `UPDATE ... FROM VALUES`), plus the new `029_tree_sort_order.sql` migration adding `sort_order` to `projects`/`programs`/`data_collections` (Common Pitfalls #2) |
 | TREEAPI-03 | A move/reparent endpoint validates tenant ownership on both source and destination and rejects illegal moves (cycles, cross-tenant targets) with a specific error distinguishing the reason | Pattern 3 (dispatch-by-node_type, reusing existing `assertOwned*`/`findXForCompany` 404-on-cross-tenant checks and Phase 31's folder cycle/depth check via `foldersService.moveFolder()`) |
 | TREEAPI-04 | All tree mutation endpoints are gated by the `workspace.admin` capability, consistent with the existing folders domain | Existing `assertCapability`/`requireCapability('workspace.admin')` machinery (`core/capabilities/index.ts`) — no new capability needed, wire both new routes exactly like existing `move`/`archive`/`unarchive` routes |
-</phase_requirements>
 
 ## Summary
 
@@ -200,7 +199,7 @@ COMMIT;
 
 ### Pattern 3: Generic move/reparent — dispatch to existing per-domain update paths, not a new write path
 
-**What:** Every node type already has a working reparent mechanism through its own domain's existing `update*` repository method (`updateProject({folder_id})`, `updateProgram({project_id, folder_id})`, `updateCollection({folder_id})`, `updatePage({parent_page_id})`) or, for folders, the Phase 31 `foldersService.moveFolder()`. The new `POST /folders/tree/move` endpoint should be a thin dispatcher by `node_type` that (1) validates destination tenant ownership using each domain's existing `assertOwned*` helper (all already return 404 on cross-tenant, established in Phase 31/pre-31), (2) for `node_type: 'folder'`, delegates straight to `foldersService.moveFolder()` (reusing the existing ancestor_ids cycle/depth check, not reimplementing it), and (3) for all other node types, calls the existing repository update method with only the parent-pointer field set.
+**What:** Every node type already has a working reparent mechanism through its own domain's existing `update*` repository method (`updateProject({folder_id})`, `updateProgram({project_id, folder_id})`, `updateCollection({folder_id})`, `updatePage({parent_page_id})`) or, for folders, the Phase 31 `foldersService.moveFolder()`. The new `POST /folders/tree/move` endpoint should be a thin dispatcher by `node_type` that (1) validates destination tenant ownership using each domain's existing `assertOwned*` helper (all already return 404 on cross-tenant, established in Phase 31/pre-31), (2) for `node_type: 'folder'`, delegates straight to `foldersService.moveFolder()` (reusing the existing ancestor_ids cycle/depth check, not reimplementing it), and (3) for all other node types, calls the existing repository update method with only the parent-pointer field set. For `node_type: 'program'`, since `programs` rows carry both `folder_id` and `project_id`, the dispatcher must accept an explicit scope disambiguator (see 32-01's `MoveNodeSchema.project_id` field) so a program can be reparented to either a folder or a project destination — not just folder destinations.
 
 **When to use:** `POST /folders/tree/move`.
 
@@ -213,7 +212,7 @@ async moveNode(ctx: RequestContext, body: unknown) {
   const tenantId = requireCompanyId(ctx);
   const parsed = MoveNodeSchema.safeParse(body);
   if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
-  const { node_type, node_id, new_parent_id } = parsed.data;
+  const { node_type, node_id, new_parent_id, project_id } = parsed.data;
 
   switch (node_type) {
     case 'folder':
@@ -225,7 +224,18 @@ async moveNode(ctx: RequestContext, body: unknown) {
       if (!updated) throw new AppError(404, 'Project not found');
       return updated;
     }
-    // ...program, collection, page follow the same shape
+    case 'program': {
+      // project_id set → project-scoped destination; omitted/null → folder-scoped destination.
+      if (project_id) {
+        await projectsRepository.findProjectForCompany(project_id, tenantId).then((p) => {
+          if (!p) throw new AppError(404, 'Project not found');
+        });
+        return projectsRepository.updateProgram(node_id, { project_id, folder_id: null });
+      }
+      if (new_parent_id) await this.assertOwnedFolder(new_parent_id, tenantId);
+      return projectsRepository.updateProgram(node_id, { folder_id: new_parent_id, project_id: null });
+    }
+    // ...collection follows the same shape
   }
 }
 ```
@@ -237,6 +247,7 @@ async moveNode(ctx: RequestContext, body: unknown) {
 - **Fractional/`NUMERIC` sort_order "insert between" scheme:** No precedent in this codebase (every `sort_order` is `INTEGER`), adds float-precision exhaustion risk, and is unnecessary at expected sibling-count scale. Use full-renumber-on-reorder instead (Pattern 2).
 - **Advisory locks (`pg_advisory_xact_lock`):** No precedent in this codebase. `FOR UPDATE` (already used by the outbox worker) is the established idiom and ties the lock to the actual rows being mutated.
 - **Reimplementing folder cycle detection inside the new move endpoint:** `foldersService.moveFolder()` already has the Phase 31 ancestor_ids cycle/depth check plus the DB trigger backstop — the move dispatcher must call it, not duplicate its logic.
+- **Treating `programs` as if it only ever has one parent-pointer column:** `programs` rows carry both `folder_id` and `project_id` — a reorder/move implementation that hardcodes `projectId: null` (or its `folder_id` equivalent) silently drops project-filed programs from "any node" coverage. Both scopes must be dispatchable through the same endpoint via the `project_id` disambiguator.
 - **A generic `workspace_nodes` polymorphic table to unify the 5 entity types:** Explicitly out of scope per REQUIREMENTS.md's "Out of Scope" table — "would duplicate the existing `folders`/`projects`/`programs`/`project_pages`/`collection_records` parent-pointer hierarchies."
 
 ## Don't Hand-Roll
@@ -355,22 +366,25 @@ async reorderSiblings(
 | A3 | `data_collections` and `programs`/`projects` gaining an additive `sort_order` column does not violate the "schema is locked, do not redesign" note on `data_collections` in `025_records_views.sql`, since Phase 31 already set the precedent of additive-only columns (`folder_id`, `archived_at`) on that same "locked" table. | Common Pitfalls / Pitfall 2, Code Examples | If the "locked" note is interpreted more strictly than Phase 31's own precedent, the planner should flag this as a discussion point rather than assume — but Phase 31's own migration already crossed this line additively, so the precedent is strong. |
 | A4 | Page (`project_pages.parent_page_id`) reparenting cycle risk is out of this phase's DB-level enforcement scope (no `ancestor_ids`/trigger exists for pages, only for folders per Phase 31), and the move endpoint should either reject cross-project page moves entirely (pages stay within their existing project, matching the current `updatePage` behavior) or explicitly flag this as an unresolved gap rather than silently building unverified cycle protection. | Common Pitfalls / Pitfall 3 | If the planner assumes page cycle protection exists at the DB level (it does not), a page could theoretically be reparented into its own descendant with no trigger to stop it — a real (if narrow, since pages are typically shallow) data-integrity gap. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should reorder emit one durable event per moved sibling, or one batched `tree.reordered` event?**
    - What we know: Phase 31 established "never batch, one event per row" for cascade archive (a low-frequency, audit-significant action). Reorder is a high-frequency, low-stakes UI action (every drag-drop in Phase 34).
    - What's unclear: Whether the per-row convention should apply uniformly to all mutation types in this domain going forward, or whether reorder's frequency profile justifies a documented exception (a single event carrying the new `ordered_ids` array as payload).
    - Recommendation: Batch as a single `tree.<node_type>.reordered` event with the full `ordered_ids` array in the payload, explicitly as a documented exception to Phase 31's per-row convention, justified by event-volume concerns under normal drag-reorder usage. Flag for plan-check/CONTEXT.md confirmation since this deviates from the established Phase 31 precedent.
+   - **RESOLVED:** Batched `tree.<node_type>.reordered` event per reorder call (adopted in 32-04) — a single event carries the full `ordered_ids` array in its payload, documented as an intentional exception to Phase 31's per-row archive-event convention.
 
 2. **Should page-to-page reparenting (`parent_page_id`) be included in `POST /folders/tree/move`'s scope at all in this phase, given it has no DB-level cycle protection?**
    - What we know: `project_pages` has `parent_page_id` (self-referential, `012_page_hierarchy.sql`) but no `ancestor_ids` array and no cycle-prevention trigger — only `folders` got that treatment in Phase 31.
    - What's unclear: Whether TREEAPI-01's "folder/project/program/collection/page tree" (read-only) implies pages must also be move/reparent-capable via this same endpoint in this phase, or whether page reparenting can remain scoped to the existing `PATCH /projects/pages/:pageId` endpoint (same-project only, no cross-project cycle risk since pages can't currently move between projects via any existing endpoint).
    - Recommendation: Scope `POST /folders/tree/move` to `node_type: folder | project | program | data_collection` only for genuine cross-parent reparenting in this phase; leave page-to-page nesting (`parent_page_id`) on its existing `PATCH /projects/pages/:pageId` endpoint, unchanged, since it has no cross-project move capability today and building new cycle protection for it is a scope expansion beyond "one way to reorder/reparent any node" as applied to the folder/project/program/collection layer. If the planner disagrees and wants pages fully unified into the generic move endpoint, a page-level `ancestor_ids`-equivalent (or a bounded-depth walk, since page nesting depth is not documented as bounded to 3 the way folders are) needs to be designed first — treat as a blocking Open Question, not an assumption.
+   - **RESOLVED:** Excluded `'page'` from the `NodeType` enum this phase (adopted in 32-01, 32-05) — no `ancestor_ids`/cycle-protection trigger exists for pages, and no regression results since no prior cross-project page move endpoint existed either; page reparenting stays on the existing `PATCH /projects/pages/:pageId`, same-project only.
 
 3. **What HTTP verb/path convention for the two new mutation endpoints — `POST /folders/tree/reorder` + `POST /folders/tree/move`, or per-node-type paths (`POST /folders/:id/reorder`, etc.)?**
    - What we know: Existing folder mutations use per-resource paths (`PATCH /folders/:id/move`). The new endpoints are inherently cross-type (a `project` reorder request isn't "a folder resource").
    - What's unclear: Whether nesting these under `/folders/tree/*` (implying "folders domain owns the tree") reads confusingly for a project-reorder request, versus a more neutral `/tree/*` mount.
    - Recommendation: Use `/folders/tree/full`, `/folders/tree/reorder`, `/folders/tree/move` (keeping the existing `folders` router mount, per Pattern 3's "reuse the folders domain" recommendation) — the `/tree/` sub-path signals "this endpoint spans multiple node types," avoiding the false implication that a `POST /folders/tree/reorder` targeting `node_type: 'project'` is folder-specific. This is a naming recommendation, not a locked decision — confirm during planning.
+   - **RESOLVED:** `/folders/tree/*` mount (adopted in 32-03/32-04/32-05) — `GET /folders/tree/full`, `POST /folders/tree/reorder`, `POST /folders/tree/move`, all under the existing `folders` router.
 
 ## Environment Availability
 
