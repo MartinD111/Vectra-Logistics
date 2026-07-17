@@ -110,3 +110,10 @@ None - no external service configuration required.
 ---
 *Phase: 31-data-model-modernize-folders-domain*
 *Completed: 2026-07-17*
+
+## Self-Check: PASSED
+
+- FOUND: apps/api/src/domains/folders/folders.integration.test.ts
+- FOUND: .planning/phases/31-data-model-modernize-folders-domain/31-06-SUMMARY.md
+- FOUND commit: 97c2ce3 (test)
+- FOUND commit: b4b4274 (docs/summary)
