@@ -61,7 +61,8 @@ Milestone audit: [milestones/v5.0-MILESTONE-AUDIT.md](milestones/v5.0-MILESTONE-
 
 **Milestone Goal:** Replace the flat, module-keyed sidebar and disconnected records/pages with a real folder → project → page/record tree, so users can organize and navigate the workspace the way the platform's data model already supports.
 
-- [x] **Phase 31: Data Model + Modernize Folders Domain** - Close the `data_collections.folder_id` gap, add an ancestor-index, enforce tenant/cycle invariants at the DB level, and modernize the `folders` domain to v5 `RequestContext`/capability/`event_outbox` conventions. (completed 2026-07-17)
+- [x] **Phase 31: Data Model + Modernize Folders Domain** - Close the `data_collections.folder_id` gap, add an ancestor-index, enforce tenant/cycle invariants at the DB level, and modernize the `folders` domain to v5 `RequestContext`/capability/`event_outbox` conventions.
+ (completed 2026-07-17)
 - [ ] **Phase 32: Aggregated Tree Read API + Reorder/Move Endpoints** - One tenant-scoped `GET /folders/tree/full` endpoint plus lock-safe reorder and cycle/tenant-checked move endpoints, gated by `workspace.admin`.
 - [ ] **Phase 33: Tree-Based Sidebar UI (Read + Navigate)** - Replace the flat `ITEMS` list with a real expand/collapse tree, per-user persisted expand state, depth-aware module visibility, and live-tree breadcrumbs.
 - [ ] **Phase 34: Drag-to-Reorder/Reparent + Create/Rename/Archive Flows** - Drag-and-drop reorder/reparent, context-menu create, inline rename, and archive-with-descendant-count flows.
@@ -97,10 +98,14 @@ Plans:
   2. Reordering siblings via the reorder endpoint uses server-authoritative, lock-safe positions and produces no lost updates when two reorders happen concurrently
   3. The move/reparent endpoint validates tenant ownership on both source and destination and rejects illegal moves (cycles, cross-tenant targets) with a specific error distinguishing the reason
   4. Every tree mutation endpoint (reorder, move/reparent) is gated by the `workspace.admin` capability
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 32-01: TBD
+- [ ] 32-01-PLAN.md — Foundation: sort_order migration, tree DTOs, TreeNode type, concurrency race harness
+- [ ] 32-02-PLAN.md — Repository layer: lock-safe reorderFolders/reorderProjects/reorderPrograms/reorderCollections
+- [ ] 32-03-PLAN.md — GET /folders/tree/full aggregated read endpoint
+- [ ] 32-04-PLAN.md — POST /folders/tree/reorder (capability-gated, transactional, live concurrency-proven)
+- [ ] 32-05-PLAN.md — POST /folders/tree/move (capability-gated, cross-tenant/cycle rejection)
 
 ### Phase 33: Tree-Based Sidebar UI (Read + Navigate)
 **Goal**: Users can see and navigate the real folder → project → page/record hierarchy in the sidebar, with correct module-aware visibility and breadcrumbs, before any write/drag interactions are introduced.
@@ -152,9 +157,9 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 29. Event Spine & Durable Outbox | v5.0 | 2/2 | Complete | 2026-07-15 |
 | 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 1/1 | Complete | 2026-07-15 |
 | 31. Data Model + Modernize Folders Domain | v6.0 | 6/6 | Complete   | 2026-07-17 |
-| 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 0/TBD | Not started | - |
+| 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 0/5 | Planned | - |
 | 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 0/TBD | Not started | - |
 | 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 0/TBD | Not started | - |
 
 ---
-*Roadmap updated: 2026-07-16 — v6.0 Unified Workspace Hierarchy roadmap created (Phases 31-34). Next: `/gsd:plan-phase 31`.*
+*Roadmap updated: 2026-07-17 — Phase 32 planned (5 plans, 4 waves). Next: `/gsd:execute-phase 32`.*
