@@ -85,7 +85,7 @@ Plans:
 - [x] 31-02-PLAN.md — Records domain: data_collections.folder_id + bulk archive/unarchive methods
 - [x] 31-03-PLAN.md — Projects/programs: replace hard-delete with archive/unarchive + bulk cascade methods
 - [x] 31-04-PLAN.md — Folders domain foundation: types/DTOs/repository (ancestor-index, archive/unarchive)
-- [ ] 31-05-PLAN.md — Folders domain: RequestContext/capability/event_outbox modernization + cascade archive
+- [x] 31-05-PLAN.md — Folders domain: RequestContext/capability/event_outbox modernization + cascade archive
 - [ ] 31-06-PLAN.md — Integration tests: cross-tenant/cycle/depth DB rejection, cascade transaction, HIER-06 static gate
 
 ### Phase 32: Aggregated Tree Read API + Reorder/Move Endpoints
@@ -151,7 +151,7 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 28. Security, Tenancy & Capabilities Foundation | v5.0 | 4/4 | Complete | 2026-07-15 |
 | 29. Event Spine & Durable Outbox | v5.0 | 2/2 | Complete | 2026-07-15 |
 | 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 1/1 | Complete | 2026-07-15 |
-| 31. Data Model + Modernize Folders Domain | v6.0 | 4/6 | In Progress|  |
+| 31. Data Model + Modernize Folders Domain | v6.0 | 5/6 | In Progress|  |
 | 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 0/TBD | Not started | - |
 | 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 0/TBD | Not started | - |
 | 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 0/TBD | Not started | - |
