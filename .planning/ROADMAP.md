@@ -61,7 +61,7 @@ Milestone audit: [milestones/v5.0-MILESTONE-AUDIT.md](milestones/v5.0-MILESTONE-
 
 **Milestone Goal:** Replace the flat, module-keyed sidebar and disconnected records/pages with a real folder → project → page/record tree, so users can organize and navigate the workspace the way the platform's data model already supports.
 
-- [ ] **Phase 31: Data Model + Modernize Folders Domain** - Close the `data_collections.folder_id` gap, add an ancestor-index, enforce tenant/cycle invariants at the DB level, and modernize the `folders` domain to v5 `RequestContext`/capability/`event_outbox` conventions.
+- [x] **Phase 31: Data Model + Modernize Folders Domain** - Close the `data_collections.folder_id` gap, add an ancestor-index, enforce tenant/cycle invariants at the DB level, and modernize the `folders` domain to v5 `RequestContext`/capability/`event_outbox` conventions. (completed 2026-07-17)
 - [ ] **Phase 32: Aggregated Tree Read API + Reorder/Move Endpoints** - One tenant-scoped `GET /folders/tree/full` endpoint plus lock-safe reorder and cycle/tenant-checked move endpoints, gated by `workspace.admin`.
 - [ ] **Phase 33: Tree-Based Sidebar UI (Read + Navigate)** - Replace the flat `ITEMS` list with a real expand/collapse tree, per-user persisted expand state, depth-aware module visibility, and live-tree breadcrumbs.
 - [ ] **Phase 34: Drag-to-Reorder/Reparent + Create/Rename/Archive Flows** - Drag-and-drop reorder/reparent, context-menu create, inline rename, and archive-with-descendant-count flows.
@@ -86,7 +86,7 @@ Plans:
 - [x] 31-03-PLAN.md — Projects/programs: replace hard-delete with archive/unarchive + bulk cascade methods
 - [x] 31-04-PLAN.md — Folders domain foundation: types/DTOs/repository (ancestor-index, archive/unarchive)
 - [x] 31-05-PLAN.md — Folders domain: RequestContext/capability/event_outbox modernization + cascade archive
-- [ ] 31-06-PLAN.md — Integration tests: cross-tenant/cycle/depth DB rejection, cascade transaction, HIER-06 static gate
+- [x] 31-06-PLAN.md — Integration tests: cross-tenant/cycle/depth DB rejection, cascade transaction, HIER-06 static gate
 
 ### Phase 32: Aggregated Tree Read API + Reorder/Move Endpoints
 **Goal**: There is one tenant-scoped, single-request way to read the whole workspace tree and one transactional, lock-safe way to reorder or reparent any node, so UI work in later phases has a stable, correct API to build against.
@@ -151,7 +151,7 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 28. Security, Tenancy & Capabilities Foundation | v5.0 | 4/4 | Complete | 2026-07-15 |
 | 29. Event Spine & Durable Outbox | v5.0 | 2/2 | Complete | 2026-07-15 |
 | 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 1/1 | Complete | 2026-07-15 |
-| 31. Data Model + Modernize Folders Domain | v6.0 | 5/6 | In Progress|  |
+| 31. Data Model + Modernize Folders Domain | v6.0 | 6/6 | Complete   | 2026-07-17 |
 | 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 0/TBD | Not started | - |
 | 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 0/TBD | Not started | - |
 | 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 0/TBD | Not started | - |
