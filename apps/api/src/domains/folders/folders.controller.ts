@@ -7,6 +7,10 @@ export const listFolders = asyncHandler(async (req: RequestWithContext, res: Res
   res.json({ folders: await foldersService.listFolderTree(requireRequestContext(req)) });
 });
 
+export const getFullTree = asyncHandler(async (req: RequestWithContext, res: Response) => {
+  res.json({ tree: await foldersService.getFullTree(requireRequestContext(req)) });
+});
+
 export const getFolder = asyncHandler(async (req: RequestWithContext, res: Response) => {
   res.json({ folder: await foldersService.getFolder(requireRequestContext(req), req.params.id) });
 });

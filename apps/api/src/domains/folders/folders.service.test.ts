@@ -274,6 +274,98 @@ test('one insertDurableEvent call happens per archived row across all passes, ne
   assert.equal(outboxSpy.mock.calls.length, 5);
 });
 
+test('getFullTree calls each of the 5 repository methods exactly once and does not call assertCapability', async () => {
+  const listFoldersMock = mock.method(foldersRepository, 'listFolders', async () => []);
+  const listProjectsMock = mock.method(projectsRepository, 'listProjects', async () => []);
+  const listProgramsMock = mock.method(projectsRepository, 'listPrograms', async () => []);
+  const listAllPagesMock = mock.method(projectsRepository, 'listAllPages', async () => []);
+  const listCollectionsMock = mock.method(recordsRepository, 'listCollections', async () => []);
+
+  // A ctx with no roles at all would fail any assertCapability('workspace.admin') check.
+  const tree = await foldersService.getFullTree(ctx({ roles: [] }));
+
+  assert.deepEqual(tree, []);
+  assert.equal(listFoldersMock.mock.calls.length, 1);
+  assert.equal(listProjectsMock.mock.calls.length, 1);
+  assert.equal(listProgramsMock.mock.calls.length, 1);
+  assert.equal(listAllPagesMock.mock.calls.length, 1);
+  assert.equal(listCollectionsMock.mock.calls.length, 1);
+  // listPrograms must be called with no second (projectId) argument — ALL tenant programs.
+  assert.equal(listProgramsMock.mock.calls[0].arguments.length, 1);
+});
+
+test('getFullTree nests a folder -> project -> program 3-level fixture correctly', async () => {
+  mock.method(foldersRepository, 'listFolders', async () => [folder({ id: FOLDER_ID, parent_id: null })]);
+  mock.method(projectsRepository, 'listProjects', async () => [project({ id: 'project-1', folder_id: FOLDER_ID })]);
+  mock.method(projectsRepository, 'listPrograms', async () => [program({ id: 'program-1', folder_id: null, project_id: 'project-1' })]);
+  mock.method(projectsRepository, 'listAllPages', async () => []);
+  mock.method(recordsRepository, 'listCollections', async () => []);
+
+  const tree = await foldersService.getFullTree(ctx());
+
+  assert.equal(tree.length, 1);
+  assert.equal(tree[0].node_type, 'folder');
+  assert.equal(tree[0].id, FOLDER_ID);
+  assert.equal(tree[0].children.length, 1);
+  assert.equal(tree[0].children[0].node_type, 'project');
+  assert.equal(tree[0].children[0].id, 'project-1');
+  assert.equal(tree[0].children[0].children.length, 1);
+  assert.equal(tree[0].children[0].children[0].node_type, 'program');
+  assert.equal(tree[0].children[0].children[0].id, 'program-1');
+});
+
+test('getFullTree places a root-level project (folder_id: null) at the top level, not nested under any folder', async () => {
+  mock.method(foldersRepository, 'listFolders', async () => [folder({ id: FOLDER_ID, parent_id: null })]);
+  mock.method(projectsRepository, 'listProjects', async () => [project({ id: 'root-project', folder_id: null })]);
+  mock.method(projectsRepository, 'listPrograms', async () => []);
+  mock.method(projectsRepository, 'listAllPages', async () => []);
+  mock.method(recordsRepository, 'listCollections', async () => []);
+
+  const tree = await foldersService.getFullTree(ctx());
+
+  assert.equal(tree.length, 2);
+  const folderNode = tree.find((n) => n.node_type === 'folder')!;
+  const rootProjectNode = tree.find((n) => n.node_type === 'project')!;
+  assert.ok(folderNode);
+  assert.ok(rootProjectNode);
+  assert.equal(rootProjectNode.id, 'root-project');
+  assert.equal(folderNode.children.length, 0);
+});
+
+test('getFullTree files a collection under a folder and a collection under a project into their correct parents', async () => {
+  mock.method(foldersRepository, 'listFolders', async () => [folder({ id: FOLDER_ID, parent_id: null })]);
+  mock.method(projectsRepository, 'listProjects', async () => [project({ id: 'project-1', folder_id: null })]);
+  mock.method(projectsRepository, 'listPrograms', async () => []);
+  mock.method(projectsRepository, 'listAllPages', async () => []);
+  mock.method(recordsRepository, 'listCollections', async () => [
+    collectionRow({ id: 'collection-in-folder', folder_id: FOLDER_ID, project_id: null }),
+    collectionRow({ id: 'collection-in-project', folder_id: null, project_id: 'project-1' }),
+  ]);
+
+  const tree = await foldersService.getFullTree(ctx());
+
+  const folderNode = tree.find((n) => n.node_type === 'folder')!;
+  const projectNode = tree.find((n) => n.node_type === 'project')!;
+  assert.equal(folderNode.children.length, 1);
+  assert.equal(folderNode.children[0].node_type, 'data_collection');
+  assert.equal(folderNode.children[0].id, 'collection-in-folder');
+  assert.equal(projectNode.children.length, 1);
+  assert.equal(projectNode.children[0].node_type, 'data_collection');
+  assert.equal(projectNode.children[0].id, 'collection-in-project');
+});
+
+test('getFullTree returns an empty array for an empty tenant', async () => {
+  mock.method(foldersRepository, 'listFolders', async () => []);
+  mock.method(projectsRepository, 'listProjects', async () => []);
+  mock.method(projectsRepository, 'listPrograms', async () => []);
+  mock.method(projectsRepository, 'listAllPages', async () => []);
+  mock.method(recordsRepository, 'listCollections', async () => []);
+
+  const tree = await foldersService.getFullTree(ctx());
+
+  assert.deepEqual(tree, []);
+});
+
 test('unarchiveFolder restores the folder only (no cascade) and emits a folder.unarchived event', async () => {
   mock.method(foldersRepository, 'unarchiveFolder', async () => folder({ id: FOLDER_ID }));
   mock.method(db, 'connect', async () => fakeClient());

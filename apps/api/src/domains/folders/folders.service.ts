@@ -6,8 +6,10 @@ import { createDurableEventEnvelope, insertDurableEvent } from '../../core/event
 import { foldersRepository } from './folders.repository';
 import { projectsRepository } from '../projects/projects.repository';
 import { recordsRepository } from '../records/records.repository';
-import { Folder, FolderTree } from './folders.types';
+import { Folder, FolderTree, TreeNode } from './folders.types';
 import { CreateFolderSchema, UpdateFolderSchema, MoveFolderSchema } from './dto/folder.dto';
+import type { Project, Program, ProjectPage } from '../projects/projects.types';
+import type { DataCollectionRow } from '../records/records.types';
 
 const MAX_FOLDER_DEPTH = 3;
 
@@ -16,6 +18,20 @@ class FoldersService {
     const tenantId = requireCompanyId(ctx);
     const flat = await foldersRepository.listFolders(tenantId);
     return this.buildTree(flat, null);
+  }
+
+  // TREEAPI-01: aggregated tree read — exactly 5 flat, company-scoped queries
+  // run in parallel, then nested in memory. No per-node fan-out queries.
+  async getFullTree(ctx: RequestContext): Promise<TreeNode[]> {
+    const tenantId = requireCompanyId(ctx);
+    const [folders, projects, programs, pages, collections] = await Promise.all([
+      foldersRepository.listFolders(tenantId),
+      projectsRepository.listProjects(tenantId),
+      projectsRepository.listPrograms(tenantId),
+      projectsRepository.listAllPages(tenantId),
+      recordsRepository.listCollections(tenantId),
+    ]);
+    return this.assembleTree(folders, projects, programs, pages, collections);
   }
 
   async getFolder(ctx: RequestContext, id: string): Promise<Folder> {
@@ -237,6 +253,104 @@ class FoldersService {
     return flat
       .filter((f) => f.parent_id === parentId)
       .map((f) => ({ ...f, children: this.buildTree(flat, f.id) }));
+  }
+
+  // Assembles the cross-entity tree from 5 already-fetched flat arrays via a
+  // single pass over each array into a parent-keyed Map, then recursive
+  // nesting from those maps — never a per-node .filter() over the full
+  // array set (that would reintroduce fan-out cost in application memory).
+  private assembleTree(
+    folders: Folder[],
+    projects: Project[],
+    programs: Program[],
+    pages: ProjectPage[],
+    collections: DataCollectionRow[],
+  ): TreeNode[] {
+    const childrenByParent = new Map<string, TreeNode[]>();
+    const addChild = (parentKey: string, node: TreeNode) => {
+      const list = childrenByParent.get(parentKey);
+      if (list) list.push(node);
+      else childrenByParent.set(parentKey, [node]);
+    };
+
+    // Pages: nest under their parent page (recursive), or their project when root-level.
+    const pageNodes = new Map<string, TreeNode>();
+    for (const p of pages) {
+      pageNodes.set(p.id, {
+        node_type: 'project_page', id: p.id, company_id: p.company_id, name: p.title, children: [], raw: p,
+      });
+    }
+    for (const p of pages) {
+      const node = pageNodes.get(p.id)!;
+      const parentKey = p.parent_page_id ? `page:${p.parent_page_id}` : `project:${p.project_id}`;
+      addChild(parentKey, node);
+    }
+    for (const p of pages) {
+      const node = pageNodes.get(p.id)!;
+      node.children = childrenByParent.get(`page:${p.id}`) ?? [];
+    }
+
+    // Programs: project-scoped takes priority over folder-scoped, else root-level.
+    for (const pr of programs) {
+      const node: TreeNode = {
+        node_type: 'program', id: pr.id, company_id: pr.company_id, name: pr.name, children: [], raw: pr,
+      };
+      const parentKey = pr.project_id ? `project:${pr.project_id}` : pr.folder_id ? `folder:${pr.folder_id}` : 'root';
+      addChild(parentKey, node);
+    }
+
+    // Collections: project-scoped takes priority over folder-scoped, else root-level.
+    for (const c of collections) {
+      const node: TreeNode = {
+        node_type: 'data_collection', id: c.id, company_id: c.company_id, name: c.name, children: [], raw: c,
+      };
+      const parentKey = c.project_id ? `project:${c.project_id}` : c.folder_id ? `folder:${c.folder_id}` : 'root';
+      addChild(parentKey, node);
+    }
+
+    // Projects: nest under their folder, or top-level when root.
+    const projectNodes = new Map<string, TreeNode>();
+    for (const proj of projects) {
+      projectNodes.set(proj.id, {
+        node_type: 'project',
+        id: proj.id,
+        company_id: proj.company_id,
+        name: proj.name,
+        children: childrenByParent.get(`project:${proj.id}`) ?? [],
+        raw: proj,
+      });
+    }
+    for (const proj of projects) {
+      const node = projectNodes.get(proj.id)!;
+      const parentKey = proj.folder_id ? `folder:${proj.folder_id}` : 'root';
+      addChild(parentKey, node);
+    }
+
+    // Folders: recursive nesting, same technique as buildTree but folded in with
+    // the non-folder children collected above.
+    const folderChildrenIds = new Map<string, Folder[]>();
+    for (const f of folders) {
+      const key = f.parent_id ?? 'root';
+      const list = folderChildrenIds.get(key);
+      if (list) list.push(f);
+      else folderChildrenIds.set(key, [f]);
+    }
+    const buildFolderNode = (f: Folder): TreeNode => {
+      const childFolders = (folderChildrenIds.get(f.id) ?? []).map(buildFolderNode);
+      const nonFolderChildren = childrenByParent.get(`folder:${f.id}`) ?? [];
+      return {
+        node_type: 'folder',
+        id: f.id,
+        company_id: f.company_id,
+        name: f.name,
+        children: [...childFolders, ...nonFolderChildren],
+        raw: f,
+      };
+    };
+
+    const rootFolders = (folderChildrenIds.get('root') ?? []).map(buildFolderNode);
+    const rootOthers = childrenByParent.get('root') ?? [];
+    return [...rootFolders, ...rootOthers];
   }
 
   private async assertOwnedFolder(id: string, companyId: string): Promise<Folder> {
