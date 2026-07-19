@@ -1,5 +1,6 @@
 import { PoolClient } from 'pg';
 import { db } from '../../core/db';
+import { AppError } from '../../core/errors/AppError';
 import { Folder } from './folders.types';
 
 class FoldersRepository {
@@ -75,6 +76,31 @@ class FoldersRepository {
       [id, parentId, ancestorIds],
     );
     return rows[0] ?? null;
+  }
+
+  // ── Sibling reorder (TREEAPI-02, lock-safe) ──────────────────────────────────
+
+  async reorderFolders(
+    client: PoolClient, companyId: string, parentId: string | null, orderedIds: string[],
+  ): Promise<void> {
+    const { rows: locked } = await client.query<{ id: string }>(
+      `SELECT id FROM folders
+       WHERE company_id = $1 AND parent_id IS NOT DISTINCT FROM $2 AND archived_at IS NULL
+       FOR UPDATE`,
+      [companyId, parentId],
+    );
+    const lockedIds = new Set(locked.map((r) => r.id));
+    if (lockedIds.size !== orderedIds.length || !orderedIds.every((id) => lockedIds.has(id))) {
+      throw new AppError(409, 'Sibling set has changed since last read — refresh and retry');
+    }
+    if (orderedIds.length === 0) return;
+    const values = orderedIds.map((_, i) => `($${i + 3}::uuid,${i})`).join(',');
+    await client.query(
+      `UPDATE folders AS f SET sort_order = v.pos, updated_at = NOW()
+       FROM (VALUES ${values}) AS v(id, pos)
+       WHERE f.id = v.id`,
+      [companyId, parentId, ...orderedIds],
+    );
   }
 
   /**

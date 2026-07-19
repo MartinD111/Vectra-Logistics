@@ -1,5 +1,6 @@
 import type { PoolClient } from 'pg';
 import { db } from '../../core/db';
+import { AppError } from '../../core/errors/AppError';
 import { createDurableEventEnvelope, insertDurableEvent } from '../../core/events';
 import { CollectionPropertyDef, DataCollectionRow, CollectionRecordRow, CollectionViewRow } from './records.types';
 
@@ -86,6 +87,31 @@ class RecordsRepository {
     const { rows } = await db.query<DataCollectionRow>(
       `UPDATE data_collections SET ${sets.join(', ')} WHERE id = $1 AND company_id = $2 RETURNING *`, params);
     return rows[0] ?? null;
+  }
+
+  // TREEAPI-02: lock-safe sibling renumber (folder-scoped siblings only —
+  // data_collections doesn't disambiguate by project_id the way programs does).
+  async reorderCollections(
+    client: PoolClient, companyId: string, folderId: string | null, orderedIds: string[],
+  ): Promise<void> {
+    const { rows: locked } = await client.query<{ id: string }>(
+      `SELECT id FROM data_collections
+       WHERE company_id = $1 AND folder_id IS NOT DISTINCT FROM $2 AND archived_at IS NULL
+       FOR UPDATE`,
+      [companyId, folderId],
+    );
+    const lockedIds = new Set(locked.map((r) => r.id));
+    if (lockedIds.size !== orderedIds.length || !orderedIds.every((id) => lockedIds.has(id))) {
+      throw new AppError(409, 'Sibling set has changed since last read — refresh and retry');
+    }
+    if (orderedIds.length === 0) return;
+    const values = orderedIds.map((_, i) => `($${i + 3}::uuid,${i})`).join(',');
+    await client.query(
+      `UPDATE data_collections AS c SET sort_order = v.pos, updated_at = NOW()
+       FROM (VALUES ${values}) AS v(id, pos)
+       WHERE c.id = v.id`,
+      [companyId, folderId, ...orderedIds],
+    );
   }
 
   // HIER-04: bulk-archive collections filed directly into a set of folders
