@@ -1,5 +1,6 @@
 import type { PoolClient } from 'pg';
 import { db } from '../../core/db';
+import { AppError } from '../../core/errors/AppError';
 import {
   Project, Program, ProjectWithCounts, ProjectStats, ProjectPage, ActivityEventRow,
 } from './projects.types';
@@ -205,6 +206,56 @@ class ProjectsRepository {
       [companyId, projectIds],
     );
     return rows;
+  }
+
+  // ── Sibling reorder (TREEAPI-02, lock-safe) ──────────────────────────────────
+
+  async reorderProjects(
+    client: PoolClient, companyId: string, folderId: string | null, orderedIds: string[],
+  ): Promise<void> {
+    const { rows: locked } = await client.query<{ id: string }>(
+      `SELECT id FROM projects
+       WHERE company_id = $1 AND folder_id IS NOT DISTINCT FROM $2 AND archived_at IS NULL
+       FOR UPDATE`,
+      [companyId, folderId],
+    );
+    const lockedIds = new Set(locked.map((r) => r.id));
+    if (lockedIds.size !== orderedIds.length || !orderedIds.every((id) => lockedIds.has(id))) {
+      throw new AppError(409, 'Sibling set has changed since last read — refresh and retry');
+    }
+    if (orderedIds.length === 0) return;
+    const values = orderedIds.map((_, i) => `($${i + 3}::uuid,${i})`).join(',');
+    await client.query(
+      `UPDATE projects AS p SET sort_order = v.pos, updated_at = NOW()
+       FROM (VALUES ${values}) AS v(id, pos)
+       WHERE p.id = v.id`,
+      [companyId, folderId, ...orderedIds],
+    );
+  }
+
+  async reorderPrograms(
+    client: PoolClient, companyId: string,
+    parentScope: { folderId: string | null; projectId: string | null }, orderedIds: string[],
+  ): Promise<void> {
+    const { rows: locked } = await client.query<{ id: string }>(
+      `SELECT id FROM programs
+       WHERE company_id = $1 AND folder_id IS NOT DISTINCT FROM $2 AND project_id IS NOT DISTINCT FROM $3
+         AND archived_at IS NULL
+       FOR UPDATE`,
+      [companyId, parentScope.folderId, parentScope.projectId],
+    );
+    const lockedIds = new Set(locked.map((r) => r.id));
+    if (lockedIds.size !== orderedIds.length || !orderedIds.every((id) => lockedIds.has(id))) {
+      throw new AppError(409, 'Sibling set has changed since last read — refresh and retry');
+    }
+    if (orderedIds.length === 0) return;
+    const values = orderedIds.map((_, i) => `($${i + 4}::uuid,${i})`).join(',');
+    await client.query(
+      `UPDATE programs AS p SET sort_order = v.pos, updated_at = NOW()
+       FROM (VALUES ${values}) AS v(id, pos)
+       WHERE p.id = v.id`,
+      [companyId, parentScope.folderId, parentScope.projectId, ...orderedIds],
+    );
   }
 
   // ── Per-project statistics (read from the event spine) ───────────────────────
