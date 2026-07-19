@@ -63,6 +63,19 @@ class ProjectsRepository {
     return rows[0] ?? null;
   }
 
+  // TREEAPI-03: explicit reparent for tree-move — unlike updateProject's
+  // COALESCE-based PATCH semantics (where a null folder_id is a no-op,
+  // "leave unchanged"), moveNode needs to be able to actually clear
+  // folder_id (move to root), so this sets it unconditionally.
+  async setProjectFolder(id: string, companyId: string, folderId: string | null): Promise<Project | null> {
+    const { rows } = await db.query<Project>(
+      `UPDATE projects SET folder_id = $3, updated_at = NOW()
+       WHERE id = $1 AND company_id = $2 RETURNING *`,
+      [id, companyId, folderId],
+    );
+    return rows[0] ?? null;
+  }
+
   async archiveProject(id: string): Promise<Project | null> {
     const { rows } = await db.query<Project>(
       `UPDATE projects SET archived_at = NOW(), updated_at = NOW()
@@ -144,6 +157,21 @@ class ProjectsRepository {
         id, data.name ?? null, data.description ?? null, data.project_id ?? null,
         data.folder_id ?? null, data.status ?? null, data.config ? JSON.stringify(data.config) : null,
       ],
+    );
+    return rows[0] ?? null;
+  }
+
+  // TREEAPI-03: explicit reparent for tree-move — see setProjectFolder's
+  // comment. Sets folder_id/project_id unconditionally (not COALESCE), so a
+  // program's scope can be switched between folder-filed and project-filed
+  // (the non-target field is explicitly cleared to null by the caller).
+  async setProgramParent(
+    id: string, companyId: string, data: { folderId: string | null; projectId: string | null },
+  ): Promise<Program | null> {
+    const { rows } = await db.query<Program>(
+      `UPDATE programs SET folder_id = $3, project_id = $4, updated_at = NOW()
+       WHERE id = $1 AND company_id = $2 RETURNING *`,
+      [id, companyId, data.folderId, data.projectId],
     );
     return rows[0] ?? null;
   }

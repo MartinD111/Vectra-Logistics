@@ -8,9 +8,11 @@ import { projectsRepository } from '../projects/projects.repository';
 import { recordsRepository } from '../records/records.repository';
 import { Folder, FolderTree, TreeNode } from './folders.types';
 import { CreateFolderSchema, UpdateFolderSchema, MoveFolderSchema } from './dto/folder.dto';
-import { ReorderNodesSchema, ReorderNodesDto } from './dto/tree.dto';
+import { ReorderNodesSchema, ReorderNodesDto, MoveNodeSchema } from './dto/tree.dto';
 import type { Project, Program, ProjectPage } from '../projects/projects.types';
 import type { DataCollectionRow } from '../records/records.types';
+
+type MoveNodeResult = Folder | Project | Program | DataCollectionRow;
 
 const MAX_FOLDER_DEPTH = 3;
 
@@ -108,6 +110,65 @@ class FoldersService {
     }
 
     return updated;
+  }
+
+  // TREEAPI-03: capability-gated node reparent — dispatches by node_type (and
+  // by the project_id disambiguator for programs) to the existing per-domain
+  // ownership-checked update paths. The 'folder' branch is a single
+  // delegating call to moveFolder, never a duplicate cycle-check
+  // implementation — Phase 31's cycle/depth detection lives in one place.
+  async moveNode(ctx: RequestContext, body: unknown): Promise<MoveNodeResult> {
+    assertCapability(ctx, 'workspace.admin');
+    const tenantId = requireCompanyId(ctx);
+    const parsed = MoveNodeSchema.safeParse(body);
+    if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
+
+    const { node_type: nodeType, node_id: nodeId, new_parent_id: newParentId, project_id: projectId } = parsed.data;
+
+    switch (nodeType) {
+      case 'folder':
+        return this.moveFolder(ctx, nodeId, { parent_id: newParentId });
+
+      case 'project': {
+        const owned = await projectsRepository.findProjectForCompany(nodeId, tenantId);
+        if (!owned) throw new AppError(404, 'Project not found');
+        if (newParentId) await this.assertOwnedFolder(newParentId, tenantId);
+        const updated = await projectsRepository.setProjectFolder(nodeId, tenantId, newParentId);
+        if (!updated) throw new AppError(404, 'Project not found');
+        return updated;
+      }
+
+      case 'program': {
+        const owned = await projectsRepository.findProgramForCompany(nodeId, tenantId);
+        if (!owned) throw new AppError(404, 'Program not found');
+
+        if (projectId) {
+          const destProject = await projectsRepository.findProjectForCompany(projectId, tenantId);
+          if (!destProject) throw new AppError(404, 'Project not found');
+          const updated = await projectsRepository.setProgramParent(nodeId, tenantId, {
+            folderId: null, projectId,
+          });
+          if (!updated) throw new AppError(404, 'Program not found');
+          return updated;
+        }
+
+        if (newParentId) await this.assertOwnedFolder(newParentId, tenantId);
+        const updated = await projectsRepository.setProgramParent(nodeId, tenantId, {
+          folderId: newParentId, projectId: null,
+        });
+        if (!updated) throw new AppError(404, 'Program not found');
+        return updated;
+      }
+
+      case 'data_collection': {
+        const owned = await recordsRepository.findCollection(nodeId, tenantId);
+        if (!owned) throw new AppError(404, 'Data collection not found');
+        if (newParentId) await this.assertOwnedFolder(newParentId, tenantId);
+        const updated = await recordsRepository.updateCollection(nodeId, tenantId, { folder_id: newParentId });
+        if (!updated) throw new AppError(404, 'Data collection not found');
+        return updated;
+      }
+    }
   }
 
   // TREEAPI-02: capability-gated, transactional sibling reorder — dispatches

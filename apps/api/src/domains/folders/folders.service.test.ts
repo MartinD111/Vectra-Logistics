@@ -494,6 +494,150 @@ test('reorderSiblings rolls back the transaction and propagates a repository 409
   assert.equal(queryCalls[queryCalls.length - 1], 'ROLLBACK');
 });
 
+// ── moveNode (TREEAPI-03) ────────────────────────────────────────────────
+
+const MOVE_PROJECT_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const MOVE_PROGRAM_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const MOVE_COLLECTION_ID = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+const MISSING_ID = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+
+test('moveNode with a ctx lacking workspace.admin throws 403 before any repository call', async () => {
+  const findProjectMock = mock.method(projectsRepository, 'findProjectForCompany', async () => project());
+
+  await assert.rejects(
+    foldersService.moveNode(ctx({ roles: ['member'] }), {
+      node_type: 'project', node_id: MOVE_PROJECT_ID, new_parent_id: FOLDER_ID,
+    }),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 403,
+  );
+  assert.equal(findProjectMock.mock.calls.length, 0);
+});
+
+test("moveNode dispatches node_type 'folder' by delegating verbatim to moveFolder (no duplicate cycle-check)", async () => {
+  mock.method(foldersRepository, 'findFolderForCompany', async (id: string) => {
+    if (id === FOLDER_ID) return folder({ id: FOLDER_ID, ancestor_ids: [] });
+    if (id === PARENT_ID) return folder({ id: PARENT_ID, ancestor_ids: [] });
+    return null;
+  });
+  const moveFolderRepoMock = mock.method(foldersRepository, 'moveFolder', async () => folder({ id: FOLDER_ID, parent_id: PARENT_ID }));
+  mock.method(foldersRepository, 'descendantFolderIds', async () => [FOLDER_ID]);
+
+  const result = await foldersService.moveNode(ctx(), {
+    node_type: 'folder', node_id: FOLDER_ID, new_parent_id: PARENT_ID,
+  });
+
+  assert.equal(moveFolderRepoMock.mock.calls.length, 1);
+  assert.equal((result as Folder).id, FOLDER_ID);
+});
+
+test("moveNode dispatches node_type 'folder' into its own descendant and inherits moveFolder's existing 400 (no separate reimplementation)", async () => {
+  mock.method(foldersRepository, 'findFolderForCompany', async (id: string) => {
+    if (id === FOLDER_ID) return folder({ id: FOLDER_ID, ancestor_ids: [] });
+    if (id === PARENT_ID) return folder({ id: PARENT_ID, ancestor_ids: [FOLDER_ID] });
+    return null;
+  });
+  const moveFolderRepoMock = mock.method(foldersRepository, 'moveFolder', async () => folder());
+
+  await assert.rejects(
+    foldersService.moveNode(ctx(), { node_type: 'folder', node_id: FOLDER_ID, new_parent_id: PARENT_ID }),
+    (error: unknown) => error instanceof Error
+      && (error as { status?: number }).status === 400
+      && error.message === 'Cannot move a folder into its own descendant',
+  );
+  assert.equal(moveFolderRepoMock.mock.calls.length, 0);
+});
+
+test("moveNode('project') moving into a cross-tenant folder destination throws 404", async () => {
+  mock.method(projectsRepository, 'findProjectForCompany', async () => project({ id: MOVE_PROJECT_ID }));
+  mock.method(foldersRepository, 'findFolderForCompany', async () => null);
+  const updateMock = mock.method(projectsRepository, 'setProjectFolder', async () => project());
+
+  await assert.rejects(
+    foldersService.moveNode(ctx(), { node_type: 'project', node_id: MOVE_PROJECT_ID, new_parent_id: FOLDER_ID }),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 404,
+  );
+  assert.equal(updateMock.mock.calls.length, 0);
+});
+
+test("moveNode('project') whose node_id doesn't belong to the caller's tenant throws 404 before any destination check", async () => {
+  const findProjectMock = mock.method(projectsRepository, 'findProjectForCompany', async () => null);
+  const findFolderMock = mock.method(foldersRepository, 'findFolderForCompany', async () => folder());
+
+  await assert.rejects(
+    foldersService.moveNode(ctx(), { node_type: 'project', node_id: MISSING_ID, new_parent_id: FOLDER_ID }),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 404,
+  );
+  assert.equal(findProjectMock.mock.calls.length, 1);
+  assert.equal(findFolderMock.mock.calls.length, 0);
+});
+
+test("moveNode('project') into an owned folder calls setProjectFolder with the new folder_id", async () => {
+  mock.method(projectsRepository, 'findProjectForCompany', async () => project({ id: MOVE_PROJECT_ID }));
+  mock.method(foldersRepository, 'findFolderForCompany', async () => folder({ id: PARENT_ID }));
+  const updateMock = mock.method(projectsRepository, 'setProjectFolder', async () => project({ id: MOVE_PROJECT_ID, folder_id: PARENT_ID }));
+
+  await foldersService.moveNode(ctx(), { node_type: 'project', node_id: MOVE_PROJECT_ID, new_parent_id: PARENT_ID });
+
+  assert.deepEqual(updateMock.mock.calls[0].arguments, [MOVE_PROJECT_ID, 'company-1', PARENT_ID]);
+});
+
+test("moveNode('data_collection') with node_id missing from the tenant throws 404 when the ownership pre-check returns null", async () => {
+  const findMock = mock.method(recordsRepository, 'findCollection', async () => null);
+
+  await assert.rejects(
+    foldersService.moveNode(ctx(), { node_type: 'data_collection', node_id: MISSING_ID, new_parent_id: null }),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 404,
+  );
+  assert.equal(findMock.mock.calls.length, 1);
+});
+
+test("moveNode('data_collection') with new_parent_id: null un-files it via updateCollection folder_id: null", async () => {
+  mock.method(recordsRepository, 'findCollection', async () => collectionRow({ id: MOVE_COLLECTION_ID }));
+  const updateMock = mock.method(recordsRepository, 'updateCollection', async () => collectionRow({ id: MOVE_COLLECTION_ID, folder_id: null }));
+
+  await foldersService.moveNode(ctx(), { node_type: 'data_collection', node_id: MOVE_COLLECTION_ID, new_parent_id: null });
+
+  assert.deepEqual(updateMock.mock.calls[0].arguments, [MOVE_COLLECTION_ID, 'company-1', { folder_id: null }]);
+});
+
+test("moveNode('program') with project_id set to a cross-tenant project throws 404 (project-scoped destination ownership enforced)", async () => {
+  mock.method(projectsRepository, 'findProgramForCompany', async () => program({ id: MOVE_PROGRAM_ID }));
+  mock.method(projectsRepository, 'findProjectForCompany', async () => null);
+  const updateMock = mock.method(projectsRepository, 'setProgramParent', async () => program());
+
+  await assert.rejects(
+    foldersService.moveNode(ctx(), {
+      node_type: 'program', node_id: MOVE_PROGRAM_ID, new_parent_id: null, project_id: PROJECT_ID,
+    }),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 404,
+  );
+  assert.equal(updateMock.mock.calls.length, 0);
+});
+
+test("moveNode('program') with project_id set to an owned project calls setProgramParent with { projectId, folderId: null }", async () => {
+  mock.method(projectsRepository, 'findProgramForCompany', async () => program({ id: MOVE_PROGRAM_ID }));
+  mock.method(projectsRepository, 'findProjectForCompany', async () => project({ id: PROJECT_ID }));
+  const updateMock = mock.method(projectsRepository, 'setProgramParent', async () => program({ id: MOVE_PROGRAM_ID, project_id: PROJECT_ID, folder_id: null }));
+
+  await foldersService.moveNode(ctx(), {
+    node_type: 'program', node_id: MOVE_PROGRAM_ID, new_parent_id: null, project_id: PROJECT_ID,
+  });
+
+  assert.deepEqual(updateMock.mock.calls[0].arguments, [MOVE_PROGRAM_ID, 'company-1', { folderId: null, projectId: PROJECT_ID }]);
+});
+
+test("moveNode('program') with project_id omitted falls back to folder-scoped move, calling setProgramParent with { folderId, projectId: null }", async () => {
+  mock.method(projectsRepository, 'findProgramForCompany', async () => program({ id: MOVE_PROGRAM_ID }));
+  mock.method(foldersRepository, 'findFolderForCompany', async () => folder({ id: PARENT_ID }));
+  const updateMock = mock.method(projectsRepository, 'setProgramParent', async () => program({ id: MOVE_PROGRAM_ID, folder_id: PARENT_ID, project_id: null }));
+
+  await foldersService.moveNode(ctx(), {
+    node_type: 'program', node_id: MOVE_PROGRAM_ID, new_parent_id: PARENT_ID,
+  });
+
+  assert.deepEqual(updateMock.mock.calls[0].arguments, [MOVE_PROGRAM_ID, 'company-1', { folderId: PARENT_ID, projectId: null }]);
+});
+
 test('unarchiveFolder restores the folder only (no cascade) and emits a folder.unarchived event', async () => {
   mock.method(foldersRepository, 'unarchiveFolder', async () => folder({ id: FOLDER_ID }));
   mock.method(db, 'connect', async () => fakeClient());

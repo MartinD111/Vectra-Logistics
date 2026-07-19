@@ -32,6 +32,10 @@ export const reorderNodes = asyncHandler(async (req: RequestWithContext, res: Re
   res.json({ ok: true, ...(await foldersService.reorderSiblings(requireRequestContext(req), req.body)) });
 });
 
+export const moveNode = asyncHandler(async (req: RequestWithContext, res: Response) => {
+  res.json({ node: await foldersService.moveNode(requireRequestContext(req), req.body) });
+});
+
 export const archiveFolder = asyncHandler(async (req: RequestWithContext, res: Response) => {
   res.json({ folder: await foldersService.archiveFolder(requireRequestContext(req), req.params.id) });
 });
