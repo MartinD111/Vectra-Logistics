@@ -1,7 +1,12 @@
-import { test } from 'node:test';
+import { test, mock, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import type { PoolClient } from 'pg';
+import { db } from '../../core/db';
 import { projectsRepository } from './projects.repository';
+
+afterEach(() => {
+  mock.restoreAll();
+});
 
 // TREEAPI-02: reorderProjects — lock-safe sibling renumber
 
@@ -125,4 +130,44 @@ test('reorderPrograms rejects with AppError 409 on a stale sibling set', async (
     ),
     (err: unknown) => err instanceof Error && (err as { status?: number }).status === 409,
   );
+});
+
+// TREEAPI-03: setProjectFolder / setProgramParent — explicit reparent (not
+// COALESCE-based), so a null destination actually clears the column.
+
+test('setProjectFolder sets folder_id unconditionally, including to null (un-filing)', async () => {
+  let capturedSql = '';
+  let capturedParams: unknown[] = [];
+  mock.method(db, 'query', async (sql: string, params: unknown[]) => {
+    capturedSql = sql;
+    capturedParams = params;
+    return { rows: [{ id: 'project-1', folder_id: null }] };
+  });
+
+  const result = await projectsRepository.setProjectFolder('project-1', 'company-1', null);
+
+  assert.match(capturedSql, /folder_id = \$3/);
+  assert.match(capturedSql, /WHERE id = \$1 AND company_id = \$2/);
+  assert.deepEqual(capturedParams, ['project-1', 'company-1', null]);
+  assert.equal(result?.folder_id, null);
+});
+
+test('setProgramParent sets folder_id and project_id unconditionally, clearing the non-target scope', async () => {
+  let capturedSql = '';
+  let capturedParams: unknown[] = [];
+  mock.method(db, 'query', async (sql: string, params: unknown[]) => {
+    capturedSql = sql;
+    capturedParams = params;
+    return { rows: [{ id: 'program-1', folder_id: null, project_id: 'project-2' }] };
+  });
+
+  const result = await projectsRepository.setProgramParent('program-1', 'company-1', {
+    folderId: null, projectId: 'project-2',
+  });
+
+  assert.match(capturedSql, /folder_id = \$3/);
+  assert.match(capturedSql, /project_id = \$4/);
+  assert.deepEqual(capturedParams, ['program-1', 'company-1', null, 'project-2']);
+  assert.equal(result?.project_id, 'project-2');
+  assert.equal(result?.folder_id, null);
 });
