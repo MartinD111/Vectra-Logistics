@@ -8,6 +8,7 @@ import { projectsRepository } from '../projects/projects.repository';
 import { recordsRepository } from '../records/records.repository';
 import { Folder, FolderTree, TreeNode } from './folders.types';
 import { CreateFolderSchema, UpdateFolderSchema, MoveFolderSchema } from './dto/folder.dto';
+import { ReorderNodesSchema, ReorderNodesDto } from './dto/tree.dto';
 import type { Project, Program, ProjectPage } from '../projects/projects.types';
 import type { DataCollectionRow } from '../records/records.types';
 
@@ -107,6 +108,64 @@ class FoldersService {
     }
 
     return updated;
+  }
+
+  // TREEAPI-02: capability-gated, transactional sibling reorder — dispatches
+  // by node_type (and by project_id scope for programs) to the lock-safe
+  // repository primitives built in 32-02. Emits exactly ONE batched durable
+  // event per reorder (not one per sibling) — a documented exception to the
+  // per-row archive-event convention, per RESEARCH.md Open Question 1.
+  async reorderSiblings(ctx: RequestContext, body: unknown): Promise<ReorderNodesDto> {
+    assertCapability(ctx, 'workspace.admin');
+    const tenantId = requireCompanyId(ctx);
+    const userId = requireUserId(ctx);
+    const parsed = ReorderNodesSchema.safeParse(body);
+    if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message);
+
+    const { node_type: nodeType, parent_id: parentId, project_id: projectId, ordered_ids: orderedIds } = parsed.data;
+
+    const client = await db.connect();
+    try {
+      await client.query('BEGIN');
+
+      switch (nodeType) {
+        case 'folder':
+          await foldersRepository.reorderFolders(client, tenantId, parentId, orderedIds);
+          break;
+        case 'project':
+          await projectsRepository.reorderProjects(client, tenantId, parentId, orderedIds);
+          break;
+        case 'program':
+          await projectsRepository.reorderPrograms(
+            client, tenantId,
+            projectId ? { folderId: null, projectId } : { folderId: parentId, projectId: null },
+            orderedIds,
+          );
+          break;
+        case 'data_collection':
+          await recordsRepository.reorderCollections(client, tenantId, parentId, orderedIds);
+          break;
+      }
+
+      await insertDurableEvent(client, createDurableEventEnvelope({
+        eventName: `tree.${nodeType}.reordered`,
+        tenantId,
+        actorId: userId,
+        objectType: nodeType,
+        objectId: (nodeType === 'program' && projectId) ? projectId : (parentId ?? 'root'),
+        correlationId: ctx.requestId,
+        payloadVersion: 1,
+        payload: { ordered_ids: orderedIds },
+      }));
+
+      await client.query('COMMIT');
+      return { node_type: nodeType, parent_id: parentId, project_id: projectId ?? null, ordered_ids: orderedIds };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async archiveFolder(ctx: RequestContext, id: string): Promise<Folder> {
