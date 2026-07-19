@@ -63,7 +63,7 @@ Milestone audit: [milestones/v5.0-MILESTONE-AUDIT.md](milestones/v5.0-MILESTONE-
 
 - [x] **Phase 31: Data Model + Modernize Folders Domain** - Close the `data_collections.folder_id` gap, add an ancestor-index, enforce tenant/cycle invariants at the DB level, and modernize the `folders` domain to v5 `RequestContext`/capability/`event_outbox` conventions.
  (completed 2026-07-17)
-- [ ] **Phase 32: Aggregated Tree Read API + Reorder/Move Endpoints** - One tenant-scoped `GET /folders/tree/full` endpoint plus lock-safe reorder and cycle/tenant-checked move endpoints, gated by `workspace.admin`.
+- [x] **Phase 32: Aggregated Tree Read API + Reorder/Move Endpoints** - One tenant-scoped `GET /folders/tree/full` endpoint plus lock-safe reorder and cycle/tenant-checked move endpoints, gated by `workspace.admin`. (completed 2026-07-19)
 - [ ] **Phase 33: Tree-Based Sidebar UI (Read + Navigate)** - Replace the flat `ITEMS` list with a real expand/collapse tree, per-user persisted expand state, depth-aware module visibility, and live-tree breadcrumbs.
 - [ ] **Phase 34: Drag-to-Reorder/Reparent + Create/Rename/Archive Flows** - Drag-and-drop reorder/reparent, context-menu create, inline rename, and archive-with-descendant-count flows.
 
@@ -105,7 +105,7 @@ Plans:
 - [x] 32-02-PLAN.md — Repository layer: lock-safe reorderFolders/reorderProjects/reorderPrograms/reorderCollections
 - [x] 32-03-PLAN.md — GET /folders/tree/full aggregated read endpoint
 - [x] 32-04-PLAN.md — POST /folders/tree/reorder (capability-gated, transactional, live concurrency-proven)
-- [ ] 32-05-PLAN.md — POST /folders/tree/move (capability-gated, cross-tenant/cycle rejection)
+- [x] 32-05-PLAN.md — POST /folders/tree/move (capability-gated, cross-tenant/cycle rejection)
 
 ### Phase 33: Tree-Based Sidebar UI (Read + Navigate)
 **Goal**: Users can see and navigate the real folder → project → page/record hierarchy in the sidebar, with correct module-aware visibility and breadcrumbs, before any write/drag interactions are introduced.
@@ -157,7 +157,7 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 29. Event Spine & Durable Outbox | v5.0 | 2/2 | Complete | 2026-07-15 |
 | 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 1/1 | Complete | 2026-07-15 |
 | 31. Data Model + Modernize Folders Domain | v6.0 | 6/6 | Complete   | 2026-07-17 |
-| 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 4/5 | In Progress|  |
+| 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 5/5 | Complete   | 2026-07-19 |
 | 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 0/TBD | Not started | - |
 | 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 0/TBD | Not started | - |
 
