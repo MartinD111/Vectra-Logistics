@@ -1,6 +1,7 @@
 import { test, mock, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { db } from '../../core/db';
+import { AppError } from '../../core/errors/AppError';
 import { RequestContext } from '../../core/auth/request-context';
 import { foldersService } from './folders.service';
 import { foldersRepository } from './folders.repository';
@@ -210,7 +211,7 @@ function collectionRow(overrides: Partial<DataCollectionRow> = {}): DataCollecti
 
 function fakeClient() {
   return {
-    query: async (_sql: string) => ({ rows: [] }),
+    query: mock.fn(async (_sql: string) => ({ rows: [] })),
     release: mock.fn(),
   };
 }
@@ -364,6 +365,133 @@ test('getFullTree returns an empty array for an empty tenant', async () => {
   const tree = await foldersService.getFullTree(ctx());
 
   assert.deepEqual(tree, []);
+});
+
+// ── reorderSiblings (TREEAPI-02) ────────────────────────────────────────────
+
+const PROJECT_ID = '66666666-6666-4666-8666-666666666666';
+const SIB_1 = '77777777-7777-4777-8777-777777777777';
+const SIB_2 = '88888888-8888-4888-8888-888888888888';
+const SIB_3 = '99999999-9999-4999-8999-999999999999';
+
+test('reorderSiblings with a ctx lacking workspace.admin throws 403 before any repository call', async () => {
+  const reorderFoldersMock = mock.method(foldersRepository, 'reorderFolders', async () => {});
+  const connectMock = mock.method(db, 'connect', async () => fakeClient());
+
+  await assert.rejects(
+    foldersService.reorderSiblings(ctx({ roles: ['member'] }), {
+      node_type: 'folder', parent_id: PARENT_ID, ordered_ids: [SIB_1, SIB_2],
+    }),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 403,
+  );
+  assert.equal(reorderFoldersMock.mock.calls.length, 0);
+  assert.equal(connectMock.mock.calls.length, 0);
+});
+
+test('reorderSiblings rejects an empty ordered_ids array with 400 before db.connect() is called', async () => {
+  const connectMock = mock.method(db, 'connect', async () => fakeClient());
+
+  await assert.rejects(
+    foldersService.reorderSiblings(ctx(), {
+      node_type: 'project', parent_id: null, ordered_ids: [],
+    }),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 400,
+  );
+  assert.equal(connectMock.mock.calls.length, 0);
+});
+
+test('reorderSiblings dispatches folder reorder to foldersRepository.reorderFolders with tenantId, commits, and emits one batched event', async () => {
+  const client = fakeClient();
+  mock.method(db, 'connect', async () => client);
+  const reorderFoldersMock = mock.method(foldersRepository, 'reorderFolders', async () => {});
+  const outboxSpy = mock.method(outbox, 'insertDurableEvent', async () => ({}) as never);
+
+  const result = await foldersService.reorderSiblings(ctx(), {
+    node_type: 'folder', parent_id: PARENT_ID, ordered_ids: [SIB_1, SIB_2, SIB_3],
+  });
+
+  assert.equal(reorderFoldersMock.mock.calls.length, 1);
+  assert.deepEqual(reorderFoldersMock.mock.calls[0].arguments.slice(1), ['company-1', PARENT_ID, [SIB_1, SIB_2, SIB_3]]);
+  assert.equal(outboxSpy.mock.calls.length, 1);
+  const event = outboxSpy.mock.calls[0]!.arguments[1] as { eventName: string };
+  assert.match(event.eventName, /^tree\..+\.reordered$/);
+  assert.deepEqual(result, { node_type: 'folder', parent_id: PARENT_ID, project_id: null, ordered_ids: [SIB_1, SIB_2, SIB_3] });
+});
+
+test('reorderSiblings dispatches project reorder to projectsRepository.reorderProjects with tenantId', async () => {
+  mock.method(db, 'connect', async () => fakeClient());
+  const reorderProjectsMock = mock.method(projectsRepository, 'reorderProjects', async () => {});
+  mock.method(outbox, 'insertDurableEvent', async () => ({}) as never);
+
+  await foldersService.reorderSiblings(ctx(), {
+    node_type: 'project', parent_id: PARENT_ID, ordered_ids: [SIB_1, SIB_2],
+  });
+
+  assert.equal(reorderProjectsMock.mock.calls.length, 1);
+  assert.deepEqual(reorderProjectsMock.mock.calls[0].arguments.slice(1), ['company-1', PARENT_ID, [SIB_1, SIB_2]]);
+});
+
+test('reorderSiblings dispatches data_collection reorder to recordsRepository.reorderCollections with tenantId', async () => {
+  mock.method(db, 'connect', async () => fakeClient());
+  const reorderCollectionsMock = mock.method(recordsRepository, 'reorderCollections', async () => {});
+  mock.method(outbox, 'insertDurableEvent', async () => ({}) as never);
+
+  await foldersService.reorderSiblings(ctx(), {
+    node_type: 'data_collection', parent_id: PARENT_ID, ordered_ids: [SIB_1, SIB_2],
+  });
+
+  assert.equal(reorderCollectionsMock.mock.calls.length, 1);
+  assert.deepEqual(reorderCollectionsMock.mock.calls[0].arguments.slice(1), ['company-1', PARENT_ID, [SIB_1, SIB_2]]);
+});
+
+test('reorderSiblings dispatches program reorder with project_id set to reorderPrograms with { folderId: null, projectId }', async () => {
+  mock.method(db, 'connect', async () => fakeClient());
+  const reorderProgramsMock = mock.method(projectsRepository, 'reorderPrograms', async () => {});
+  mock.method(outbox, 'insertDurableEvent', async () => ({}) as never);
+
+  const result = await foldersService.reorderSiblings(ctx(), {
+    node_type: 'program', parent_id: null, project_id: PROJECT_ID, ordered_ids: [SIB_1, SIB_2],
+  });
+
+  assert.equal(reorderProgramsMock.mock.calls.length, 1);
+  assert.deepEqual(reorderProgramsMock.mock.calls[0].arguments.slice(1), [
+    'company-1', { folderId: null, projectId: PROJECT_ID }, [SIB_1, SIB_2],
+  ]);
+  assert.equal(result.project_id, PROJECT_ID);
+});
+
+test('reorderSiblings dispatches program reorder with project_id omitted to reorderPrograms with { folderId: parent_id, projectId: null }', async () => {
+  mock.method(db, 'connect', async () => fakeClient());
+  const reorderProgramsMock = mock.method(projectsRepository, 'reorderPrograms', async () => {});
+  mock.method(outbox, 'insertDurableEvent', async () => ({}) as never);
+
+  const result = await foldersService.reorderSiblings(ctx(), {
+    node_type: 'program', parent_id: PARENT_ID, ordered_ids: [SIB_1, SIB_2],
+  });
+
+  assert.equal(reorderProgramsMock.mock.calls.length, 1);
+  assert.deepEqual(reorderProgramsMock.mock.calls[0].arguments.slice(1), [
+    'company-1', { folderId: PARENT_ID, projectId: null }, [SIB_1, SIB_2],
+  ]);
+  assert.equal(result.project_id, null);
+});
+
+test('reorderSiblings rolls back the transaction and propagates a repository 409 conflict', async () => {
+  const client = fakeClient();
+  mock.method(db, 'connect', async () => client);
+  mock.method(foldersRepository, 'reorderFolders', async () => {
+    throw new AppError(409, 'Sibling set has changed since last read — refresh and retry');
+  });
+
+  await assert.rejects(
+    foldersService.reorderSiblings(ctx(), {
+      node_type: 'folder', parent_id: PARENT_ID, ordered_ids: [SIB_1, SIB_2],
+    }),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 409,
+  );
+
+  const queryCalls = client.query.mock.calls.map((c) => c.arguments[0]);
+  assert.equal(queryCalls[queryCalls.length - 1], 'ROLLBACK');
 });
 
 test('unarchiveFolder restores the folder only (no cascade) and emits a folder.unarchived event', async () => {
