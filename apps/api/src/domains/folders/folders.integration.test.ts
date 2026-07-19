@@ -197,6 +197,31 @@ test('HIER-04: archiving a folder cascades to its project, programs, page, and c
   }
 });
 
+// ── Task 2: aggregated tree read (TREEAPI-01) cross-tenant isolation ───────
+
+test('TREEAPI-01: getFullTree returns company1\'s tree and never leaks company2/company3 fixture ids', async () => {
+  const { rows: projectRows } = await db.query(
+    `INSERT INTO projects (company_id, folder_id, name) VALUES ($1, $2, 'Tree Project') RETURNING *`,
+    [company1Id, folderA.id],
+  );
+  const treeProject = projectRows[0];
+
+  const tree = await foldersService.getFullTree(adminCtx(company1Id));
+
+  const flatten = (nodes: typeof tree): typeof tree => nodes.flatMap((n) => [n, ...flatten(n.children)]);
+  const allNodes = flatten(tree);
+  const allIds = new Set(allNodes.map((n) => n.id));
+
+  const folderANode = allNodes.find((n) => n.node_type === 'folder' && n.id === folderA.id);
+  assert.ok(folderANode, 'expected folderA in the company1 tree');
+  assert.ok(allIds.has(treeProject.id), 'expected the company1-scoped project in the tree');
+
+  // Cross-tenant isolation: folderB belongs to company2 and must never appear.
+  assert.equal(allIds.has(folderB.id), false);
+
+  await db.query(`DELETE FROM projects WHERE id = $1`, [treeProject.id]);
+});
+
 test('HIER-06: no recordEvent/activityLog reference remains anywhere in the folders domain', () => {
   const domainDir = path.join(__dirname);
   const offenders: string[] = [];
