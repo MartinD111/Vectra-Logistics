@@ -101,7 +101,7 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 32-01-PLAN.md — Foundation: sort_order migration, tree DTOs, TreeNode type, concurrency race harness
+- [x] 32-01-PLAN.md — Foundation: sort_order migration, tree DTOs, TreeNode type, concurrency race harness
 - [ ] 32-02-PLAN.md — Repository layer: lock-safe reorderFolders/reorderProjects/reorderPrograms/reorderCollections
 - [ ] 32-03-PLAN.md — GET /folders/tree/full aggregated read endpoint
 - [ ] 32-04-PLAN.md — POST /folders/tree/reorder (capability-gated, transactional, live concurrency-proven)
@@ -157,7 +157,7 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 29. Event Spine & Durable Outbox | v5.0 | 2/2 | Complete | 2026-07-15 |
 | 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 1/1 | Complete | 2026-07-15 |
 | 31. Data Model + Modernize Folders Domain | v6.0 | 6/6 | Complete   | 2026-07-17 |
-| 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 0/5 | Planned | - |
+| 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 1/5 | In Progress|  |
 | 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 0/TBD | Not started | - |
 | 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 0/TBD | Not started | - |
 
