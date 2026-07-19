@@ -138,3 +138,73 @@ test('unarchiveFolder clears archived_at and returns null if the folder does not
 
   assert.equal(result, null);
 });
+
+// TREEAPI-02: reorderFolders — lock-safe sibling renumber
+
+test('reorderFolders locks siblings with blocking FOR UPDATE (no SKIP LOCKED), then renumbers via a single VALUES UPDATE', async () => {
+  const calls: { sql: string; params?: unknown[] }[] = [];
+  const fakeClient = {
+    query: async (sql: string, params?: unknown[]) => {
+      calls.push({ sql, params });
+      if (/SELECT id FROM folders/.test(sql)) {
+        return { rows: [{ id: 'f1' }, { id: 'f2' }, { id: 'f3' }] };
+      }
+      return { rows: [] };
+    },
+  };
+
+  await foldersRepository.reorderFolders(fakeClient as never, 'company-1', 'parent-1', ['f2', 'f1', 'f3']);
+
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].sql, /FOR UPDATE/);
+  assert.doesNotMatch(calls[0].sql, /SKIP LOCKED/);
+  assert.match(calls[0].sql, /company_id = \$1/);
+  assert.match(calls[0].sql, /parent_id IS NOT DISTINCT FROM \$2/);
+  assert.match(calls[0].sql, /archived_at IS NULL/);
+  assert.deepEqual(calls[0].params, ['company-1', 'parent-1']);
+
+  assert.match(calls[1].sql, /FROM \(VALUES/);
+  assert.deepEqual(calls[1].params, ['company-1', 'parent-1', 'f2', 'f1', 'f3']);
+});
+
+test('reorderFolders rejects with AppError 409 when orderedIds is missing a locked sibling id', async () => {
+  const fakeClient = {
+    query: async (sql: string) => {
+      if (/SELECT id FROM folders/.test(sql)) return { rows: [{ id: 'f1' }, { id: 'f2' }] };
+      return { rows: [] };
+    },
+  };
+
+  await assert.rejects(
+    foldersRepository.reorderFolders(fakeClient as never, 'company-1', 'parent-1', ['f1']),
+    (err: unknown) => err instanceof Error && (err as { status?: number }).status === 409,
+  );
+});
+
+test('reorderFolders rejects with AppError 409 when orderedIds contains an id not in the locked set', async () => {
+  const fakeClient = {
+    query: async (sql: string) => {
+      if (/SELECT id FROM folders/.test(sql)) return { rows: [{ id: 'f1' }, { id: 'f2' }] };
+      return { rows: [] };
+    },
+  };
+
+  await assert.rejects(
+    foldersRepository.reorderFolders(fakeClient as never, 'company-1', 'parent-1', ['f1', 'f2', 'f3']),
+    (err: unknown) => err instanceof Error && (err as { status?: number }).status === 409,
+  );
+});
+
+test('reorderFolders rejects with AppError 409 when the locked sibling set is empty but orderedIds is not', async () => {
+  const fakeClient = {
+    query: async (sql: string) => {
+      if (/SELECT id FROM folders/.test(sql)) return { rows: [] };
+      return { rows: [] };
+    },
+  };
+
+  await assert.rejects(
+    foldersRepository.reorderFolders(fakeClient as never, 'company-1', 'parent-1', ['f1']),
+    (err: unknown) => err instanceof Error && (err as { status?: number }).status === 409,
+  );
+});

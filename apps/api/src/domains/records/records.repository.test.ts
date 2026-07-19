@@ -266,3 +266,73 @@ test('unarchiveCollection returns null when no row matches', async () => {
 
   assert.equal(result, null);
 });
+
+// TREEAPI-02: reorderCollections — lock-safe sibling renumber
+
+test('reorderCollections locks siblings with blocking FOR UPDATE (no SKIP LOCKED), then renumbers via a single VALUES UPDATE', async () => {
+  const calls: { sql: string; params?: unknown[] }[] = [];
+  const fakeClient = {
+    query: async (sql: string, params?: unknown[]) => {
+      calls.push({ sql, params });
+      if (/SELECT id FROM data_collections/.test(sql)) {
+        return { rows: [{ id: 'c1' }, { id: 'c2' }, { id: 'c3' }] };
+      }
+      return { rows: [] };
+    },
+  } as unknown as PoolClient;
+
+  await recordsRepository.reorderCollections(fakeClient, 'company-1', 'folder-1', ['c2', 'c1', 'c3']);
+
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].sql, /FOR UPDATE/);
+  assert.doesNotMatch(calls[0].sql, /SKIP LOCKED/);
+  assert.match(calls[0].sql, /company_id = \$1/);
+  assert.match(calls[0].sql, /folder_id IS NOT DISTINCT FROM \$2/);
+  assert.match(calls[0].sql, /archived_at IS NULL/);
+  assert.deepEqual(calls[0].params, ['company-1', 'folder-1']);
+
+  assert.match(calls[1].sql, /FROM \(VALUES/);
+  assert.deepEqual(calls[1].params, ['company-1', 'folder-1', 'c2', 'c1', 'c3']);
+});
+
+test('reorderCollections rejects with AppError 409 when orderedIds is missing a locked sibling id', async () => {
+  const fakeClient = {
+    query: async (sql: string) => {
+      if (/SELECT id FROM data_collections/.test(sql)) return { rows: [{ id: 'c1' }, { id: 'c2' }] };
+      return { rows: [] };
+    },
+  } as unknown as PoolClient;
+
+  await assert.rejects(
+    recordsRepository.reorderCollections(fakeClient, 'company-1', 'folder-1', ['c1']),
+    (err: unknown) => err instanceof Error && (err as { status?: number }).status === 409,
+  );
+});
+
+test('reorderCollections rejects with AppError 409 when orderedIds contains an id not in the locked set', async () => {
+  const fakeClient = {
+    query: async (sql: string) => {
+      if (/SELECT id FROM data_collections/.test(sql)) return { rows: [{ id: 'c1' }, { id: 'c2' }] };
+      return { rows: [] };
+    },
+  } as unknown as PoolClient;
+
+  await assert.rejects(
+    recordsRepository.reorderCollections(fakeClient, 'company-1', 'folder-1', ['c1', 'c2', 'c3']),
+    (err: unknown) => err instanceof Error && (err as { status?: number }).status === 409,
+  );
+});
+
+test('reorderCollections rejects with AppError 409 when the locked sibling set is empty but orderedIds is not', async () => {
+  const fakeClient = {
+    query: async (sql: string) => {
+      if (/SELECT id FROM data_collections/.test(sql)) return { rows: [] };
+      return { rows: [] };
+    },
+  } as unknown as PoolClient;
+
+  await assert.rejects(
+    recordsRepository.reorderCollections(fakeClient, 'company-1', 'folder-1', ['c1']),
+    (err: unknown) => err instanceof Error && (err as { status?: number }).status === 409,
+  );
+});
