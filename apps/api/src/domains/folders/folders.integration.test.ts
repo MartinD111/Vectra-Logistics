@@ -222,6 +222,73 @@ test('TREEAPI-01: getFullTree returns company1\'s tree and never leaks company2/
   await db.query(`DELETE FROM projects WHERE id = $1`, [treeProject.id]);
 });
 
+// ── Task 2: moveNode (TREEAPI-03) live-DB coverage ──────────────────────────
+
+test('TREEAPI-03: moving a project to a cross-tenant folder destination throws 404 (distinct from the 400 folder-cycle rejection)', async () => {
+  const { rows: projectRows } = await db.query(
+    `INSERT INTO projects (company_id, name) VALUES ($1, 'Move Test Project') RETURNING *`,
+    [company1Id],
+  );
+  const moveProject = projectRows[0];
+
+  await assert.rejects(
+    () => foldersService.moveNode(adminCtx(company1Id), {
+      node_type: 'project', node_id: moveProject.id, new_parent_id: folderB.id,
+    }),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 404,
+  );
+
+  await db.query(`DELETE FROM projects WHERE id = $1`, [moveProject.id]);
+});
+
+test('TREEAPI-04: both reorderSiblings and moveNode reject a non-admin ctx with 403', async () => {
+  const memberCtx = { ...adminCtx(company1Id), roles: ['member'] };
+
+  await assert.rejects(
+    () => foldersService.moveNode(memberCtx, {
+      node_type: 'folder', node_id: folderA.id, new_parent_id: null,
+    }),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 403,
+  );
+
+  await assert.rejects(
+    () => foldersService.reorderSiblings(memberCtx, {
+      node_type: 'folder', parent_id: null, ordered_ids: [folderA.id],
+    }),
+    (error: unknown) => error instanceof Error && (error as { status?: number }).status === 403,
+  );
+});
+
+test('TREEAPI-03: moving a program to a different owned project (project-scoped move) sets project_id and clears folder_id', async () => {
+  const { rows: projectRows } = await db.query(
+    `INSERT INTO projects (company_id, name) VALUES ($1, 'Move Test Source Project') RETURNING *`,
+    [company1Id],
+  );
+  const sourceProject = projectRows[0];
+
+  const { rows: destProjectRows } = await db.query(
+    `INSERT INTO projects (company_id, name) VALUES ($1, 'Move Test Dest Project') RETURNING *`,
+    [company1Id],
+  );
+  const destProject = destProjectRows[0];
+
+  const { rows: programRows } = await db.query(
+    `INSERT INTO programs (company_id, project_id, name) VALUES ($1, $2, 'Move Test Program') RETURNING *`,
+    [company1Id, sourceProject.id],
+  );
+  const moveProgram = programRows[0];
+
+  const result = await foldersService.moveNode(adminCtx(company1Id), {
+    node_type: 'program', node_id: moveProgram.id, new_parent_id: null, project_id: destProject.id,
+  });
+
+  assert.equal((result as { project_id: string | null }).project_id, destProject.id);
+  assert.equal((result as { folder_id: string | null }).folder_id, null);
+
+  await db.query(`DELETE FROM programs WHERE id = $1`, [moveProgram.id]);
+  await db.query(`DELETE FROM projects WHERE id = ANY($1::uuid[])`, [[sourceProject.id, destProject.id]]);
+});
+
 test('HIER-06: no recordEvent/activityLog reference remains anywhere in the folders domain', () => {
   const domainDir = path.join(__dirname);
   const offenders: string[] = [];
