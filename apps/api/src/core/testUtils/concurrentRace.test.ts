@@ -79,7 +79,7 @@ test('bStartedAt is recorded before txnB resolves even when txnA is deliberately
   let bResolvedAt = 0;
 
   const result = await raceLockedTransactions(
-    pool,
+    pool as any,
     async () => {
       await delay(50);
       return 'A';
@@ -103,7 +103,7 @@ test('resultA/resultB exactly equal each callback resolved value', async () => {
   const pool = makeFakePool([clientA, clientB]);
 
   const result = await raceLockedTransactions(
-    pool,
+    pool as any,
     async () => ({ value: 'alpha' }),
     async () => ({ value: 'beta' }),
   );
@@ -119,7 +119,7 @@ test('both fake clients release() is called exactly once each, even when one cal
 
   await assert.rejects(
     raceLockedTransactions(
-      pool,
+      pool as any,
       async () => {
         throw new Error('txnA failed');
       },
