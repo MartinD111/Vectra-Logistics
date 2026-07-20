@@ -14,6 +14,7 @@ import { useCollection, useRecord, useUpdateRecord, useUpdateCollectionSchema } 
 import { isPageConfig, emptyPageConfig, type PageConfig } from '@/lib/projectPage/blocks';
 import LivePageCanvas from '@/components/projectPage/LivePageCanvas';
 import { PropertyPanel } from '@/components/records/PropertyPanel';
+import Breadcrumbs from '@/components/shared/Breadcrumbs';
 
 export default function RecordDetailPage() {
   const params = useParams<{ collectionId: string; recordId: string }>();
@@ -98,9 +99,17 @@ export default function RecordDetailPage() {
     );
   }
 
+  const titleProperty = collection.schema[0];
+  const recordTitle = titleProperty && typeof record.props[titleProperty.id] === 'string'
+    ? (record.props[titleProperty.id] as string)
+    : 'Untitled';
+
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gray-50/50 dark:bg-dark-bg">
-      <div className="max-w-6xl mx-auto px-4 lg:px-8 py-8 flex gap-6 items-start">
+      <div className="max-w-6xl mx-auto px-4 lg:px-8 pt-8">
+        {collection && <Breadcrumbs nodeType="data_collection" id={collectionId} trailingLabel={recordTitle} />}
+      </div>
+      <div className="max-w-6xl mx-auto px-4 lg:px-8 pb-8 flex gap-6 items-start">
         <PropertyPanel collection={collection} record={record} onUpdateRecord={updateRecord} onUpdateSchema={updateSchema} />
         <div className="flex-1 min-w-0">
           {canvasSaveError && (
