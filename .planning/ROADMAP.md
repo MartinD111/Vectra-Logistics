@@ -162,7 +162,7 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 1/1 | Complete | 2026-07-15 |
 | 31. Data Model + Modernize Folders Domain | v6.0 | 6/6 | Complete   | 2026-07-17 |
 | 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 5/5 | Complete   | 2026-07-19 |
-| 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 4/4 | Complete   | 2026-07-20 |
+| 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 4/4 | Complete    | 2026-07-20 |
 | 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 0/TBD | Not started | - |
 
 ---

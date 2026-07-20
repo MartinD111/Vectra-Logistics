@@ -26,11 +26,11 @@ Requirements for the v6.0 milestone. Each maps to a roadmap phase.
 
 ### Tree Sidebar UI (TREEUI)
 
-- [ ] **TREEUI-01**: The workspace sidebar renders folders/projects/programs as a real expand/collapse tree instead of the flat, hardcoded `ITEMS` list
-- [ ] **TREEUI-02**: A user's expand/collapse state persists per-user across sessions (local, not global)
-- [ ] **TREEUI-03**: Module-aware visibility (`enabled_modules`) is evaluated at every tree node/depth, not only at the top level
-- [ ] **TREEUI-04**: Breadcrumbs on any page/record/project reflect the live tree ancestor path
-- [ ] **TREEUI-05**: Canonical URLs remain ID-keyed; the tree is a navigation aid, not a routing scheme — existing deep links and cross-app links (`crossAppUrl`, Outlook-synced CRM links) keep working unchanged
+- [x] **TREEUI-01**: The workspace sidebar renders folders/projects/programs as a real expand/collapse tree instead of the flat, hardcoded `ITEMS` list
+- [x] **TREEUI-02**: A user's expand/collapse state persists per-user across sessions (local, not global)
+- [x] **TREEUI-03**: Module-aware visibility (`enabled_modules`) is evaluated at every tree node/depth, not only at the top level
+- [x] **TREEUI-04**: Breadcrumbs on any page/record/project reflect the live tree ancestor path
+- [x] **TREEUI-05**: Canonical URLs remain ID-keyed; the tree is a navigation aid, not a routing scheme — existing deep links and cross-app links (`crossAppUrl`, Outlook-synced CRM links) keep working unchanged
 
 ### Organize: Create/Rename/Move/Archive + Drag (TREEOPS)
 
@@ -79,11 +79,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TREEAPI-02 | Phase 32 | Pending |
 | TREEAPI-03 | Phase 32 | Pending |
 | TREEAPI-04 | Phase 32 | Pending |
-| TREEUI-01 | Phase 33 | Pending |
-| TREEUI-02 | Phase 33 | Pending |
-| TREEUI-03 | Phase 33 | Pending |
-| TREEUI-04 | Phase 33 | Pending |
-| TREEUI-05 | Phase 33 | Pending |
+| TREEUI-01 | Phase 33 | Complete |
+| TREEUI-02 | Phase 33 | Complete |
+| TREEUI-03 | Phase 33 | Complete |
+| TREEUI-04 | Phase 33 | Complete |
+| TREEUI-05 | Phase 33 | Complete |
 | TREEOPS-01 | Phase 34 | Pending |
 | TREEOPS-02 | Phase 34 | Pending |
 | TREEOPS-03 | Phase 34 | Pending |

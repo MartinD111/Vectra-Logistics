@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Unified Workspace Hierarchy
-status: executing
-stopped_at: Phase 33 UI-SPEC approved
-last_updated: "2026-07-20T08:51:20.942Z"
+status: ready_to_plan
+stopped_at: Phase 33 complete (4/4) — ready to discuss Phase 34
+last_updated: 2026-07-20T09:41:56.654Z
 last_activity: 2026-07-20 -- Phase 33 execution started
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 15
-  completed_plans: 11
+  completed_plans: 15
   percent: 50
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history - the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Phase 33 — tree-based-sidebar-ui-read-navigate
+**Current focus:** Phase 34 — drag to reorder/reparent + create/rename/archive flows
 
 ## Current Position
 
-Phase: 33 (tree-based-sidebar-ui-read-navigate) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 33
-Last activity: 2026-07-20 -- Phase 33 execution started
+Phase: 34
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-20
 
 Progress: [░░░░░░░░░░] 0%
 
