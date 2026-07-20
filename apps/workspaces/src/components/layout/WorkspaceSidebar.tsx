@@ -10,6 +10,7 @@ import {
 import { crossAppUrl } from '@vectra/ui';
 import { useCurrentWorkspace } from '@/lib/hooks/useTenantWorkspace';
 import { usePlatform } from '@/context/PlatformContext';
+import TreeSection from '@/components/tree/TreeSection';
 
 interface SidebarItem {
   name: string;
@@ -93,6 +94,7 @@ export default function WorkspaceSidebar() {
       {sidebarOpen && (
         <>
           <nav className="space-y-1">{visible.map(renderItem)}</nav>
+          <TreeSection />
           <div className="flex-1" />
           <div className="pt-3 mt-3 border-t border-gray-200 dark:border-dark-border space-y-1">
             {ALWAYS_BOTTOM.map(renderItem)}
