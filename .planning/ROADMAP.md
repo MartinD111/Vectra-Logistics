@@ -137,11 +137,16 @@ Plans:
   3. A user can drag-to-reorder siblings within the same parent
   4. A user can drag-to-reparent a folder or project into a different folder, and illegal drops (cycles, permission) are rejected with a clear inline reason rather than a silent snap-back
   5. A user can archive a folder or project, with the confirmation showing the count of descendant nodes that will also be archived, and archived folders/projects are hidden from the default tree view but not permanently deleted
-**Plans**: TBD
+**Plans**: 6 plans
 **UI hint**: yes
 
 Plans:
-- [ ] 34-01: TBD
+- [ ] 34-01-PLAN.md — Frontend API/hook foundation: archive/unarchive/reorder/moveNode wrappers + fullTree invalidation fix + treeDragUtils/treeArchiveCount pure utilities
+- [ ] 34-02-PLAN.md — TreeContextMenu component (kebab + right-click anchor modes)
+- [ ] 34-03-PLAN.md — ArchiveConfirmDialog (descendant-count breakdown) + TreeUndoToast
+- [ ] 34-04-PLAN.md — Wire context menu, create (New Folder/New Project), and inline rename into TreeNodeRow/TreeSection
+- [ ] 34-05-PLAN.md — Wire ArchiveConfirmDialog + Undo toast into TreeSection
+- [ ] 34-06-PLAN.md — Wire drag-to-reorder/reparent (dnd-kit) + illegal-drop error surfacing into TreeNodeRow/TreeSection
 
 ## Progress
 
@@ -163,7 +168,7 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 31. Data Model + Modernize Folders Domain | v6.0 | 6/6 | Complete   | 2026-07-17 |
 | 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 5/5 | Complete   | 2026-07-19 |
 | 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 4/4 | Complete    | 2026-07-20 |
-| 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 0/TBD | Not started | - |
+| 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 0/6 | Planned | - |
 
 ---
-*Roadmap updated: 2026-07-17 — Phase 32 planned (5 plans, 4 waves). Next: `/gsd:execute-phase 32`.*
+*Roadmap updated: 2026-07-20 — Phase 34 planned (6 plans, 4 waves). Next: `/gsd:execute-phase 34`.*
