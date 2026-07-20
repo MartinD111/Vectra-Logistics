@@ -134,6 +134,25 @@ export default function TreeSection() {
     if (zone === 'before' || zone === 'after') {
       if (overRow.node_type !== activeNodeType) return;
       const parentKey = overRow.parentKey;
+
+      if (parentKey !== activeRow.parentKey) {
+        // Cross-parent before/after drop: this is a reparent, not a same-parent
+        // reorder. flattenVisibleTree mixes rows from every expanded folder into
+        // one flat list, so a before/after target can easily belong to a
+        // different parent than the dragged node. Reparent via moveTreeNode;
+        // exact position within the new parent is a follow-up reorder concern.
+        try {
+          await moveTreeNode.mutateAsync({
+            node_type: activeNodeType,
+            node_id: activeId,
+            new_parent_id: parentKey === 'root' ? null : parentKey,
+          });
+        } catch (err) {
+          handleDragError(err);
+        }
+        return;
+      }
+
       const siblings = parentKey === 'root' ? pruned : (findFolderNode(pruned, parentKey)?.children ?? []);
       const siblingIds = siblings
         .filter((n) => n.node_type === activeNodeType)

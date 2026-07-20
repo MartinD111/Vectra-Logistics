@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { Loader2, X } from 'lucide-react';
 import type { TreeNode } from '@/lib/api/folders.api';
 import { useArchiveFolder } from '@/lib/hooks/useFolders';
 import { useArchiveProject } from '@/lib/hooks/useProjects';
+import { ApiError } from '@/lib/api/client';
 import { countDescendants } from './treeArchiveCount';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -26,6 +28,7 @@ export function ArchiveConfirmDialog({
   const archiveFolder = useArchiveFolder();
   const archiveProject = useArchiveProject();
   const isPending = archiveFolder.isPending || archiveProject.isPending;
+  const [error, setError] = useState<string | null>(null);
 
   const counts = countDescendants(node);
   const total = counts.folder + counts.project + counts.program + counts.data_collection + counts.project_page;
@@ -41,13 +44,22 @@ export function ArchiveConfirmDialog({
           .join(', ')}.`;
 
   async function handleArchive() {
-    if (node.node_type === 'folder') {
-      await archiveFolder.mutateAsync(node.id);
-    } else {
-      await archiveProject.mutateAsync(node.id);
+    setError(null);
+    try {
+      if (node.node_type === 'folder') {
+        await archiveFolder.mutateAsync(node.id);
+      } else {
+        await archiveProject.mutateAsync(node.id);
+      }
+      onClose();
+      onArchived(node, total);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.status === 403 ? "You don't have permission to do this." : err.message);
+      } else {
+        setError('Failed to archive. Try again.');
+      }
     }
-    onClose();
-    onArchived(node, total);
   }
 
   return (
@@ -61,6 +73,10 @@ export function ArchiveConfirmDialog({
         </div>
 
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">{bodyCopy}</p>
+
+        {error && (
+          <p className="text-sm text-red-600 dark:text-red-400 mb-4">{error}</p>
+        )}
 
         <div className="flex items-center gap-3 pt-1">
           <button
