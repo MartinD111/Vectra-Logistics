@@ -63,7 +63,8 @@ Milestone audit: [milestones/v5.0-MILESTONE-AUDIT.md](milestones/v5.0-MILESTONE-
 
 - [x] **Phase 31: Data Model + Modernize Folders Domain** - Close the `data_collections.folder_id` gap, add an ancestor-index, enforce tenant/cycle invariants at the DB level, and modernize the `folders` domain to v5 `RequestContext`/capability/`event_outbox` conventions.
  (completed 2026-07-17)
-- [x] **Phase 32: Aggregated Tree Read API + Reorder/Move Endpoints** - One tenant-scoped `GET /folders/tree/full` endpoint plus lock-safe reorder and cycle/tenant-checked move endpoints, gated by `workspace.admin`. (completed 2026-07-19)
+- [x] **Phase 32: Aggregated Tree Read API + Reorder/Move Endpoints** - One tenant-scoped `GET /folders/tree/full` endpoint plus lock-safe reorder and cycle/tenant-checked move endpoints, gated by `workspace.admin`.
+ (completed 2026-07-19)
 - [ ] **Phase 33: Tree-Based Sidebar UI (Read + Navigate)** - Replace the flat `ITEMS` list with a real expand/collapse tree, per-user persisted expand state, depth-aware module visibility, and live-tree breadcrumbs.
 - [ ] **Phase 34: Drag-to-Reorder/Reparent + Create/Rename/Archive Flows** - Drag-and-drop reorder/reparent, context-menu create, inline rename, and archive-with-descendant-count flows.
 
@@ -117,11 +118,14 @@ Plans:
   3. Module-aware visibility (`enabled_modules`) is correctly evaluated at every tree node/depth, not only at the top level
   4. Breadcrumbs on any page/record/project reflect the live tree ancestor path
   5. Existing deep links and cross-app links (`crossAppUrl`, Outlook-synced CRM links) continue to work unchanged, because canonical URLs remain ID-keyed and the tree is navigation only
-**Plans**: TBD
+**Plans**: 4 plans
 **UI hint**: yes
 
 Plans:
-- [ ] 33-01: TBD
+- [ ] 33.1-PLAN.md — Tree data layer: getFullTree/useFullTree, pruneTree/treeNodeUrl, useExpandedTreeNodes
+- [ ] 33.2-PLAN.md — Recursive TreeNodeRow/TreeSection components wired into WorkspaceSidebar
+- [ ] 33.3-PLAN.md — Breadcrumbs component (findPath DFS over cached tree)
+- [ ] 33.4-PLAN.md — Wire Breadcrumbs into project/page/record detail pages
 
 ### Phase 34: Drag-to-Reorder/Reparent + Create/Rename/Archive Flows
 **Goal**: Users can fully organize the workspace tree — creating, renaming, reordering, reparenting, and archiving folders/projects — with safe, clearly-communicated handling of illegal actions.
@@ -158,7 +162,7 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 1/1 | Complete | 2026-07-15 |
 | 31. Data Model + Modernize Folders Domain | v6.0 | 6/6 | Complete   | 2026-07-17 |
 | 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 5/5 | Complete   | 2026-07-19 |
-| 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 0/TBD | Not started | - |
+| 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 0/4 | Not started | - |
 | 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 0/TBD | Not started | - |
 
 ---
