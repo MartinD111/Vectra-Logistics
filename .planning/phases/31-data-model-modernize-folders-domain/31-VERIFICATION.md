@@ -1,8 +1,8 @@
 ---
 phase: 31-data-model-modernize-folders-domain
 verified: 2026-07-17T09:04:06Z
-status: gaps_found
-score: 5/7 must-haves verified (5 roadmap success criteria pass; 2 derived schema-integrity truths fail)
+status: gaps_found_then_resolved
+score: 7/7 must-haves verified after post-verification fix (commit 9747730)
 overrides_applied: 0
 gaps:
   - truth: "Folder-move cascade preserves the depth<=3 invariant for every descendant, not just the moved node"
@@ -122,6 +122,17 @@ The phase delivers all 5 literal roadmap Success Criteria and all 7 requirement 
 However, a code review already run against this phase (`31-REVIEW.md`) found 4 critical issues, and two of them — CR-01 (folder-move descendant depth not re-validated) and CR-02 (folder-move is not atomic across the folder's own row and its descendants' ancestor_ids) — remain completely unaddressed in the current codebase (verified directly against `folders.service.ts`; no commits after the review touch this file). These two gaps sit squarely inside the "correct foundation" language of the phase goal: the depth-3 invariant the migration's trigger is *named for* (`folders_prevent_cycle_and_depth`) can be silently bypassed via the one mutation (move) that will actually be exercised as real folder trees grow, and a failure mid-move leaves the `ancestor_ids` column — the entire deliverable of HIER-07 — silently stale for descendants. Neither is a merely cosmetic/DX issue (unlike CR-03/CR-04, retained here as warnings): both represent state the DB will accept as valid that the application's own invariants say should be impossible, exactly the kind of downstream-inheriting foundation-rot the phase goal explicitly names as the thing to avoid.
 
 Recommendation: close these two gaps (add descendant-depth validation before applying `patchDescendantAncestors`; wrap the folder's own move and the descendant patch in one shared transaction, matching the pattern already used correctly by `archiveFolder` in the same file) before phase 31 is considered a stable foundation for phases 32-34.
+
+## Post-Verification Fix
+
+**Status: RESOLVED** — commit `9747730` (`fix(31): make folder move atomic and re-validate descendant depth`), applied during the v6.0 milestone audit after the integration checker confirmed both CR-01 and CR-02 were still live and reachable through the Phase 34 drag-to-reparent UI in production code.
+
+- CR-01: `moveFolder` now computes each descendant's depth relative to the moved folder (via `foldersRepository.findFoldersByIds`) and rejects the move with 400 if any descendant would exceed `MAX_FOLDER_DEPTH`, before any write happens.
+- CR-02: `moveFolder` now wraps the folder's own row update (`moveFolderTx`) and the descendant `ancestor_ids` patch (`patchDescendantAncestors`) in one transaction (`BEGIN`/`COMMIT`/`ROLLBACK`), matching `archiveFolder`'s existing pattern. Leaf folders (no descendants) keep the original non-transactional fast path.
+
+Three regression tests added to `folders.service.test.ts`: the depth-cascade rejection (a 3-level-deep subtree move pushing a grandchild past depth 3), transactional commit ordering, and rollback-on-failure. All 48 tests in the folders domain pass; `npx tsc --noEmit` clean.
+
+HIER-03 and HIER-07 are now fully SATISFIED without caveats.
 
 ---
 
