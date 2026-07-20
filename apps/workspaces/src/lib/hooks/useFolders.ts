@@ -31,9 +31,9 @@ export function useFullTree() {
 
 function invalidateFolderAffectedQueries(qc: ReturnType<typeof useQueryClient>) {
   qc.invalidateQueries({ queryKey: qk.folders });
+  qc.invalidateQueries({ queryKey: qk.fullTree });
   qc.invalidateQueries({ queryKey: ['projects'] });
   qc.invalidateQueries({ queryKey: ['programs'] });
-  qc.invalidateQueries({ queryKey: qk.fullTree });
 }
 
 export function useCreateFolder() {
