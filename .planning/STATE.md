@@ -4,8 +4,8 @@ milestone: v6.0
 milestone_name: Unified Workspace Hierarchy
 status: executing
 stopped_at: Phase 34 UI-SPEC approved
-last_updated: "2026-07-20T13:52:49.023Z"
-last_activity: 2026-07-20 -- Phase 34 planning complete
+last_updated: "2026-07-20T14:01:56.322Z"
+last_activity: 2026-07-20 -- Phase 34 execution started
 progress:
   total_phases: 4
   completed_phases: 3
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history - the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Phase 34 — drag to reorder/reparent + create/rename/archive flows
+**Current focus:** Phase 34 — drag-to-reorder-reparent-create-rename-archive-flows
 
 ## Current Position
 
-Phase: 34
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-20 -- Phase 34 planning complete
+Phase: 34 (drag-to-reorder-reparent-create-rename-archive-flows) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 34
+Last activity: 2026-07-20 -- Phase 34 execution started
 
 Progress: [░░░░░░░░░░] 0%
 

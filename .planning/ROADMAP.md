@@ -160,8 +160,8 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 34-01-PLAN.md — Frontend API/hook foundation: archive/unarchive/reorder/moveNode wrappers + fullTree invalidation fix + treeDragUtils/treeArchiveCount pure utilities
-- [ ] 34-02-PLAN.md — TreeContextMenu component (kebab + right-click anchor modes)
+- [x] 34-01-PLAN.md — Frontend API/hook foundation: archive/unarchive/reorder/moveNode wrappers + fullTree invalidation fix + treeDragUtils/treeArchiveCount pure utilities
+- [x] 34-02-PLAN.md — TreeContextMenu component (kebab + right-click anchor modes)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -196,7 +196,7 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 31. Data Model + Modernize Folders Domain | v6.0 | 6/6 | Complete   | 2026-07-17 |
 | 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 5/5 | Complete   | 2026-07-19 |
 | 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 4/4 | Complete    | 2026-07-20 |
-| 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 0/6 | Planned | - |
+| 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 2/6 | In Progress|  |
 
 ---
 *Roadmap updated: 2026-07-20 — Phase 34 planned (6 plans, 4 waves). Next: `/gsd:execute-phase 34`.*
