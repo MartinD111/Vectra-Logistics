@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, CheckCircle2, Plus, Building2 } from 'lucide-react';
+import { Loader2, CheckCircle2, Plus, Building2 } from 'lucide-react';
 import {
   useProjectPage, useUpdateProjectPage, useProjectPages, useCreateProjectPage, useDeleteProjectPage,
 } from '@/lib/hooks/useProjectPages';
@@ -16,6 +16,7 @@ import LivePageCanvas from '@/components/projectPage/LivePageCanvas';
 import { PageHeader } from '@/components/projectPage/PageHeader';
 import { PageTree } from '@/components/projectPage/PageTree';
 import { NewClientPageModal } from '@/components/projectPage/NewClientPageModal';
+import Breadcrumbs from '@/components/shared/Breadcrumbs';
 
 export default function ProjectPagePage() {
   const params = useParams<{ id: string; pageId: string }>();
@@ -30,8 +31,6 @@ export default function ProjectPagePage() {
   const deletePage = useDeleteProjectPage(projectId);
   const [addingUnder, setAddingUnder] = useState<string | null>(null);
   const [newClientPageOpen, setNewClientPageOpen] = useState(false);
-
-  const parent = page?.parent_page_id ? (allPages ?? []).find((p) => p.id === page.parent_page_id) : null;
 
   async function addSubPageUnder(parentPageId: string) {
     setAddingUnder(parentPageId);
@@ -106,19 +105,7 @@ export default function ProjectPagePage() {
     <div className="min-h-[calc(100vh-64px)] bg-gray-50/50 dark:bg-dark-bg">
       <div className={`${fullWidth ? 'max-w-none' : 'max-w-6xl'} mx-auto px-4 lg:px-8 py-8`}>
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <div className="flex items-center gap-1 text-sm text-gray-500 flex-wrap">
-            <Link href={`/projects/${projectId}`} className="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
-              <ArrowLeft className="w-4 h-4" /> Project
-            </Link>
-            {parent && (
-              <>
-                <span className="text-gray-300">/</span>
-                <Link href={`/projects/${projectId}/pages/${parent.id}`} className="hover:text-gray-700 dark:hover:text-gray-200">
-                  {parent.title}
-                </Link>
-              </>
-            )}
-          </div>
+          <Breadcrumbs nodeType="project_page" id={pageId} />
           <div className="flex items-center gap-2">
             {saved && <span className="text-sm text-primary-600 inline-flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Saved</span>}
             {update.isPending && !saved && <Loader2 className="w-4 h-4 animate-spin text-gray-400" />}

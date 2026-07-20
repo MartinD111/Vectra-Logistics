@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft, Plus, Loader2, Activity, Zap, Clock, FileCode2, Inbox,
+  Plus, Loader2, Activity, Zap, Clock, FileCode2, Inbox,
   LayoutDashboard, FileText,
 } from 'lucide-react';
 import {
@@ -18,6 +18,7 @@ import { PAGE_STARTERS } from '@/lib/projectPage/templates';
 import { isPageConfig, emptyPageConfig } from '@/lib/projectPage/blocks';
 import { PageView } from '@/components/projectPage/PageView';
 import { PageTree } from '@/components/projectPage/PageTree';
+import Breadcrumbs from '@/components/shared/Breadcrumbs';
 
 type Tab = 'overview' | 'pages' | 'dashboard';
 
@@ -114,9 +115,7 @@ export default function ProjectDetailPage() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gray-50/50 dark:bg-dark-bg">
       <div className="max-w-5xl mx-auto px-4 lg:px-8 py-8">
-        <Link href="/projects" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 mb-4">
-          <ArrowLeft className="w-4 h-4" /> Projects
-        </Link>
+        <Breadcrumbs nodeType="project" id={id} />
 
         <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
           <div className="flex items-center gap-3">
