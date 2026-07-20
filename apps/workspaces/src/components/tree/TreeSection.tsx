@@ -3,14 +3,16 @@
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Folder, FolderKanban, Plus } from 'lucide-react';
-import { useFullTree, useCreateFolder } from '@/lib/hooks/useFolders';
-import { useCreateProject } from '@/lib/hooks/useProjects';
+import { useFullTree, useCreateFolder, useUnarchiveFolder } from '@/lib/hooks/useFolders';
+import { useCreateProject, useUnarchiveProject } from '@/lib/hooks/useProjects';
 import { useCurrentWorkspace } from '@/lib/hooks/useTenantWorkspace';
 import { useExpandedTreeNodes } from '@/lib/hooks/useExpandedTreeNodes';
 import type { TreeNode } from '@/lib/api/folders.api';
 import { pruneTree } from './treeFilters';
 import TreeNodeRow from './TreeNodeRow';
 import { TreeContextMenu } from './TreeContextMenu';
+import { ArchiveConfirmDialog } from './ArchiveConfirmDialog';
+import { TreeUndoToast } from './TreeUndoToast';
 
 export default function TreeSection() {
   const { data: tree, isLoading, isError } = useFullTree();
@@ -23,8 +25,11 @@ export default function TreeSection() {
 
   const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null);
   const [rootMenuOpen, setRootMenuOpen] = useState(false);
-  // archiveTarget: consumed by 34-05, which will render ArchiveConfirmDialog against this state.
   const [archiveTarget, setArchiveTarget] = useState<TreeNode | null>(null);
+  const [undoTarget, setUndoTarget] = useState<TreeNode | null>(null);
+
+  const unarchiveFolder = useUnarchiveFolder();
+  const unarchiveProject = useUnarchiveProject();
 
   const isActive = (href: string) =>
     pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
@@ -54,6 +59,16 @@ export default function TreeSection() {
         },
       },
     );
+  };
+
+  const handleUndo = () => {
+    if (!undoTarget) return;
+    if (undoTarget.node_type === 'folder') {
+      unarchiveFolder.mutate(undoTarget.id);
+    } else if (undoTarget.node_type === 'project') {
+      unarchiveProject.mutate(undoTarget.id);
+    }
+    setUndoTarget(null);
   };
 
   if (isLoading) {
@@ -116,6 +131,22 @@ export default function TreeSection() {
           />
         ))}
       </div>
+      {archiveTarget && (
+        <ArchiveConfirmDialog
+          node={archiveTarget}
+          onClose={() => setArchiveTarget(null)}
+          onArchived={(node, totalDescendants) => {
+            if (totalDescendants === 0) setUndoTarget(node);
+          }}
+        />
+      )}
+      {undoTarget && (
+        <TreeUndoToast
+          nodeName={undoTarget.name}
+          onUndo={handleUndo}
+          onDismiss={() => setUndoTarget(null)}
+        />
+      )}
     </div>
   );
 }
