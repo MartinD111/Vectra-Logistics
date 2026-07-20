@@ -165,8 +165,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 34-03-PLAN.md — ArchiveConfirmDialog (descendant-count breakdown) + TreeUndoToast
-- [ ] 34-04-PLAN.md — Wire context menu, create (New Folder/New Project), and inline rename into TreeNodeRow/TreeSection
+- [x] 34-03-PLAN.md — ArchiveConfirmDialog (descendant-count breakdown) + TreeUndoToast
+- [x] 34-04-PLAN.md — Wire context menu, create (New Folder/New Project), and inline rename into TreeNodeRow/TreeSection
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -196,7 +196,7 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 31. Data Model + Modernize Folders Domain | v6.0 | 6/6 | Complete   | 2026-07-17 |
 | 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 5/5 | Complete   | 2026-07-19 |
 | 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 4/4 | Complete    | 2026-07-20 |
-| 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 2/6 | In Progress|  |
+| 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 4/6 | In Progress|  |
 
 ---
 *Roadmap updated: 2026-07-20 — Phase 34 planned (6 plans, 4 waves). Next: `/gsd:execute-phase 34`.*
