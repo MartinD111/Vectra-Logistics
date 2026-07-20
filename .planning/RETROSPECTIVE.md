@@ -78,6 +78,42 @@
 
 ---
 
+## Milestone: v6.0 — Unified Workspace Hierarchy
+
+**Shipped:** 2026-07-20
+**Phases:** 4 | **Plans:** 21 | **Timeline:** 2026-07-16 → 2026-07-20 (4 days)
+
+### What Was Built
+- Tenant-safe, cycle-safe folder/project/program/collection schema with an ancestor-index, DB-level cycle/depth trigger, composite `(id, company_id)` FKs, and full migration to the v5 `RequestContext`/capability/`event_outbox` pattern.
+- One aggregated `GET /folders/tree/full` read API (5 parallel flat queries, no fan-out) plus lock-safe (`FOR UPDATE`, 409-on-stale-set) reorder and move/reparent endpoints, capability-gated.
+- Real expand/collapse sidebar tree replacing the flat hardcoded `ITEMS` list, with per-user persisted expand state, depth-aware module visibility, and live-tree breadcrumbs.
+- Full organize flow: context-menu create + inline rename (the codebase's first context-menu component), drag-to-reorder/reparent via `@dnd-kit` with exact-server-text illegal-drop rejection, and archive with descendant-count confirmation + zero-descendant Undo.
+
+### What Worked
+- Wave-based parallel execution (4 waves, 2 plans in parallel where file scope didn't overlap) kept the milestone to 4 days despite 21 plans across 4 phases — the orchestrator's `files_modified` overlap check correctly serialized the two plans that did share files (34-04/34-06 both touching `TreeNodeRow.tsx`/`TreeSection.tsx`) by putting them in separate waves.
+- Running phase-level verification (`gsd-verifier`) and code review (`gsd-code-reviewer`) immediately after each phase's waves merged — not deferred to milestone close — caught two real bugs (a missing `qk.fullTree` cache invalidation, and a cross-parent drag-drop misclassification) while the fix was still cheap and well-scoped, rather than compounding into the audit.
+- Deferring `checkpoint:human-verify` tasks to end-of-phase (the project's `workflow.human_verify_mode` default) and consolidating all three phase-34 checklists into one UAT pass in the final VERIFICATION.md avoided three separate interruption points during otherwise-autonomous execution.
+
+### What Was Inefficient
+- The single most expensive gap this milestone was self-inflicted: Phase 31's own code review (`31-REVIEW.md`) found a critical folder-move atomicity/depth-validation bug, but phase 31 was signed off with `status: gaps_found` and the fix was never applied — it sat unresolved through phases 32-34 until the milestone audit's integration checker re-discovered it and confirmed it was reachable via the exact drag-to-reparent feature phase 34 shipped. A `gaps_found` phase verification should be a harder stop before advancing to the next phase, not a status that can be silently carried forward for 3 more phases.
+- `REQUIREMENTS.md`'s traceability table stayed "Pending" for phases 31-33 throughout their execution (only phase 33's rows were ever flipped to "Complete") — a purely cosmetic staleness that both phase 34's and the milestone's own verification had to explicitly call out and route around rather than trust.
+
+### Patterns Established
+- When an integration checker confirms a phase-review-flagged bug is live and reachable through a shipped feature, fix it inline during the milestone audit (with regression tests) rather than opening a closure phase — this was fast (one function, one repository method, 3 tests) because the fix mirrored an existing correct pattern already in the same file (`archiveFolder`'s transaction shape).
+- Frontend cache-invalidation parity checks (does the new mutation hook invalidate the same query key its sibling hooks do?) are a recurring, cheap-to-verify class of bug in this codebase — worth a standing check whenever a new `useMutation` hook is added alongside existing ones that share a cache key.
+
+### Key Lessons
+1. A phase verification result of `gaps_found` on a **data-integrity** finding (not a UI polish item) should block phase sign-off / next-phase start, not just get logged and carried forward — this milestone got lucky that the gap was caught before shipping to real users, not because the process caught it early.
+2. Integration checkers are effective at re-surfacing previously-known-but-unfixed gaps when explicitly pointed at "is this still true, and is it reachable from the newest feature" — don't only ask them to find *new* wiring gaps.
+3. Keep REQUIREMENTS.md traceability checkboxes in sync with phase completion in real time; treating them as "fix at audit time" means every verification pass downstream has to manually route around stale data instead of trusting it.
+
+### Cost Observations
+- Sessions: 1 (Phase 34 wave execution through milestone archival, continuous).
+- Model mix: Sonnet 5 throughout (executor, verifier, code-reviewer, integration-checker subagents all inherited orchestrator model).
+- Notable: fixing the CR-01/CR-02 gap inline during the audit (rather than a separate closure-phase round trip) cost roughly one extra tool-call cycle (read code, write fix, write tests, run tests) and avoided a second planning/discuss/execute cycle entirely.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -86,6 +122,8 @@
 |-----------|----------|--------|------------|
 | v1.0 | — | 6 | Initial CRM Rework — first milestone, no retrospective captured |
 | v2.0 | 1 (Phase 13 + close) | 7 | First milestone with a formal RETROSPECTIVE.md; surfaced the missing-VERIFICATION.md pattern for the first time |
+| v5.0 | 1 (closeout) | 4 | First milestone to catch uncommitted phase artifacts at close via scoped `git status` |
+| v6.0 | 1 (Phase 34 execution + close, continuous) | 4 | First milestone to fix a critical, audit-confirmed-reachable data-integrity gap inline during the audit itself, with regression tests, instead of deferring to a closure phase |
 
 ### Cumulative Quality
 
@@ -93,7 +131,9 @@
 |-----------|-------|----------|-------------------|
 | v1.0 | — | — | — |
 | v2.0 | `tsc --noEmit` + `next build` per phase (no new automated test suite) | — | 0 (zero new dependencies added) |
+| v6.0 | `tsc --noEmit` (both apps) + `node --test` for the folders domain (48/48 passing after audit fix) per phase/audit | — | 0 (reused existing `@dnd-kit`, `xlsx`-style reuse-over-rebuild convention) |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. Missing phase-level verification (VERIFICATION.md) creates compounding documentation debt that's expensive to reconstruct retroactively — first observed in v2.0 (Phases 7-11).
+2. A phase verification result of `gaps_found` on a data-integrity finding must block advancement, not just get logged — v6.0's Phase 31 folder-move bug sat unresolved through 3 more phases before the milestone audit caught it, by which point it was reachable through a shipped user-facing feature.
