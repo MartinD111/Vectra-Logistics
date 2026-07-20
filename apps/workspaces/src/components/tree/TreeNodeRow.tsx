@@ -5,6 +5,9 @@ import Link from 'next/link';
 import {
   ChevronRight, Folder, FolderKanban, Zap, Boxes, FileText, MoreVertical, Pencil, Archive,
 } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import type { TreeNode } from '@/lib/api/folders.api';
 import { useUpdateFolder } from '@/lib/hooks/useFolders';
 import { useUpdateProject } from '@/lib/hooks/useProjects';
@@ -30,16 +33,31 @@ interface TreeNodeRowProps {
   onArchive: (node: TreeNode) => void;
   autoFocusRenameId: string | null;
   onRenameHandled: () => void;
+  dropZone: { nodeId: string; zone: 'before' | 'after' | 'into' } | null;
 }
 
 export default function TreeNodeRow({
   node, depth, expanded, onToggle, isActive,
-  onCreateFolder, onCreateProject, onArchive, autoFocusRenameId, onRenameHandled,
+  onCreateFolder, onCreateProject, onArchive, autoFocusRenameId, onRenameHandled, dropZone,
 }: TreeNodeRowProps) {
   const href = treeNodeUrl(node);
   const hasChildren = node.children.length > 0;
   const isOpen = expanded.has(node.id);
   const Icon = ICON_BY_TYPE[node.node_type];
+
+  const isDraggable = node.node_type === 'folder' || node.node_type === 'project';
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: node.id,
+    disabled: !isDraggable,
+  });
+  const { setNodeRef: setFolderDropRef } = useDroppable({
+    id: `folder-drop-${node.id}`,
+    disabled: node.node_type !== 'folder',
+  });
+
+  const isDropBefore = dropZone?.nodeId === node.id && dropZone.zone === 'before';
+  const isDropAfter = dropZone?.nodeId === node.id && dropZone.zone === 'after';
+  const isDropInto = node.node_type === 'folder' && dropZone?.nodeId === node.id && dropZone.zone === 'into';
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [contextPoint, setContextPoint] = useState<{ x: number; y: number } | null>(null);
@@ -90,11 +108,11 @@ export default function TreeNodeRow({
     : [];
 
   const active = !!href && isActive(href);
-  const rowCls = `group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+  const rowCls = `group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
     active
       ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400'
       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800'
-  }`;
+  } ${isDraggable ? 'cursor-grab active:cursor-grabbing touch-none' : ''} ${isDropInto ? 'ring-2 ring-primary-500' : ''}`;
 
   const content = renaming ? (
     <input
@@ -117,11 +135,14 @@ export default function TreeNodeRow({
     </>
   );
 
-  return (
+  const rowNode = (
     <div>
       <div
+        ref={setNodeRef}
+        {...(isDraggable ? attributes : {})}
+        {...(isDraggable ? listeners : {})}
         className={rowCls}
-        style={{ paddingLeft: 12 + depth * 16 }}
+        style={{ paddingLeft: 12 + depth * 16, transform: CSS.Transform.toString(transform), transition }}
         onContextMenu={
           isMenuable
             ? (e) => {
@@ -131,6 +152,12 @@ export default function TreeNodeRow({
             : undefined
         }
       >
+        {isDropBefore && (
+          <div className="absolute -top-px left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
+        )}
+        {isDropAfter && (
+          <div className="absolute -bottom-px left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
+        )}
         {hasChildren && (
           <button
             type="button"
@@ -204,10 +231,17 @@ export default function TreeNodeRow({
               onArchive={onArchive}
               autoFocusRenameId={autoFocusRenameId}
               onRenameHandled={onRenameHandled}
+              dropZone={dropZone}
             />
           ))}
         </div>
       )}
     </div>
   );
+
+  if (node.node_type === 'folder') {
+    return <div ref={setFolderDropRef}>{rowNode}</div>;
+  }
+
+  return rowNode;
 }
