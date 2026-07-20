@@ -86,6 +86,8 @@ export const projectsApi = {
   update: (id: string, data: Partial<{ name: string; description: string | null; color: string | null; folder_id: string | null }>) =>
     apiFetch<{ project: Project }>(`${BASE}/${id}`, 'PATCH', data).then((r) => r.project),
   remove: (id: string) => apiFetch<void>(`${BASE}/${id}`, 'DELETE'),
+  archive: (id: string) => apiFetch<{ project: Project }>(`${BASE}/${id}/archive`, 'POST').then((r) => r.project),
+  unarchive: (id: string) => apiFetch<{ project: Project }>(`${BASE}/${id}/unarchive`, 'POST').then((r) => r.project),
   stats: (id: string) => apiFetch<{ stats: ProjectStats }>(`${BASE}/${id}/stats`).then((r) => r.stats),
 
   listPrograms: (projectId?: string) => {

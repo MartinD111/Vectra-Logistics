@@ -42,4 +42,23 @@ export const foldersApi = {
     apiFetch<{ folder: Folder }>(`${BASE}/${id}/move`, 'PATCH', { parent_id: parentId }).then((r) => r.folder),
   remove: (id: string) => apiFetch<void>(`${BASE}/${id}`, 'DELETE'),
   getFullTree: () => apiFetch<{ tree: TreeNode[] }>(`${BASE}/tree/full`).then((r) => r.tree),
+  archive: (id: string) => apiFetch<{ folder: Folder }>(`${BASE}/${id}/archive`, 'POST').then((r) => r.folder),
+  unarchive: (id: string) => apiFetch<{ folder: Folder }>(`${BASE}/${id}/unarchive`, 'POST').then((r) => r.folder),
+  reorder: (data: {
+    node_type: 'folder' | 'project' | 'program' | 'data_collection';
+    parent_id: string | null;
+    project_id?: string | null;
+    ordered_ids: string[];
+  }) =>
+    apiFetch<{ node_type: string; parent_id: string | null; project_id: string | null; ordered_ids: string[] }>(
+      `${BASE}/tree/reorder`,
+      'POST',
+      data
+    ),
+  moveNode: (data: {
+    node_type: 'folder' | 'project' | 'program' | 'data_collection';
+    node_id: string;
+    new_parent_id: string | null;
+    project_id?: string | null;
+  }) => apiFetch<unknown>(`${BASE}/tree/move`, 'POST', data),
 };
