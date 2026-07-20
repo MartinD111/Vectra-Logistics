@@ -4,30 +4,22 @@
 
 Vectra is a workspace platform for logistics companies. It combines a Notion-like workspace, a configurable records/views database, mini programs, durable automations, integrations, and logistics business modules in one codebase for cloud and on-prem deployments.
 
-The product already has five shipped foundations:
+The product already has six shipped foundations:
 
 - v1.0 CRM Rework: CRM dashboard, client detail pages, Excel import, Outlook sent-mail sync, per-project client overrides, and credit-risk semaphore.
 - v2.0 Workspace Engine: shared `WorkspaceBlockRegistry` powering Project Pages and Mini Programs, plus native and manifest extensibility seams.
 - v3.0 On-Premise GA: deployment mode, migration runner, installer, local AI dispatch, production compose, release/upgrade docs, and deployment hardening.
 - v4.0 Workspace Records & Views: generic content blocks, records/views API, record detail pages, collection board/table/list/calendar/gallery/timeline views, and legacy Kanban migration.
 - v5.0 Platform Foundation & Durable Execution: baseline truth matrix, typed request/capability spine, durable event outbox, and persisted workflow MVP.
+- v6.0 Unified Workspace Hierarchy: tenant-safe folder/project/program/collection tree schema with an ancestor-index, one aggregated tree-read API, lock-safe reorder/move endpoints, a real expand/collapse sidebar tree with breadcrumbs, and full organize flows (create/rename/drag-reorder/drag-reparent/archive with undo).
 
 ## Core Value
 
 Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history. The risk semaphore is a hard, visible block, not a suggestion.
 
-## Current Milestone: v6.0 Unified Workspace Hierarchy
+## Current Milestone: Planning next
 
-**Goal:** Replace the flat, module-keyed sidebar and disconnected records/pages with a real folder → project → page/record tree, so users can organize and navigate the workspace the way the platform's data model already supports.
-
-**Target features:**
-
-- Folder/project/page tree data model + API (parent/child relationships, ordering, cross-links to existing `data_collections`/records).
-- Tree-based sidebar navigation replacing the flat `ITEMS` list in `WorkspaceSidebar.tsx`: expand/collapse, drag-to-reorder, module-aware visibility preserved.
-- Create/rename/move/delete/archive flows for folders and projects.
-- Breadcrumbs and in-page navigation consistent with the tree structure.
-
-**Scope note:** v6 reuses the request/capability/event/action contract shipped in v5 rather than introducing a parallel authorization or persistence path. Mini Program v3, connector lifecycle, App Store, and the first logistics vertical remain sequenced after v6.
+v6.0 shipped 2026-07-20. No milestone is currently active — run `/gsd:new-milestone` to define v7.0's requirements and roadmap.
 
 ## Requirements
 
@@ -41,10 +33,14 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 - Records/views are persisted through `data_collections`, `collection_records`, and `collection_views`.
 - Record bodies reuse the existing page editor and block palette.
 - `collection-view` supports board, table, list, calendar, gallery, and timeline over the same records.
+- Folder/project/program/collection hierarchy has a tenant-safe, cycle-safe, depth-safe schema with an ancestor-index, and the `folders` domain uses the v5 `RequestContext`/capability/`event_outbox` pattern — v6.0
+- One aggregated `GET /folders/tree/full` read API and lock-safe reorder/move endpoints, capability-gated — v6.0
+- Workspace sidebar is a real expand/collapse tree (folder → project → page/record) with per-user persisted state, depth-aware module visibility, and live-tree breadcrumbs, replacing the flat hardcoded `ITEMS` list — v6.0
+- Users can create, rename, drag-to-reorder, drag-to-reparent, and archive (with descendant-count confirmation + undo) folders/projects from the tree, with illegal drops rejected with a clear reason — v6.0
 
 ### Active
 
-- v6.0 requirements are defined in `.planning/REQUIREMENTS.md`.
+- v7.0 requirements not yet defined — run `/gsd:new-milestone`.
 
 ### Out of Scope
 
@@ -71,13 +67,15 @@ Dispatchers must never be able to assign a load to a client who is over their cr
 
 **Shipped:** v5.0 Platform Foundation & Durable Execution (2026-07-15) - 4 phases, 8 plans, all 20 v5 requirements archived at `.planning/milestones/v5.0-REQUIREMENTS.md`.
 
+**Shipped:** v6.0 Unified Workspace Hierarchy (2026-07-20) - 4 phases, 21 plans, all 22 v6 requirements. Archived at `.planning/milestones/v6.0-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md`. Milestone audit found one critical gap (folder-move non-atomicity + unvalidated descendant depth, reachable via the shipped drag-to-reparent UI) and fixed it inline rather than deferring; remaining deferred items are UI-polish tech debt and outstanding human UAT, not missing requirements.
+
 ## Next Milestone Goals
 
-v6.0 is the active milestone (see Current Milestone above). Plan its phases with `/gsd:plan-phase [N]`.
+No milestone is currently active. Define v7.0 with `/gsd:new-milestone` (questioning → research → requirements → roadmap).
 
 The concrete agent ownership map lives in `.planning/AGENT-WORKSTREAMS.md`.
 
-Deferred beyond v6: Mini Program v3 and connector lifecycle (v7), the first production logistics vertical slice (v8), App Store/package lifecycle, offline licensing/support bundles, and broad SLO/chaos/commercial readiness.
+Deferred beyond v6: Mini Program v3 and connector lifecycle (v7?), the first production logistics vertical slice, App Store/package lifecycle, offline licensing/support bundles, and broad SLO/chaos/commercial readiness. Also carried forward from v6.0 as tech debt (see MILESTONES.md): Phase 33's expand-state anon-bucket race, Phase 34's 5 warning/5 info code-review findings, and the outstanding Phase 34 human-UAT pass.
 
 ## Key Decisions
 
@@ -88,6 +86,8 @@ Deferred beyond v6: Mini Program v3 and connector lifecycle (v7), the first prod
 | Make v5 foundation-first | Durable automations, integrations, and logistics verticals need one request/capability/event/action contract | Good |
 | Treat v4 manual UAT as deferred tech debt | v4 requirements are implemented, but some live-browser sign-offs remain manual | Good |
 | Block App Store work until capabilities/actions are enforced | Package installation must not grant undeclared powers | Good |
+| Fix a critical, milestone-audit-found data-integrity gap (folder-move atomicity/depth) inline instead of deferring to a closure phase | Gap was reachable via the drag-to-reparent feature shipped this same milestone, well-understood, and mirrored an existing pattern (`archiveFolder`) already in the file | Good |
+| Reuse `@dnd-kit` (already used by the Kanban board) for tree drag-to-reorder/reparent instead of a new DnD library | Consistency, less new surface area — matches `BoardCard.tsx`/`BoardColumn.tsx` idiom | Good |
 
 ## Platform Vision & Architecture
 
@@ -126,4 +126,4 @@ After each milestone:
 3. Preserve core value unless the business priority explicitly changes.
 
 ---
-*Last updated: 2026-07-16 after v6.0 milestone start.*
+*Last updated: 2026-07-20 after v6.0 milestone shipped.*

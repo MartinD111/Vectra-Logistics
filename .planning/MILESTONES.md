@@ -1,5 +1,22 @@
 # Milestones
 
+## v6.0 Unified Workspace Hierarchy (Shipped: 2026-07-20)
+
+**Phases completed:** 4 phases, 21 plans, 35 tasks
+**Timeline:** 2026-07-16 → 2026-07-20 (4 days) · 233 files changed, +14009/-174 lines
+
+**Key accomplishments:**
+
+- Tenant-safe, cycle-safe folder/project/program/collection schema with a materialized ancestor-index (`ancestor_ids`), a `folders_prevent_cycle_and_depth` DB trigger, composite `(id, company_id)` FKs on every parent-pointer relationship, and full migration from the pre-v5 `(companyId, actorId, body)` pattern to `RequestContext` + capability assertions + `event_outbox` (Phase 31)
+- One aggregated `GET /folders/tree/full` endpoint reading the whole workspace tree (folders + projects + programs + collections + pages) in 5 parallel flat queries, plus lock-safe (`FOR UPDATE`, no lost updates) reorder and move/reparent endpoints gated by `workspace.admin` (Phase 32)
+- Replaced the flat, hardcoded sidebar `ITEMS` list with a real expand/collapse tree — per-user persisted expand state, module-aware visibility recursively evaluated at every depth, and breadcrumbs derived from the live tree ancestor path on every detail page (Phase 33)
+- Full organize flow shipped end-to-end: create + inline rename via the codebase's first context-menu component, drag-to-reorder/reparent via `@dnd-kit` with exact-server-text illegal-drop rejection, and archive with a descendant-count confirmation dialog plus zero-descendant Undo (Phase 34)
+- Milestone audit caught and fixed inline (not deferred): a critical folder-move bug flagged by Phase 31's own code review but left unresolved through phase sign-off — non-atomic move (folder's own row and descendants' `ancestor_ids` committed as two separate transactions) and unvalidated descendant depth (a move could silently push a descendant past the depth-3 invariant). Confirmed live and reachable through the Phase 34 drag-to-reparent UI by the integration checker; fixed with a single shared transaction + pre-move depth validation, plus 3 new regression tests
+
+**Known deferred items at close:** Tech debt only, no functional gaps — see `.planning/milestones/v6.0-MILESTONE-AUDIT.md`. Phase 33: expand/collapse state briefly reads the wrong localStorage bucket on fresh page load before SSO resolves (self-corrects on next toggle). Phase 34: 5 warning + 5 info-level code-review findings remain open (context-menu mutual-exclusion, drag-error timer cleanup, no client-side folder-into-descendant guard, silent no-op on folder-to-root drag, minor typing/DX items) — none are data-integrity issues, the backend correctly rejects illegal moves regardless. Also outstanding: 3 consolidated human-UAT checklists from Phase 34's deferred checkpoints (context-menu/create/rename, archive+undo, drag-to-reorder/reparent) have not yet been walked through manually.
+
+---
+
 ## v5.0 Platform Foundation & Durable Execution (Shipped: 2026-07-15)
 
 **Phases completed:** 4 phases, 8 plans

@@ -2,35 +2,33 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Unified Workspace Hierarchy
-status: executing
+status: Awaiting next milestone
 stopped_at: Phase 34 UI-SPEC approved
-last_updated: "2026-07-20T14:01:56.322Z"
-last_activity: 2026-07-20 -- Phase 34 execution started
+last_updated: "2026-07-20T19:58:18.048Z"
+last_activity: 2026-07-20 — Milestone v6.0 completed and archived
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 21
-  completed_plans: 15
-  percent: 71
+  completed_plans: 21
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-15)
+See: .planning/PROJECT.md (updated 2026-07-20)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history - the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Phase 34 — drag-to-reorder-reparent-create-rename-archive-flows
+**Current focus:** Awaiting next milestone — run `/gsd:new-milestone`
 
 ## Current Position
 
-Phase: 34 (drag-to-reorder-reparent-create-rename-archive-flows) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 34
-Last activity: 2026-07-20 -- Phase 34 execution started
-
-Progress: [░░░░░░░░░░] 0%
+Phase: Milestone v6.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-20 — Milestone v6.0 completed and archived
 
 ## Accumulated Context
 
@@ -46,6 +44,7 @@ Progress: [░░░░░░░░░░] 0%
 - v6.0 continues phase numbering at 31; extends the existing `folders` domain rather than introducing a new `workspace_nodes` table (reuse-over-rebuild).
 - v6.0 phase order is schema/domain (31) -> aggregated read + mutation API (32) -> read-only tree UI (33) -> drag/create/rename/archive UI (34), so each phase builds on an already-correct lower layer.
 - Phase 31 (ancestor-index technique choice) and Phase 34 (drag-reorder concurrency/locking scheme) are flagged for a research-phase pass during planning; Phase 32 and Phase 33 match standard/existing patterns.
+- v6.0 milestone audit (2026-07-20): fixed the Phase 31 folder-move atomicity/depth-validation gap inline (commit 9747730) rather than deferring, since it was confirmed reachable via the shipped Phase 34 drag-to-reparent UI.
 
 ### Agent Assignments
 
@@ -89,6 +88,17 @@ Items acknowledged and deferred at v4.0 close on 2026-07-15:
 | verification | Phase 26 verification remains `human_needed` despite 10/10 code-verified must-haves | tech_debt |
 | review | Phase 26 warning-level UI follow-ups: timeline clamp/copy, stale config race, calendar duplicate-create guard, gallery cover URL expectations | follow_up |
 
+Items acknowledged and deferred at v6.0 close on 2026-07-20:
+
+| Category | Item | Status |
+|----------|------|--------|
+| review | Phase 33 CR-02: expand/collapse localStorage bucket briefly reads 'anon' before SSO user resolves, self-corrects on next toggle | tech_debt |
+| review | Phase 34 WR-02: kebab menu and right-click context menu can both be open simultaneously (no mutual exclusion) | tech_debt |
+| review | Phase 34 WR-03: drag-error toast dismiss timer not tracked/cleared across overlapping errors or unmount | tech_debt |
+| review | Phase 34 WR-04: no client-side guard against dropping a folder onto its own descendant (backend correctly rejects) | tech_debt |
+| review | Phase 34 WR-05: dragging a folder onto the root drop zone silently no-ops with no error feedback | tech_debt |
+| uat | Phase 34 human-UAT — 3 consolidated checklists (context-menu/create/rename, archive+undo, drag-to-reorder/reparent) in 34-VERIFICATION.md not yet walked through | human_needed |
+
 ### v5 Risks Carried Into Phase 27
 
 - Legacy `/api/shipments` and `/api/capacity` appear unauthenticated and accept caller-supplied `user_id`.
@@ -106,4 +116,4 @@ Resume file: .planning/phases/34-drag-to-reorder-reparent-create-rename-archive-
 
 ## Operator Next Steps
 
-- Plan Phase 31 with `/gsd:plan-phase 31` (consider `--research-phase` given the flagged ancestor-index decision).
+- Start the next milestone with /gsd-new-milestone
