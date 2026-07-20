@@ -1,10 +1,11 @@
 ---
 phase: 33
 slug: tree-based-sidebar-ui-read-navigate
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-20
+reviewed_at: 2026-07-20
 ---
 
 # Phase 33 — UI Design Contract
@@ -66,6 +67,8 @@ Declared weights (exactly 2, scoped to this phase's new UI): **400 regular** (de
 | Destructive | `red-600` | Not used this phase (read-only, no destructive actions) — reserved token for Phase 34 |
 
 Accent reserved for: active tree-row highlight, breadcrumb link hover state, chevron hover tint. Never applied to resting-state tree icons, section headings, or body text.
+
+**Focal point:** the active tree row's accent background+text is the primary visual anchor within the sidebar — it is the only accent-colored surface at rest, so the eye lands there first when scanning the tree for "where am I."
 
 ---
 
