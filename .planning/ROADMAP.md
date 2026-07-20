@@ -123,8 +123,8 @@ Plans:
 
 Plans:
 - [x] 33.1-PLAN.md — Tree data layer: getFullTree/useFullTree, pruneTree/treeNodeUrl, useExpandedTreeNodes
-- [ ] 33.2-PLAN.md — Recursive TreeNodeRow/TreeSection components wired into WorkspaceSidebar
-- [ ] 33.3-PLAN.md — Breadcrumbs component (findPath DFS over cached tree)
+- [x] 33.2-PLAN.md — Recursive TreeNodeRow/TreeSection components wired into WorkspaceSidebar
+- [x] 33.3-PLAN.md — Breadcrumbs component (findPath DFS over cached tree)
 - [ ] 33.4-PLAN.md — Wire Breadcrumbs into project/page/record detail pages
 
 ### Phase 34: Drag-to-Reorder/Reparent + Create/Rename/Archive Flows
@@ -162,7 +162,7 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 30. Workflow MVP Persistence & Manual Trigger | v5.0 | 1/1 | Complete | 2026-07-15 |
 | 31. Data Model + Modernize Folders Domain | v6.0 | 6/6 | Complete   | 2026-07-17 |
 | 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 5/5 | Complete   | 2026-07-19 |
-| 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 1/4 | In Progress|  |
+| 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 3/4 | In Progress|  |
 | 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 0/TBD | Not started | - |
 
 ---
