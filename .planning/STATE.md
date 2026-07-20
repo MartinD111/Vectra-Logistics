@@ -4,8 +4,8 @@ milestone: v6.0
 milestone_name: Unified Workspace Hierarchy
 status: executing
 stopped_at: Phase 33 UI-SPEC approved
-last_updated: "2026-07-20T08:45:07.740Z"
-last_activity: 2026-07-20 -- Phase 33 planning complete
+last_updated: "2026-07-20T08:51:20.942Z"
+last_activity: 2026-07-20 -- Phase 33 execution started
 progress:
   total_phases: 4
   completed_phases: 2
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Dispatchers must never be able to assign a load to a client who is over their credit limit or has a bad payment history - the risk semaphore is a hard, visible block, not a suggestion.
-**Current focus:** Phase 32 — aggregated-tree-read-api-reorder-move-endpoints
+**Current focus:** Phase 33 — tree-based-sidebar-ui-read-navigate
 
 ## Current Position
 
-Phase: 32 (aggregated-tree-read-api-reorder-move-endpoints) — EXECUTING
-Plan: 1 of 5
-Status: Ready to execute
-Last activity: 2026-07-20 -- Phase 33 planning complete
+Phase: 33 (tree-based-sidebar-ui-read-navigate) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 33
+Last activity: 2026-07-20 -- Phase 33 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
