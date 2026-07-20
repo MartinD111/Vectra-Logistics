@@ -68,7 +68,7 @@ Milestone audit: [milestones/v5.0-MILESTONE-AUDIT.md](milestones/v5.0-MILESTONE-
  (completed 2026-07-19)
 
 - [x] **Phase 33: Tree-Based Sidebar UI (Read + Navigate)** - Replace the flat `ITEMS` list with a real expand/collapse tree, per-user persisted expand state, depth-aware module visibility, and live-tree breadcrumbs. (completed 2026-07-20)
-- [ ] **Phase 34: Drag-to-Reorder/Reparent + Create/Rename/Archive Flows** - Drag-and-drop reorder/reparent, context-menu create, inline rename, and archive-with-descendant-count flows.
+- [x] **Phase 34: Drag-to-Reorder/Reparent + Create/Rename/Archive Flows** - Drag-and-drop reorder/reparent, context-menu create, inline rename, and archive-with-descendant-count flows. (completed 2026-07-20)
 
 ## Phase Details
 
@@ -174,7 +174,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 34-06-PLAN.md — Wire drag-to-reorder/reparent (dnd-kit) + illegal-drop error surfacing into TreeNodeRow/TreeSection
+- [x] 34-06-PLAN.md — Wire drag-to-reorder/reparent (dnd-kit) + illegal-drop error surfacing into TreeNodeRow/TreeSection
 
 ## Progress
 
@@ -196,7 +196,7 @@ Phases execute in numeric order: 31 → 32 → 33 → 34
 | 31. Data Model + Modernize Folders Domain | v6.0 | 6/6 | Complete   | 2026-07-17 |
 | 32. Aggregated Tree Read API + Reorder/Move Endpoints | v6.0 | 5/5 | Complete   | 2026-07-19 |
 | 33. Tree-Based Sidebar UI (Read + Navigate) | v6.0 | 4/4 | Complete    | 2026-07-20 |
-| 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 5/6 | In Progress|  |
+| 34. Drag-to-Reorder/Reparent + Create/Rename/Archive Flows | v6.0 | 6/6 | Complete   | 2026-07-20 |
 
 ---
 *Roadmap updated: 2026-07-20 — Phase 34 planned (6 plans, 4 waves). Next: `/gsd:execute-phase 34`.*
