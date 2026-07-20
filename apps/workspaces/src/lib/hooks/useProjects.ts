@@ -106,6 +106,7 @@ export function useUpdateProject(id: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: qk.project(id) });
       qc.invalidateQueries({ queryKey: qk.projects });
+      qc.invalidateQueries({ queryKey: qk.fullTree });
     },
   });
 }
@@ -114,7 +115,10 @@ export function useCreateProject() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: projectsApi.create,
-    onSuccess: () => qc.invalidateQueries({ queryKey: qk.projects }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.projects });
+      qc.invalidateQueries({ queryKey: qk.fullTree });
+    },
   });
 }
 
