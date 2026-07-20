@@ -3,7 +3,7 @@ phase: 34-drag-to-reorder-reparent-create-rename-archive-flows
 plan: 05
 subsystem: workspace-tree
 tags: [archive, undo, tree-section, react-query]
-status: checkpoint-pending
+status: complete
 dependency-graph:
   requires: ["34-03", "34-04"]
   provides: ["archive-confirm-flow-mounted", "archive-undo-toast-mounted"]
@@ -19,7 +19,7 @@ key-files:
     - apps/workspaces/src/components/tree/TreeSection.tsx
 decisions: []
 metrics:
-  duration: "~15m (Task 1 only; Task 2 is a human-verify checkpoint, not yet executed)"
+  duration: "~15m"
   completed: 2026-07-20
 ---
 
@@ -36,7 +36,7 @@ Mounted `ArchiveConfirmDialog` and `TreeUndoToast` (both built in 34-03) into `T
 - Rendered `{archiveTarget && <ArchiveConfirmDialog ... />}` after the root node-list render block. `onArchived(node, totalDescendants)` sets `undoTarget` only when `totalDescendants === 0`; the dialog's own `onClose` handles clearing `archiveTarget` (dialog already calls `onClose()` internally before `onArchived` per its 34-03 contract, so this component does not double-clear `archiveTarget`).
 - Rendered `{undoTarget && <TreeUndoToast ... />}` with a `handleUndo` function that dispatches `unarchiveFolder.mutate(undoTarget.id)` for `node_type === 'folder'` or `unarchiveProject.mutate(undoTarget.id)` for `node_type === 'project'`, then immediately calls `setUndoTarget(null)` — the mutation's own `onSuccess` handler (from `useFolders.ts`/`useProjects.ts`, built in prior plans) invalidates the full-tree query independently, so the toast dismiss timing does not need to wait on the mutation.
 
-**Task 2 (checkpoint — not yet executed):** Manual click-through verification of the archive confirm dialog, descendant-count breakdown, immediate disappearance from the tree, and the zero-descendant Undo toast round-trip. This requires a running app and human interaction; it has not been performed by this executor.
+**Task 2 (checkpoint — recorded for end-of-phase verification, not executed by this executor):** Manual click-through verification of the archive confirm dialog, descendant-count breakdown, immediate disappearance from the tree, and the zero-descendant Undo toast round-trip. Per project config, `workflow.human_verify_mode` has no override, so the default (end-of-phase) applies — this checkpoint does not block plan completion; it is deferred to phase-level verification/UAT. See "Human Verification Needed" below for the exact steps.
 
 ## Verification
 
@@ -50,9 +50,20 @@ Mounted `ArchiveConfirmDialog` and `TreeUndoToast` (both built in 34-03) into `T
 
 None — Task 1 executed exactly as written.
 
-## Checkpoint Reached
+## Human Verification Needed
 
-Task 2 is `type="checkpoint:human-verify"` with `gate="blocking"`. Per the standard (non-auto-mode) checkpoint protocol — `workflow.auto_advance` is `false` and `_auto_chain_active` is `false` in `.planning/config.json` — this executor stopped before performing any manual verification and did not guess at approval. A human (or a follow-up agent with the checkpoint's `how-to-verify` steps) must run the app and walk through the 5-step manual verification listed in the plan (folder-with-descendants archive → breakdown accuracy → immediate disappearance; leaf-project archive → Undo toast → Undo restores the row; folder-with-descendants archive → no Undo toast).
+Task 2 is `type="checkpoint:human-verify"` with `gate="blocking"`. Project config has no `workflow.human_verify_mode` override, so the default (end-of-phase) applies — consistent with plan 34-04's checkpoint handling. This executor did not perform the manual click-through and does not block plan completion on it; the checkpoint is recorded here for surfacing during phase-level verification/UAT.
+
+**What was built:** Archive confirmation dialog with per-type descendant-count breakdown, wired to the folder/project Archive menu action; zero-descendant Undo toast, mounted in `TreeSection.tsx` against the `archiveTarget`/`undoTarget` state.
+
+**How to verify (full steps from the plan's checkpoint task):**
+1. Right-click a folder with known children (some projects/programs nested under it) → Archive — confirm the dialog shows a per-type breakdown matching the actual tree contents (e.g. "This will also archive 2 projects, 3 pages.") with zero-count types omitted.
+2. Confirm the archive — confirm the folder and its listed descendants disappear from the default tree view immediately (no manual refresh needed).
+3. Right-click a leaf project with no children → Archive → confirm — confirm the dialog shows "This folder/project has no contents and will be archived." and, after confirming, an Undo toast appears bottom-right.
+4. Click Undo on that toast — confirm the project reappears in the tree.
+5. Repeat steps 1-2 for a folder WITH descendants — confirm no Undo toast appears after confirming.
+
+**Resume signal (for the phase-level verification pass):** "approved" or a description of issues found.
 
 ## Self-Check: PASSED
 
