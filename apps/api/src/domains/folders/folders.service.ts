@@ -90,26 +90,51 @@ class FoldersService {
       ancestorIds = [...parent.ancestor_ids, parent.id];
     }
 
-    const updated = await foldersRepository.moveFolder(id, parentId, ancestorIds);
-    if (!updated) throw new AppError(404, 'Folder not found');
+    // Descendant depth must be re-validated here, not just the moved folder's
+    // own depth above: the DB trigger only fires on parent_id updates, never
+    // on the ancestor_ids-only rewrite patchDescendantAncestors performs
+    // below, so a descendant could otherwise be silently pushed past
+    // MAX_FOLDER_DEPTH.
+    const descendantIds = (await foldersRepository.descendantFolderIds(tenantId, id))
+      .filter((descendantId) => descendantId !== id);
 
-    const descendantIds = await foldersRepository.descendantFolderIds(tenantId, id);
-    const hasDescendants = descendantIds.some((descendantId) => descendantId !== id);
-    if (hasDescendants) {
-      const client = await db.connect();
-      try {
-        await client.query('BEGIN');
-        await foldersRepository.patchDescendantAncestors(client, id, folder.ancestor_ids, ancestorIds, tenantId);
-        await client.query('COMMIT');
-      } catch (error) {
-        await client.query('ROLLBACK');
-        throw error;
-      } finally {
-        client.release();
+    if (descendantIds.length > 0) {
+      const descendantFolders = await foldersRepository.findFoldersByIds(tenantId, descendantIds);
+      const newOwnDepth = ancestorIds.length + 1;
+      const maxDescendantRelDepth = descendantFolders.reduce(
+        (max, d) => Math.max(max, d.ancestor_ids.length - folder.ancestor_ids.length),
+        0,
+      );
+      if (newOwnDepth + maxDescendantRelDepth > MAX_FOLDER_DEPTH) {
+        throw new AppError(400, 'Folder nesting cannot exceed depth 3');
       }
     }
 
-    return updated;
+    // A leaf folder (no descendants) has nothing to coordinate atomically —
+    // move it directly on the ambient pool, same as before.
+    if (descendantIds.length === 0) {
+      const updated = await foldersRepository.moveFolder(id, parentId, ancestorIds);
+      if (!updated) throw new AppError(404, 'Folder not found');
+      return updated;
+    }
+
+    // The folder's own row and its descendants' ancestor_ids must commit
+    // atomically — a mid-cascade failure must not leave descendants with
+    // stale ancestor_ids while the folder itself has already moved.
+    const client = await db.connect();
+    try {
+      await client.query('BEGIN');
+      const updated = await foldersRepository.moveFolderTx(client, id, parentId, ancestorIds);
+      if (!updated) throw new AppError(404, 'Folder not found');
+      await foldersRepository.patchDescendantAncestors(client, id, folder.ancestor_ids, ancestorIds, tenantId);
+      await client.query('COMMIT');
+      return updated;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   // TREEAPI-03: capability-gated node reparent — dispatches by node_type (and

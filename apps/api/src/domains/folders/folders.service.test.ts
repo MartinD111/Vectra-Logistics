@@ -128,6 +128,92 @@ test('moveFolder rejects when the resulting depth exceeds 3', async () => {
   assert.equal(moveMock.mock.calls.length, 0);
 });
 
+const GRANDCHILD_ID = '66666666-6666-4666-8666-666666666666';
+
+test('moveFolder rejects a subtree move that would push a descendant past depth 3, without writing anything', async () => {
+  // FOLDER_ID is currently at depth 1 (ancestor_ids: []) with a grandchild
+  // three levels below it (ancestor_ids: [FOLDER_ID, 'child']) — i.e. the
+  // grandchild is already at depth 3, the max allowed. Moving FOLDER_ID
+  // under PARENT_ID (itself at depth 1) would push FOLDER_ID to depth 2 and
+  // the grandchild to depth 4, exceeding MAX_FOLDER_DEPTH even though
+  // FOLDER_ID's own resulting depth (2) is within bounds.
+  mock.method(foldersRepository, 'findFolderForCompany', async (id: string) => {
+    if (id === FOLDER_ID) return folder({ id: FOLDER_ID, ancestor_ids: [] });
+    if (id === PARENT_ID) return folder({ id: PARENT_ID, ancestor_ids: [ANCESTOR_A] });
+    return null;
+  });
+  mock.method(foldersRepository, 'descendantFolderIds', async () => [FOLDER_ID, 'child', GRANDCHILD_ID]);
+  mock.method(foldersRepository, 'findFoldersByIds', async () => [
+    folder({ id: 'child', ancestor_ids: [FOLDER_ID] }),
+    folder({ id: GRANDCHILD_ID, ancestor_ids: [FOLDER_ID, 'child'] }),
+  ]);
+  const moveMock = mock.method(foldersRepository, 'moveFolder', async () => folder());
+  const moveTxMock = mock.method(foldersRepository, 'moveFolderTx', async () => folder());
+  const connectMock = mock.method(db, 'connect', async () => fakeClient());
+
+  await assert.rejects(
+    foldersService.moveFolder(ctx(), FOLDER_ID, { parent_id: PARENT_ID }),
+    (error: unknown) => error instanceof Error
+      && (error as { status?: number }).status === 400
+      && /depth/.test(error.message),
+  );
+  assert.equal(moveMock.mock.calls.length, 0);
+  assert.equal(moveTxMock.mock.calls.length, 0);
+  assert.equal(connectMock.mock.calls.length, 0);
+});
+
+test('moveFolder with descendants commits the own-row move and the descendant ancestor_ids patch in a single transaction', async () => {
+  mock.method(foldersRepository, 'findFolderForCompany', async (id: string) => {
+    if (id === FOLDER_ID) return folder({ id: FOLDER_ID, ancestor_ids: [] });
+    if (id === PARENT_ID) return folder({ id: PARENT_ID, ancestor_ids: [] });
+    return null;
+  });
+  mock.method(foldersRepository, 'descendantFolderIds', async () => [FOLDER_ID, 'child']);
+  mock.method(foldersRepository, 'findFoldersByIds', async () => [
+    folder({ id: 'child', ancestor_ids: [FOLDER_ID] }),
+  ]);
+  const client = fakeClient();
+  const connectMock = mock.method(db, 'connect', async () => client);
+  const moveTxMock = mock.method(foldersRepository, 'moveFolderTx', async () => folder({ id: FOLDER_ID, parent_id: PARENT_ID }));
+  const patchMock = mock.method(foldersRepository, 'patchDescendantAncestors', async () => {});
+
+  await foldersService.moveFolder(ctx(), FOLDER_ID, { parent_id: PARENT_ID });
+
+  assert.equal(connectMock.mock.calls.length, 1);
+  assert.equal(moveTxMock.mock.calls.length, 1);
+  assert.equal(moveTxMock.mock.calls[0].arguments[0], client);
+  assert.equal(patchMock.mock.calls.length, 1);
+  assert.equal(patchMock.mock.calls[0].arguments[0], client);
+  const queryCalls = client.query.mock.calls.map((c) => c.arguments[0]);
+  assert.deepEqual(queryCalls, ['BEGIN', 'COMMIT']);
+});
+
+test('moveFolder rolls back the transaction when the descendant ancestor_ids patch fails', async () => {
+  mock.method(foldersRepository, 'findFolderForCompany', async (id: string) => {
+    if (id === FOLDER_ID) return folder({ id: FOLDER_ID, ancestor_ids: [] });
+    if (id === PARENT_ID) return folder({ id: PARENT_ID, ancestor_ids: [] });
+    return null;
+  });
+  mock.method(foldersRepository, 'descendantFolderIds', async () => [FOLDER_ID, 'child']);
+  mock.method(foldersRepository, 'findFoldersByIds', async () => [
+    folder({ id: 'child', ancestor_ids: [FOLDER_ID] }),
+  ]);
+  const client = fakeClient();
+  mock.method(db, 'connect', async () => client);
+  mock.method(foldersRepository, 'moveFolderTx', async () => folder({ id: FOLDER_ID, parent_id: PARENT_ID }));
+  mock.method(foldersRepository, 'patchDescendantAncestors', async () => {
+    throw new Error('boom');
+  });
+
+  await assert.rejects(
+    foldersService.moveFolder(ctx(), FOLDER_ID, { parent_id: PARENT_ID }),
+    /boom/,
+  );
+
+  const queryCalls = client.query.mock.calls.map((c) => c.arguments[0]);
+  assert.equal(queryCalls[queryCalls.length - 1], 'ROLLBACK');
+});
+
 test('listFolderTree and getFolder do not call assertCapability (reads stay capability-free)', async () => {
   mock.method(foldersRepository, 'listFolders', async () => []);
   mock.method(foldersRepository, 'findFolderForCompany', async () => folder());

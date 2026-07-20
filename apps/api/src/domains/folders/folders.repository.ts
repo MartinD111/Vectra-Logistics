@@ -78,6 +78,19 @@ class FoldersRepository {
     return rows[0] ?? null;
   }
 
+  // Transactional counterpart of moveFolder — used when the folder's own row
+  // and its descendants' ancestor_ids must commit atomically (see
+  // FoldersService.moveFolder).
+  async moveFolderTx(
+    client: PoolClient, id: string, parentId: string | null, ancestorIds: string[],
+  ): Promise<Folder | null> {
+    const { rows } = await client.query<Folder>(
+      `UPDATE folders SET parent_id = $2, ancestor_ids = $3, updated_at = NOW() WHERE id = $1 RETURNING *`,
+      [id, parentId, ancestorIds],
+    );
+    return rows[0] ?? null;
+  }
+
   // ── Sibling reorder (TREEAPI-02, lock-safe) ──────────────────────────────────
 
   async reorderFolders(
