@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Unified Workspace Hierarchy
 status: executing
-stopped_at: Phase 31 context gathered
-last_updated: "2026-07-19T10:07:45.065Z"
+stopped_at: Phase 33 context gathered
+last_updated: "2026-07-20T07:56:57.328Z"
 last_activity: 2026-07-19 -- Phase 32 execution started
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 11
-  completed_plans: 6
-  percent: 25
+  completed_plans: 11
+  percent: 50
 ---
 
 # Project State
@@ -100,9 +100,9 @@ Items acknowledged and deferred at v4.0 close on 2026-07-15:
 
 ## Session Continuity
 
-Last session: 2026-07-16T12:41:28.503Z
-Stopped at: Phase 31 context gathered
-Resume file: .planning/phases/31-data-model-modernize-folders-domain/31-CONTEXT.md
+Last session: 2026-07-20T07:56:57.318Z
+Stopped at: Phase 33 context gathered
+Resume file: .planning/phases/33-tree-based-sidebar-ui-read-navigate/33-CONTEXT.md
 
 ## Operator Next Steps
 
