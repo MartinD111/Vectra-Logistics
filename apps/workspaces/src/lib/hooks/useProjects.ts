@@ -11,6 +11,10 @@ const qk = {
   programs: (projectId?: string) => ['programs', projectId ?? 'all'] as const,
   activity: (id: string) => ['projects', id, 'activity'] as const,
   calendar: (id: string) => ['projects', id, 'calendar'] as const,
+  // Matches useFolders.ts's qk.fullTree literal exactly — projects also
+  // drive the tree sidebar via useFullTree(), so project archive/unarchive
+  // mutations must invalidate the same cached full-tree query.
+  fullTree: ['folders', 'tree', 'full'] as const,
 };
 
 export function useProjectActivity(id: string, limit = 20) {
@@ -131,5 +135,27 @@ export function useDeleteProject() {
   return useMutation({
     mutationFn: projectsApi.remove,
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.projects }),
+  });
+}
+
+export function useArchiveProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: projectsApi.archive,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.projects });
+      qc.invalidateQueries({ queryKey: qk.fullTree });
+    },
+  });
+}
+
+export function useUnarchiveProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: projectsApi.unarchive,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.projects });
+      qc.invalidateQueries({ queryKey: qk.fullTree });
+    },
   });
 }

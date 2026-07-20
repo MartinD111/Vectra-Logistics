@@ -31,6 +31,7 @@ export function useFullTree() {
 
 function invalidateFolderAffectedQueries(qc: ReturnType<typeof useQueryClient>) {
   qc.invalidateQueries({ queryKey: qk.folders });
+  qc.invalidateQueries({ queryKey: qk.fullTree });
   qc.invalidateQueries({ queryKey: ['projects'] });
   qc.invalidateQueries({ queryKey: ['programs'] });
 }
@@ -64,6 +65,38 @@ export function useDeleteFolder() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: foldersApi.remove,
+    onSuccess: () => invalidateFolderAffectedQueries(qc),
+  });
+}
+
+export function useArchiveFolder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: foldersApi.archive,
+    onSuccess: () => invalidateFolderAffectedQueries(qc),
+  });
+}
+
+export function useUnarchiveFolder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: foldersApi.unarchive,
+    onSuccess: () => invalidateFolderAffectedQueries(qc),
+  });
+}
+
+export function useReorderTree() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: foldersApi.reorder,
+    onSuccess: () => invalidateFolderAffectedQueries(qc),
+  });
+}
+
+export function useMoveTreeNode() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: foldersApi.moveNode,
     onSuccess: () => invalidateFolderAffectedQueries(qc),
   });
 }
