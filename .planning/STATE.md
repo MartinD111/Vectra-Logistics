@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: Unified Workspace Hierarchy
-status: ready_to_plan
-stopped_at: Phase 33 complete (4/4) — ready to discuss Phase 34
-last_updated: 2026-07-20T09:41:56.654Z
-last_activity: 2026-07-20 -- Phase 33 execution started
+status: planning
+stopped_at: Phase 34 context gathered
+last_updated: "2026-07-20T12:29:02.656Z"
+last_activity: 2026-07-20
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 15
   completed_plans: 15
-  percent: 50
+  percent: 75
 ---
 
 # Project State
@@ -100,9 +100,9 @@ Items acknowledged and deferred at v4.0 close on 2026-07-15:
 
 ## Session Continuity
 
-Last session: 2026-07-20T08:23:56.959Z
-Stopped at: Phase 33 UI-SPEC approved
-Resume file: .planning/phases/33-tree-based-sidebar-ui-read-navigate/33-UI-SPEC.md
+Last session: 2026-07-20T12:29:02.644Z
+Stopped at: Phase 34 context gathered
+Resume file: .planning/phases/34-drag-to-reorder-reparent-create-rename-archive-flows/34-CONTEXT.md
 
 ## Operator Next Steps
 
