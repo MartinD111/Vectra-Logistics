@@ -6,6 +6,7 @@ import { foldersApi } from '@/lib/api/folders.api';
 
 const qk = {
   folders: ['folders'] as const,
+  fullTree: ['folders', 'tree', 'full'] as const,
 };
 
 export function useFolderTree() {
@@ -13,6 +14,16 @@ export function useFolderTree() {
   return useQuery({
     queryKey: qk.folders,
     queryFn: foldersApi.tree,
+    enabled: !!user?.company_id,
+    staleTime: 1000 * 60,
+  });
+}
+
+export function useFullTree() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: qk.fullTree,
+    queryFn: foldersApi.getFullTree,
     enabled: !!user?.company_id,
     staleTime: 1000 * 60,
   });

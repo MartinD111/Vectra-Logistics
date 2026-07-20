@@ -16,6 +16,19 @@ export interface FolderTree extends Folder {
   children: FolderTree[];
 }
 
+// Discriminated-union-shaped node returned by the aggregated tree read
+// endpoint (GET /folders/tree/full, Phase 32/TREEAPI-01). `raw` is kept as
+// `Record<string, unknown>` on the client — call sites narrow it per
+// node_type as needed rather than importing backend row types.
+export interface TreeNode {
+  node_type: 'folder' | 'project' | 'program' | 'data_collection' | 'project_page';
+  id: string;
+  company_id: string;
+  name: string;
+  children: TreeNode[];
+  raw: Record<string, unknown>;
+}
+
 const BASE = '/api/v1/folders';
 
 export const foldersApi = {
@@ -28,4 +41,5 @@ export const foldersApi = {
   move: (id: string, parentId: string | null) =>
     apiFetch<{ folder: Folder }>(`${BASE}/${id}/move`, 'PATCH', { parent_id: parentId }).then((r) => r.folder),
   remove: (id: string) => apiFetch<void>(`${BASE}/${id}`, 'DELETE'),
+  getFullTree: () => apiFetch<{ tree: TreeNode[] }>(`${BASE}/tree/full`).then((r) => r.tree),
 };
